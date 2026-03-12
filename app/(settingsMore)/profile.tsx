@@ -82,8 +82,12 @@ export default function Profile() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-gray-50">
-            <ScrollView showsVerticalScrollIndicator={false}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#1a361d" }} edges={["top"]}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                style={{ backgroundColor: "#f9fafb" }}
+                contentContainerStyle={{ backgroundColor: "#f9fafb", paddingBottom: 40 }}
+            >
 
                 {/* Header Gradient */}
                 <LinearGradient
