@@ -430,44 +430,89 @@ export default function Home() {
 
           {expenses.length > 0 ? (
             <View className="mb-8">
-              {expenses.slice(0, 3).map((item: any, index: number) => {
+              {expenses.slice(0, 5).map((item: any, index: number) => {
                 const styles = getCategoryStyles(item.category);
                 return (
                   <TouchableOpacity
                     key={item.id}
                     onPress={() => openTransactionDetails(item)}
-                    activeOpacity={0.7}
-                    className="bg-white p-5 rounded-[32px] shadow-sm border border-gray-100 mb-4 flex-row justify-between items-center"
+                    activeOpacity={0.85}
+                    style={{
+                      backgroundColor: "white",
+                      borderRadius: 24,
+                      padding: 16,
+                      marginBottom: 12,
+                      borderWidth: 1,
+                      borderColor: "#f0f0f0",
+                      elevation: 2,
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.06,
+                      shadowRadius: 8,
+                      flexDirection: "row",
+                      alignItems: "center",
+                    }}
                   >
-                    <View className="flex-row items-center flex-1">
-                      <View className={`${styles.bg} w-14 h-14 rounded-[22px] items-center justify-center mr-4 shadow-sm shadow-gray-200`}>
-                        <Ionicons name={styles.icon as any} size={24} color={styles.color} />
-                      </View>
-                      <View>
-                        <Text className="font-black text-gray-800 text-base mb-0.5">{item.category}</Text>
-                        <View className="flex-row items-center">
-                          <Ionicons name="time-outline" size={12} color="#9ca3af" className="mr-1" />
-                          <Text className="text-xs text-gray-400 font-bold uppercase tracking-widest">
-                            {item.createdAt ? item.createdAt.toDate().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : "Just Now"}
+                    {/* Category Icon */}
+                    <View style={{
+                      width: 52, height: 52, borderRadius: 18,
+                      alignItems: "center", justifyContent: "center",
+                      marginRight: 14, backgroundColor: styles.bg.replace("bg-", "")
+                    }}
+                      className={styles.bg}
+                    >
+                      <Ionicons name={styles.icon as any} size={22} color={styles.color} />
+                    </View>
+
+                    {/* Middle Info */}
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontWeight: "800", color: "#1f2937", fontSize: 14, marginBottom: 2 }} numberOfLines={1}>
+                        {item.name || item.category || "Payment"}
+                      </Text>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                        <View style={{ backgroundColor: "#f3f4f6", paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8 }}>
+                          <Text style={{ color: "#6b7280", fontSize: 9, fontWeight: "800", textTransform: "uppercase" }}>
+                            {item.category || "General"}
                           </Text>
                         </View>
+                        {item.paymentMethod ? (
+                          <View style={{ backgroundColor: "#f0fdf4", paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8 }}>
+                            <Text style={{ color: "#2f5d34", fontSize: 9, fontWeight: "800", textTransform: "uppercase" }}>
+                              {item.paymentMethod}
+                            </Text>
+                          </View>
+                        ) : null}
                       </View>
+                      <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "600", marginTop: 3 }}>
+                        {item.createdAt ? item.createdAt.toDate().toLocaleDateString("en-IN", { day: "numeric", month: "short" }) + " • " + item.createdAt.toDate().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) : "Just Now"}
+                      </Text>
                     </View>
-                    <Text className="font-black text-gray-900 text-xl">
-                      -₹{item.amount.toLocaleString()}
-                    </Text>
+
+                    {/* Amount */}
+                    <View style={{ alignItems: "flex-end" }}>
+                      <Text style={{ fontWeight: "900", color: "#ef4444", fontSize: 17 }}>
+                        -₹{Number(item.amount).toLocaleString("en-IN")}
+                      </Text>
+                      <Ionicons name="chevron-forward" size={12} color="#d1d5db" style={{ marginTop: 4 }} />
+                    </View>
                   </TouchableOpacity>
                 );
               })}
+              <TouchableOpacity
+                onPress={() => router.push("/(tabs)/expensetrack")}
+                style={{ alignItems: "center", paddingVertical: 12, backgroundColor: "#f0fdf4", borderRadius: 18, borderWidth: 1, borderColor: "#dcfce7" }}
+              >
+                <Text style={{ color: "#2f5d34", fontWeight: "800", fontSize: 13, letterSpacing: 0.5 }}>View All Transactions →</Text>
+              </TouchableOpacity>
             </View>
           ) : (
-            <View className="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100 mb-8 items-center border-dashed">
-              <View className="bg-gray-50 w-16 h-16 rounded-full items-center justify-center mb-3">
+            <View style={{ backgroundColor: "white", padding: 32, borderRadius: 32, borderWidth: 1.5, borderColor: "#e5e7eb", borderStyle: "dashed", marginBottom: 32, alignItems: "center" }}>
+              <View style={{ backgroundColor: "#f9fafb", width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
                 <Ionicons name="wallet-outline" size={32} color="#cbd5e1" />
               </View>
-              <Text className="text-gray-400 mb-4 font-semibold">No transactions yet.</Text>
-              <TouchableOpacity onPress={() => router.push("/(tabs)/expensetrack")} className="bg-[#2f5d34] px-6 py-3 rounded-full">
-                <Text className="text-white font-bold">Add One Now</Text>
+              <Text style={{ color: "#9ca3af", fontWeight: "600", marginBottom: 16, fontSize: 14 }}>No transactions yet</Text>
+              <TouchableOpacity onPress={() => router.push("/(settingsMore)/addexpensive")} style={{ backgroundColor: "#2f5d34", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 20 }}>
+                <Text style={{ color: "white", fontWeight: "800", fontSize: 13 }}>+ Add First Expense</Text>
               </TouchableOpacity>
             </View>
           )}

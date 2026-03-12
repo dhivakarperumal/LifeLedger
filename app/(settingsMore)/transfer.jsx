@@ -266,39 +266,60 @@ export default function TransferScreen() {
                 <FlatList
                     data={filteredTransferList}
                     keyExtractor={(item) => item.id}
+                    numColumns={2}
+                    columnWrapperStyle={{ justifyContent: "space-between" }}
                     contentContainerStyle={{ paddingBottom: 100 }}
                     ListEmptyComponent={
-                        <View style={{ alignItems: "center", marginTop: 40 }}>
-                            <Ionicons name="search-outline" size={48} color="#cbd5e1" />
-                            <Text style={{ color: "#9ca3af", fontWeight: "700", marginTop: 12 }}>No matching transfers found</Text>
+                        <View style={{ alignItems: "center", marginTop: 60 }}>
+                            <Ionicons name="swap-horizontal-outline" size={56} color="#e5e7eb" />
+                            <Text style={{ color: "#9ca3af", fontWeight: "700", marginTop: 16, fontSize: 15 }}>No transfers yet</Text>
+                            <Text style={{ color: "#d1d5db", fontSize: 12, marginTop: 4 }}>Tap + to add your first transfer</Text>
                         </View>
                     }
                     renderItem={({ item }) => (
                         <TouchableOpacity
                             activeOpacity={0.88}
                             style={{
-                                backgroundColor: "white", padding: 16, borderRadius: 24,
-                                marginBottom: 12, borderWidth: 1, borderColor: "#f0f0f0",
-                                elevation: 1.5, shadowColor: "#000",
-                                shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 6
+                                width: "48.5%",
+                                backgroundColor: "white",
+                                padding: 14,
+                                borderRadius: 22,
+                                marginBottom: 14,
+                                borderWidth: 1,
+                                borderColor: "#f0f0f0",
+                                elevation: 2,
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.07,
+                                shadowRadius: 8,
+                                minHeight: 140,
+                                justifyContent: "space-between",
                             }}
                         >
-                            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                            {/* Top: Icon */}
+                            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                                 <View style={{ backgroundColor: "#f0fdf4", padding: 8, borderRadius: 12 }}>
-                                    <Ionicons name="swap-horizontal" size={16} color="#2f5d34" />
+                                    <Ionicons name="swap-horizontal" size={18} color="#2f5d34" />
                                 </View>
-                                <Text style={{ color: "#2f5d34", fontWeight: "900", fontSize: 16 }}>
-                                    ₹{item.amount}
-                                </Text>
+                                <View style={{ backgroundColor: "#fef9c3", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 }}>
+                                    <Text style={{ color: "#92400e", fontSize: 8, fontWeight: "800", textTransform: "uppercase" }}>Transfer</Text>
+                                </View>
                             </View>
 
-                            <Text style={{ color: "#1f2937", fontWeight: "800", fontSize: 14 }}>
+                            {/* Name */}
+                            <Text style={{ color: "#1f2937", fontWeight: "800", fontSize: 13, lineHeight: 18, marginBottom: 8 }} numberOfLines={2}>
                                 {item.name}
                             </Text>
 
-                            <View style={{ marginTop: 10, paddingTop: 8, borderTopWidth: 1, borderTopColor: "#f9fafb", flexDirection: "row", alignItems: "center" }}>
+                            {/* Amount */}
+                            <Text style={{ color: "#2f5d34", fontWeight: "900", fontSize: 18, marginBottom: 8 }}>
+                                ₹{Number(item.amount).toLocaleString("en-IN")}
+                            </Text>
+
+                            {/* Date Footer */}
+                            <View style={{ paddingTop: 8, borderTopWidth: 1, borderTopColor: "#f3f4f6", flexDirection: "row", alignItems: "center" }}>
                                 <Ionicons name="time-outline" size={10} color="#9ca3af" style={{ marginRight: 4 }} />
-                                <Text style={{ color: "#9ca3af", fontSize: 9, fontWeight: "600" }}>
+                                <Text style={{ color: "#9ca3af", fontSize: 9, fontWeight: "600", flex: 1 }} numberOfLines={1}>
                                     {formatDate(item.createdAt)}
                                 </Text>
                             </View>

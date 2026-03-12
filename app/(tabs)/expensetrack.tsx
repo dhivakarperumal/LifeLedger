@@ -584,12 +584,14 @@ export default function ExpenseTrack() {
           keyExtractor={(item) => item.id}
           keyboardDismissMode="on-drag"
           numColumns={2}
-          columnWrapperStyle={{ justifyContent: "space-between" }}
+          columnWrapperStyle={{ justifyContent: "space-between", paddingHorizontal: 0 }}
           contentContainerStyle={{ paddingBottom: 120, paddingTop: 4 }}
           ListEmptyComponent={
-            <Text className="text-center text-gray-500 mt-10">
-              No expenses added yet
-            </Text>
+            <View style={{ alignItems: "center", marginTop: 60 }}>
+              <Ionicons name="receipt-outline" size={56} color="#e5e7eb" />
+              <Text style={{ color: "#9ca3af", fontWeight: "700", marginTop: 16, fontSize: 15 }}>No expenses yet</Text>
+              <Text style={{ color: "#d1d5db", fontSize: 12, marginTop: 4 }}>Tap + to add your first expense</Text>
+            </View>
           }
           renderItem={({ item }) => {
             const catStyle = getCategoryStyles(item.category);
@@ -598,44 +600,61 @@ export default function ExpenseTrack() {
                 onPress={() => openViewModal(item)}
                 activeOpacity={0.88}
                 style={{
-                  width: "48%", marginBottom: 16, borderRadius: 24,
-                  backgroundColor: "white", padding: 16,
-                  borderWidth: 1, borderColor: "#f0f0f0",
-                  elevation: 2, shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8,
+                  width: "48.5%",
+                  marginBottom: 14,
+                  borderRadius: 22,
+                  backgroundColor: "white",
+                  padding: 14,
+                  borderWidth: 1,
+                  borderColor: "#f0f0f0",
+                  elevation: 2,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.07,
+                  shadowRadius: 8,
+                  minHeight: 150,
+                  justifyContent: "space-between",
                 }}
               >
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                {/* Top Row: Icon + Delete */}
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                   <View style={{ backgroundColor: catStyle.bg, padding: 8, borderRadius: 12 }}>
                     <Ionicons name={catStyle.icon as any} size={18} color={catStyle.color} />
                   </View>
                   <TouchableOpacity
                     onPress={() => confirmDelete(item)}
-                    style={{ backgroundColor: "#fef2f2", padding: 8, borderRadius: 10 }}
+                    style={{ backgroundColor: "#fef2f2", padding: 7, borderRadius: 10 }}
                   >
-                    <Ionicons name="trash" size={14} color="#ef4444" />
+                    <Ionicons name="trash" size={13} color="#ef4444" />
                   </TouchableOpacity>
                 </View>
 
-                <View style={{ marginBottom: 8 }}>
-                  <Text style={{ color: "#9ca3af", fontSize: 9, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1 }}>
+                {/* Category + Name */}
+                <View style={{ flex: 1, marginBottom: 8 }}>
+                  <Text style={{ color: "#9ca3af", fontSize: 9, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 3 }} numberOfLines={1}>
                     {item.category || "General"}
                   </Text>
-                  <Text style={{ color: "#1f2937", fontWeight: "800", fontSize: 13 }} numberOfLines={1}>
+                  <Text style={{ color: "#1f2937", fontWeight: "800", fontSize: 13, lineHeight: 17 }} numberOfLines={2}>
                     {item.name || "Payment"}
                   </Text>
                 </View>
 
-                <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: "auto" }}>
-                  <Text style={{ color: "#2f5d34", fontWeight: "900", fontSize: 18 }}>
-                    ₹{item.amount}
+                {/* Amount + Payment Badge */}
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <Text style={{ color: "#ef4444", fontWeight: "900", fontSize: 17 }}>
+                    ₹{Number(item.amount).toLocaleString("en-IN")}
                   </Text>
-                  <Ionicons name="chevron-forward" size={12} color="#9ca3af" />
+                  {item.paymentMethod ? (
+                    <View style={{ backgroundColor: "#f0fdf4", paddingHorizontal: 6, paddingVertical: 3, borderRadius: 8 }}>
+                      <Text style={{ color: "#2f5d34", fontSize: 8, fontWeight: "800" }}>{item.paymentMethod}</Text>
+                    </View>
+                  ) : null}
                 </View>
 
-                <View style={{ marginTop: 10, paddingTop: 8, borderTopWidth: 1, borderTopColor: "#f9fafb", flexDirection: "row", alignItems: "center" }}>
+                {/* Date Footer */}
+                <View style={{ paddingTop: 8, borderTopWidth: 1, borderTopColor: "#f3f4f6", flexDirection: "row", alignItems: "center" }}>
                   <Ionicons name="time-outline" size={10} color="#9ca3af" style={{ marginRight: 4 }} />
-                  <Text style={{ color: "#9ca3af", fontSize: 9, fontWeight: "600" }}>
+                  <Text style={{ color: "#9ca3af", fontSize: 9, fontWeight: "600", flex: 1 }} numberOfLines={1}>
                     {formatDateFull(item.expenseDate || item.createdAt)}
                   </Text>
                 </View>
