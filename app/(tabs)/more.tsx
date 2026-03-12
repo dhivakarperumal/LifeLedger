@@ -151,14 +151,7 @@ export default function More() {
             bg="#ecfeff"
           />
 
-          <MenuItem
-            icon="help-buoy-outline"
-            label="Support Center"
-            subLabel="Get help with your app"
-            route="/(settingsMore)/settings"
-            color="#374151"
-            bg="#f3f4f6"
-          />
+
 
           {/* Quick Logout */}
           <TouchableOpacity

@@ -44,7 +44,7 @@ export default function BackupExport() {
     const clientId = Platform.select({
         ios: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
         android: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-        default: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || "449656809142-placeholder.apps.googleusercontent.com",
+        default: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || "527504049187-5l8nb8rr27ger8jsd5d39086qm65k2oi.apps.googleusercontent.com",
     });
 
     const [request, response, promptAsync] = AuthSession.useAuthRequest(
@@ -61,6 +61,7 @@ export default function BackupExport() {
                 path: "backup"
             }),
             responseType: AuthSession.ResponseType.Token,
+            usePKCE: false,
         },
         googleDiscovery
     );

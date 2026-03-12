@@ -109,10 +109,11 @@ export default function DiaryMaintenance() {
 
   const [driveRequest, driveResponse, drivePromptAsync] = AuthSession.useAuthRequest(
     {
-      clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || "449656809142-placeholder.apps.googleusercontent.com",
+      clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || "527504049187-5l8nb8rr27ger8jsd5d39086qm65k2oi.apps.googleusercontent.com",
       scopes: ["https://www.googleapis.com/auth/drive.file", "profile", "email"],
       redirectUri: AuthSession.makeRedirectUri({ scheme: "myexpensiveapp", path: "diaries" }),
       responseType: AuthSession.ResponseType.Token,
+      usePKCE: false,
     },
     googleDiscovery
   );

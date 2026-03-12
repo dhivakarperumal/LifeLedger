@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { sendPasswordResetEmail, updateProfile } from "firebase/auth";
-import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { deleteUser, sendPasswordResetEmail, signOut, updateProfile } from "firebase/auth";
+import { collection, deleteDoc, doc, getDocs, onSnapshot, query, setDoc, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,6 +17,7 @@ export default function Profile() {
     const [phone, setPhone] = useState("");
     const [loading, setLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     useEffect(() => {
         if (!user) return;
@@ -75,6 +76,66 @@ export default function Profile() {
                         } catch (error: any) {
                             Alert.alert("Error", error.message);
                         }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleDeleteAccount = () => {
+        Alert.alert(
+            "⚠️ Delete Account",
+            "This will permanently delete your account and ALL your data (expenses, income, diary, transfers). This action cannot be undone.",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Yes, Delete Everything",
+                    style: "destructive",
+                    onPress: () => {
+                        Alert.alert(
+                            "Are you absolutely sure?",
+                            `You are about to delete the account for ${user?.email}. All data will be lost forever.`,
+                            [
+                                { text: "Go Back", style: "cancel" },
+                                {
+                                    text: "Delete My Account",
+                                    style: "destructive",
+                                    onPress: async () => {
+                                        if (!user) return;
+                                        setDeleteLoading(true);
+                                        try {
+                                            const uid = user.uid;
+                                            // Delete all user Firestore collections
+                                            const collectionsToDelete = ["expenses", "income", "transfers", "diaries", "memories", "reminders"];
+                                            for (const col of collectionsToDelete) {
+                                                const q = query(collection(db, col), where("userId", "==", uid));
+                                                const snap = await getDocs(q);
+                                                for (const d of snap.docs) {
+                                                    await deleteDoc(doc(db, col, d.id));
+                                                }
+                                            }
+                                            // Delete user doc
+                                            await deleteDoc(doc(db, "users", uid));
+                                            // Delete Firebase Auth account
+                                            await deleteUser(user);
+                                            await signOut(auth);
+                                            router.replace("/");
+                                        } catch (error: any) {
+                                            setDeleteLoading(false);
+                                            if (error.code === "auth/requires-recent-login") {
+                                                Alert.alert(
+                                                    "Re-login Required",
+                                                    "For security, please sign out and sign back in before deleting your account.",
+                                                    [{ text: "OK" }]
+                                                );
+                                            } else {
+                                                Alert.alert("Error", error.message);
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        );
                     }
                 }
             ]
@@ -228,7 +289,7 @@ export default function Profile() {
 
                     <TouchableOpacity
                         onPress={() => router.push("/(settingsMore)/settings")}
-                        className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex-row items-center justify-between mb-10"
+                        className="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex-row items-center justify-between mb-6"
                     >
                         <View className="flex-row items-center">
                             <View className="bg-blue-50 w-12 h-12 rounded-2xl items-center justify-center mr-4">
@@ -240,6 +301,37 @@ export default function Profile() {
                             </View>
                         </View>
                         <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                    </TouchableOpacity>
+
+                    {/* Danger Zone */}
+                    <Text className="text-gray-800 text-lg font-bold mb-4 ml-1">Danger Zone</Text>
+                    <TouchableOpacity
+                        onPress={handleDeleteAccount}
+                        disabled={deleteLoading}
+                        style={{
+                            backgroundColor: deleteLoading ? "#fca5a5" : "#fef2f2",
+                            padding: 20,
+                            borderRadius: 24,
+                            borderWidth: 1.5,
+                            borderColor: "#fecaca",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            marginBottom: 32,
+                        }}
+                    >
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                            <View style={{ backgroundColor: "#fee2e2", width: 48, height: 48, borderRadius: 18, alignItems: "center", justifyContent: "center", marginRight: 16 }}>
+                                <Ionicons name="trash-bin" size={24} color="#ef4444" />
+                            </View>
+                            <View>
+                                <Text style={{ fontWeight: "800", color: "#dc2626", fontSize: 15 }}>Delete Account</Text>
+                                <Text style={{ fontSize: 11, color: "#ef4444", fontWeight: "600", marginTop: 2 }}>
+                                    {deleteLoading ? "Deleting..." : "Permanently removes all data"}
+                                </Text>
+                            </View>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color="#ef4444" />
                     </TouchableOpacity>
 
                 </View>

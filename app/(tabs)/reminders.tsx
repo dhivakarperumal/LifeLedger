@@ -31,16 +31,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import FilterSheet, { defaultFilterState, FilterState } from "../../components/FilterSheet";
 import { auth, db } from "../../firebase";
 
-// Configure notifications
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-        shouldShowBanner: true,
-        shouldShowList: true,
-    }),
-});
+// Configure notifications (Unsupported in Expo Go SDK 53+ Android)
+if (Constants.appOwnership !== "expo") {
+    Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+            shouldShowAlert: true,
+            shouldPlaySound: true,
+            shouldSetBadge: false,
+            shouldShowBanner: true,
+            shouldShowList: true,
+        }),
+    });
+}
 
 interface Reminder {
     id: string;
@@ -140,6 +142,8 @@ export default function RemindersScreen() {
     }, [uid]);
 
     const scheduleNotification = async (title: string, date: Date, time: Date, repeat: string) => {
+        if (Constants.appOwnership === "expo") return; // Guard for Expo Go
+
         try {
             let trigger: any;
 
