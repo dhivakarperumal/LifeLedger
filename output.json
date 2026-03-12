@@ -1,0 +1,142 @@
+[
+  {
+    "file": "e:/myExpensiveApp/app/(auth)/login.jsx",
+    "tag": "<TextInput\r placeholder=\"Enter details\"\r value={loginInput}\r onChangeText={setLoginInput}\r className=\"text-gray-800 font-bold py-5\"\r placeholderTextColor=\"#7a8c5f\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(auth)/login.jsx",
+    "tag": "<TextInput\r placeholder=\"Enter password\"\r secureTextEntry={!showPassword}\r value={password}\r onChangeText={setPassword}\r className=\"flex-1 text-gray-800 font-bold py-5\"\r placeholderTextColor=\"#7a8c5f\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(auth)/register.jsx",
+    "tag": "<TextInput\r placeholder=\"Enter username\"\r value={username}\r onChangeText={setUsername}\r className=\"text-gray-800 font-bold py-4\"\r placeholderTextColor=\"#7a8c5f\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(auth)/register.jsx",
+    "tag": "<TextInput\r placeholder=\"Enter email\"\r value={email}\r onChangeText={setEmail}\r keyboardType=\"email-address\"\r className=\"text-gray-800 font-bold py-4\"\r placeholderTextColor=\"#7a8c5f\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(auth)/register.jsx",
+    "tag": "<TextInput\r placeholder=\"Enter phone number\"\r value={phone}\r onChangeText={setPhone}\r keyboardType=\"phone-pad\"\r className=\"text-gray-800 font-bold py-4\"\r placeholderTextColor=\"#7a8c5f\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(auth)/register.jsx",
+    "tag": "<TextInput\r placeholder=\"Enter password\"\r secureTextEntry={!showPassword}\r value={password}\r onChangeText={setPassword}\r className=\"flex-1 text-gray-800 font-bold py-4\"\r placeholderTextColor=\"#7a8c5f\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(auth)/register.jsx",
+    "tag": "<TextInput\r placeholder=\"Confirm password\"\r secureTextEntry={!showConfirmPassword}\r value={confirmPassword}\r onChangeText={setConfirmPassword}\r className=\"flex-1 text-gray-800 font-bold py-4\"\r placeholderTextColor=\"#7a8c5f\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/addexpensive.jsx",
+    "tag": "<TextInput\r placeholder=\"Search expenses...\"\r value={searchQuery}\r onChangeText={setSearchQuery}\r className=\"flex-1 text-gray-800 font-bold py-3\"\r placeholderTextColor=\"#9ca3af\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/addexpensive.jsx",
+    "tag": "<TextInput\r placeholder=\"0\"\r keyboardType=\"numeric\"\r value={amount}\r editable={!editingId}\r onChangeText={setAmount}\r className=\"flex-1 text-2xl font-black text-gray-800 py-5\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/addexpensive.jsx",
+    "tag": "<TextInput\r placeholder=\"Or enter custom category...\"\r value={category}\r onChangeText={setCategory}\r className=\"bg-gray-50 rounded-[24px] px-6 py-5 border border-gray-100 font-black text-gray-800\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/addexpensive.jsx",
+    "tag": "<TextInput\r placeholder=\"What was this for?\"\r value={notes}\r onChangeText={setNotes}\r multiline\r className=\"bg-gray-50 rounded-[24px] px-6 py-5 mb-5 border border-gray-100 font-bold text-gray-700 min-h-[120px]\"\r textAlignVertical=\"top\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/addexpensive.jsx",
+    "tag": "<TextInput\r placeholder=\"Store name or city\"\r value={location}\r onChangeText={setLocation}\r className=\"flex-1 font-black text-gray-800 py-5\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/income.jsx",
+    "tag": "<TextInput\r placeholder=\"Search by work name or amount...\"\r value={searchQuery}\r onChangeText={setSearchQuery}\r className=\"flex-1 ml-2 text-gray-800\"\r placeholderTextColor=\"#9ca3af\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/income.jsx",
+    "tag": "<TextInput\r placeholder=\"Enter work name\"\r value={workName}\r onChangeText={setWorkName}\r className=\"w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/income.jsx",
+    "tag": "<TextInput\r placeholder=\"Enter amount\"\r keyboardType=\"numeric\"\r value={amount}\r onChangeText={setAmount}\r className=\"w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/profile.tsx",
+    "tag": "<TextInput\r value={name}\r onChangeText={setName}\r editable={isEditing}\r placeholder=\"Enter full name\"\r className=\"flex-1 p-4 font-semibold text-gray-800\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/profile.tsx",
+    "tag": "<TextInput\r value={email}\r editable={false}\r placeholder=\"Email\"\r className=\"flex-1 p-4 font-semibold text-gray-400\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/profile.tsx",
+    "tag": "<TextInput\r value={phone}\r onChangeText={setPhone}\r editable={isEditing}\r placeholder=\"Enter phone number\"\r keyboardType=\"phone-pad\"\r className=\"flex-1 p-4 font-semibold text-gray-800\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/transfer.jsx",
+    "tag": "<TextInput\r placeholder=\"Search transfers...\"\r value={searchQuery}\r onChangeText={setSearchQuery}\r className=\"flex-1 ml-2 text-gray-800\"\r placeholderTextColor=\"#9ca3af\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/transfer.jsx",
+    "tag": "<TextInput\r placeholder=\"Enter transfer name\"\r value={name}\r onChangeText={setName}\r className=\"w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(settingsMore)/transfer.jsx",
+    "tag": "<TextInput\r placeholder=\"Enter amount\"\r keyboardType=\"numeric\"\r value={amount}\r onChangeText={setAmount}\r className=\"w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/diarymaintenance.tsx",
+    "tag": "<TextInput\r placeholder=\"Search diary entries...\"\r value={searchQuery}\r onChangeText={setSearchQuery}\r style={{ flex: 1, fontSize: 14, fontWeight: \"600\", color: \"#1f2937\", paddingVertical: 0 }}\r placeholderTextColor=\"#b0b8c1\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/diarymaintenance.tsx",
+    "tag": "<TextInput\r placeholder=\"A beautiful day...\"\r value={title}\r onChangeText={setTitle}\r className=\"w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 mb-5 text-base font-bold text-gray-800\"\r placeholderTextColor=\"#9ca3af\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/diarymaintenance.tsx",
+    "tag": "<TextInput\r placeholder=\"What's on your mind?\"\r value={description}\r onChangeText={setDescription}\r multiline\r textAlignVertical=\"top\"\r className=\"w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 mb-5 text-base text-gray-800 min-h-[160px] font-medium\"\r placeholderTextColor=\"#9ca3af\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/expensetrack.tsx",
+    "tag": "<TextInput\r placeholder=\"Search by category or name...\"\r value={searchQuery}\r onChangeText={setSearchQuery}\r style={{ flex: 1, fontSize: 14, fontWeight: \"600\", color: \"#1f2937\", paddingVertical: 0 }}\r placeholderTextColor=\"#b0b8c1\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/expensetrack.tsx",
+    "tag": "<TextInput\r placeholder=\"0\"\r keyboardType=\"numeric\"\r value={amount}\r editable={!editingId}\r onChangeText={setAmount}\r className=\"flex-1 text-xl font-bold text-gray-800 py-4\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/expensetrack.tsx",
+    "tag": "<TextInput\r placeholder=\"Or type custom category...\"\r value={category}\r onChangeText={setCategory}\r className=\"bg-gray-50 rounded-2xl px-5 py-4 border border-gray-100 font-bold text-gray-800\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/expensetrack.tsx",
+    "tag": "<TextInput\r placeholder=\"Add optional notes...\"\r value={notes}\r onChangeText={setNotes}\r multiline\r className=\"bg-gray-50 rounded-2xl px-5 py-4 mb-4 border border-gray-100 font-medium text-gray-700 min-h-[100px]\"\r textAlignVertical=\"top\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/expensetrack.tsx",
+    "tag": "<TextInput\r placeholder=\"Enter location\"\r value={location}\r onChangeText={setLocation}\r className=\"flex-1 font-bold text-gray-800 py-4\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/expensetrack.tsx",
+    "tag": "<TextInput\r className=\"flex-1 text-3xl font-black text-gray-800 py-4\"\r keyboardType=\"numeric\"\r placeholder=\"0.00\"\r value={amount}\r onChangeText={setAmount}\r autoFocus\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/memories.tsx",
+    "tag": "<TextInput\r placeholder=\"Search moments, places...\"\r placeholderTextColor=\"#b0b8c1\"\r style={{ flex: 1, fontSize: 14, fontWeight: \"600\", color: \"#1f2937\", paddingVertical: 0 }}\r value={searchQuery}\r onChangeText={setSearchQuery}\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/memories.tsx",
+    "tag": "<TextInput\r placeholder=\"A beautiful sunset...\"\r value={title}\r onChangeText={setTitle}\r style={{ backgroundColor: \"#f8fafc\", borderWidth: 1.5, borderColor: \"#f0f0f0\", borderRadius: 18, paddingHorizontal: 18, paddingVertical: 16, fontSize: 15, fontWeight: \"700\", color: \"#111827\", marginBottom: 14 }}\r placeholderTextColor=\"#cbd5e1\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/memories.tsx",
+    "tag": "<TextInput\r placeholder=\"Location\"\r value={place}\r onChangeText={setPlace}\r style={{ flex: 1, backgroundColor: \"#f8fafc\", borderWidth: 1.5, borderColor: \"#f0f0f0\", borderRadius: 18, paddingHorizontal: 14, paddingVertical: 16, fontSize: 13, fontWeight: \"700\", color: \"#111827\" }}\r placeholderTextColor=\"#cbd5e1\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/reminders.tsx",
+    "tag": "<TextInput\r placeholder=\"E.g. Birthday Celebration\"\r value={title}\r onChangeText={setTitle}\r className=\"text-gray-800 font-black py-4\"\r placeholderTextColor=\"#9ca3af\"\r />"
+  },
+  {
+    "file": "e:/myExpensiveApp/app/(tabs)/reminders.tsx",
+    "tag": "<TextInput\r placeholder=\"Add details...\"\r value={description}\r onChangeText={setDescription}\r multiline\r numberOfLines={3}\r className=\"text-gray-800 font-medium text-sm\"\r textAlignVertical=\"top\"\r placeholderTextColor=\"#9ca3af\"\r />"
+  }
+]
