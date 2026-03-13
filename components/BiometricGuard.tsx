@@ -166,12 +166,23 @@ export const BiometricGuard = () => {
                             {(preferredMethod === "Password" || preferredMethod === "Pattern") && (
                                 <View className="w-full">
                                     <View className="flex-row justify-center mb-10">
-                                        {[1, 2, 3, 4].map((i) => (
-                                            <View
-                                                key={i}
-                                                className={`w-3 h-3 rounded-full mx-3 ${enteredPin.length >= i ? 'bg-emerald-600 shadow-sm' : 'bg-gray-200'}`}
-                                            />
-                                        ))}
+                                        {[1, 2, 3, 4].map((i) => {
+                                            const isActive = enteredPin.length >= i;
+                                            return (
+                                                <View
+                                                    key={`pin-dot-${i}`}
+                                                    className="w-3 h-3 rounded-full mx-3"
+                                                    style={{
+                                                        backgroundColor: isActive ? '#059669' : '#e5e7eb',
+                                                        shadowColor: isActive ? '#000' : 'transparent',
+                                                        shadowOffset: isActive ? { width: 0, height: 1 } : { width: 0, height: 0 },
+                                                        shadowOpacity: isActive ? 0.05 : 0,
+                                                        shadowRadius: isActive ? 2 : 0,
+                                                        elevation: isActive ? 2 : 0
+                                                    }}
+                                                />
+                                            );
+                                        })}
                                     </View>
 
                                     <View className="flex-row flex-wrap justify-center w-full">
