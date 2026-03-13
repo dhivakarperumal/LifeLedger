@@ -1,46 +1,56 @@
+import { Ionicons } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
+import { useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import {
-    View,
+    Animated,
+    FlatList,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
     Text,
     TextInput,
     TouchableOpacity,
-    FlatList,
-    Modal
+    View
 } from "react-native";
-import { useState, useEffect } from "react";
-import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
-
-import { auth, db } from "../../firebase";
 
 import {
     addDoc,
     collection,
     doc,
-    updateDoc,
-    serverTimestamp,
     getDocs,
     query,
+    serverTimestamp,
+    updateDoc,
     where
 } from "firebase/firestore";
+import { auth, db } from "../../firebase";
 
 export default function TransferScreen() {
-
     const router = useRouter();
     const uid = auth.currentUser?.uid;
 
     const [showSheet, setShowSheet] = useState(false);
-
-
-
     const [amount, setAmount] = useState("");
     const [name, setName] = useState("");
-
     const [incomeList, setIncomeList] = useState([]);
     const [selectedIncome, setSelectedIncome] = useState(null);
-
     const [transferList, setTransferList] = useState([]);
+
+    // ── Toast ──────────────────────────────────────────────────────────
+    const [toast, setToast] = useState(null);
+    const toastAnim = useRef(new Animated.Value(-100)).current;
+
+    const showToast = (message, type = "success") => {
+        setToast({ message, type });
+        Animated.sequence([
+            Animated.spring(toastAnim, { toValue: 60, useNativeDriver: true, bounciness: 12 }),
+            Animated.delay(2500),
+            Animated.timing(toastAnim, { toValue: -100, duration: 400, useNativeDriver: true }),
+        ]).start(() => setToast(null));
+    };
 
     const incomeRef = collection(db, "income");
     const transferRef = collection(db, "transfers");
@@ -61,259 +71,411 @@ export default function TransferScreen() {
     }, 0);
 
     const fetchIncome = async () => {
-
         const snap = await getDocs(incomeRef);
-
-        const list = snap.docs.map((d) => ({
-            id: d.id,
-            ...d.data()
-        }));
-
+        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
         setIncomeList(list);
     };
 
     const fetchTransfers = async () => {
-
+        if (!uid) return;
         const q = query(transferRef, where("userId", "==", uid));
-
         const snap = await getDocs(q);
-
-        const list = snap.docs.map((d) => ({
-            id: d.id,
-            ...d.data()
-        }));
-
+        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        list.sort((a, b) => {
+            if (!a.createdAt) return 1;
+            if (!b.createdAt) return -1;
+            return b.createdAt.toMillis() - a.createdAt.toMillis();
+        });
         setTransferList(list);
     };
 
     const addTransfer = async () => {
-
         const transferAmount = Number(amount);
-
         if (!name || !transferAmount) {
-            alert("Enter details");
+            showToast("Please fill in all required fields", "error");
             return;
         }
-
         if (!selectedIncome) {
-            alert("Select income source");
+            showToast("Please select an income source", "error");
             return;
         }
-
-        const formatDate = (timestamp) => {
-            if (!timestamp) return "";
-
-            const date = timestamp.toDate();
-
-            return date.toLocaleDateString("en-IN", {
-                day: "numeric",
-                month: "short",
-                year: "numeric"
-            });
-        };
-
-        if (transferAmount > selectedIncome.remainingAmount) {
-            alert("Not enough balance");
+        if (transferAmount > (selectedIncome.remainingAmount ?? selectedIncome.amount ?? 0)) {
+            showToast("Not enough balance in selected source", "error");
             return;
         }
 
         await addDoc(transferRef, {
             name,
             amount: transferAmount,
-      remainingAmount: transferAmount,
+            remainingAmount: transferAmount,
+            userId: uid,
+            createdAt: serverTimestamp(),
         });
 
         const incomeDoc = doc(db, "income", selectedIncome.id);
-
         await updateDoc(incomeDoc, {
-            remainingAmount: selectedIncome.remainingAmount - transferAmount
+            remainingAmount: (selectedIncome.remainingAmount ?? selectedIncome.amount ?? 0) - transferAmount,
         });
 
         setAmount("");
         setName("");
+        setSelectedIncome(null);
         setShowSheet(false);
-
+        showToast("Transfer added successfully!", "success");
         fetchTransfers();
+        fetchIncome();
     };
 
     const formatDate = (timestamp) => {
         if (!timestamp) return "";
+        try {
+            const date = timestamp?.toDate ? timestamp.toDate() : (timestamp instanceof Date ? timestamp : new Date(timestamp));
+            if (isNaN(date.getTime())) return "";
+            return date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+        } catch {
+            return "";
+        }
+    };
 
-        const date = timestamp.toDate();
-
-        return date.toLocaleDateString("en-IN") + " " +
-            date.toLocaleTimeString("en-IN");
+    const openSheet = () => {
+        setName("");
+        setAmount("");
+        setSelectedIncome(null);
+        setShowSheet(true);
     };
 
     return (
         <SafeAreaView edges={["top", "bottom"]} style={{ flex: 1, backgroundColor: "#111827" }}>
 
-            {/* HEADER */}
-            <View className="bg-gray-900 px-4 py-4 flex-row items-center">
-
-                <TouchableOpacity onPress={() => router.back()} className="mr-3">
-                    <Ionicons name="arrow-back-circle-outline" size={32} color="white" />
-                </TouchableOpacity>
-
-                <Text className="text-white text-xl font-bold">
-                    Transfers
-                </Text>
-
-            </View>
-
-
-            {/* TRANSFER LIST */}
-            <View className="flex-1 bg-gray-100 p-4">
-
-                {/* SUMMARY CARDS */}
-                <View style={{ flexDirection: "row", gap: 12, marginBottom: 12 }}>
-                    <View style={{ flex: 1, backgroundColor: "#fff", padding: 12, borderRadius: 12, borderWidth: 1, borderColor: "#e5e7eb" }}>
-                        <Text style={{ color: "#6b7280", fontSize: 12 }}>Total Income</Text>
-                        <Text style={{ fontSize: 18, fontWeight: "700", color: "#16a34a" }}>₹{totalIncome}</Text>
-                    </View>
-
-                    <View style={{ flex: 1, backgroundColor: "#fff", padding: 12, borderRadius: 12, borderWidth: 1, borderColor: "#e5e7eb" }}>
-                        <Text style={{ color: "#6b7280", fontSize: 12 }}>Total Transferred</Text>
-                        <Text style={{ fontSize: 18, fontWeight: "700", color: "#ef4444" }}>₹{totalTransferred}</Text>
+            {/* ── HEADER ─────────────────────────────────────────────── */}
+            <View style={{ backgroundColor: "#111827", paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 20 }}>
+                    <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 12 }}>
+                        <Ionicons name="arrow-back-circle-outline" size={34} color="white" />
+                    </TouchableOpacity>
+                    <View>
+                        <Text style={{ color: "white", fontSize: 22, fontWeight: "900" }}>Transfers</Text>
+                        <Text style={{ color: "#9ca3af", fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1.5 }}>Manage your fund allocations</Text>
                     </View>
                 </View>
 
+                {/* ── SUMMARY BANNER ─────────────────────────────────── */}
+                <View style={{ flexDirection: "row", gap: 12 }}>
+                    <View style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 20, padding: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+                            <View style={{ backgroundColor: "#f0fdf4", padding: 6, borderRadius: 10, marginRight: 8 }}>
+                                <Ionicons name="trending-up" size={14} color="#2f5d34" />
+                            </View>
+                            <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1 }}>Available</Text>
+                        </View>
+                        <Text style={{ color: "#4ade80", fontSize: 22, fontWeight: "900" }}>₹{totalIncome.toLocaleString("en-IN")}</Text>
+                    </View>
+                    <View style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 20, padding: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+                            <View style={{ backgroundColor: "#fef2f2", padding: 6, borderRadius: 10, marginRight: 8 }}>
+                                <Ionicons name="swap-horizontal" size={14} color="#ef4444" />
+                            </View>
+                            <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1 }}>Transferred</Text>
+                        </View>
+                        <Text style={{ color: "#f87171", fontSize: 22, fontWeight: "900" }}>₹{totalTransferred.toLocaleString("en-IN")}</Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* ── CONTENT ────────────────────────────────────────────── */}
+            <View style={{ flex: 1, backgroundColor: "#f9fafb", borderTopLeftRadius: 32, borderTopRightRadius: 32 }}>
                 <FlatList
                     data={transferList}
                     keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                        <View className="bg-white p-4 rounded-xl mb-3 shadow">
-
-                            <Text className="font-bold text-lg">
-                                {item.name}
-                            </Text>
-
-                            <Text className="text-green-600">
-                                ₹{item.amount}
-                            </Text>
-
-                            <Text className="text-gray-500 text-xs mt-1">
-                                {formatDate(item.createdAt)}
-                            </Text>
-
+                    numColumns={2}
+                    columnWrapperStyle={{ justifyContent: "space-between" }}
+                    contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
+                    showsVerticalScrollIndicator={false}
+                    ListEmptyComponent={
+                        <View style={{ alignItems: "center", justifyContent: "center", paddingTop: 80 }}>
+                            <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: "#f0fdf4", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                                <Ionicons name="swap-horizontal-outline" size={36} color="#2f5d34" />
+                            </View>
+                            <Text style={{ color: "#111827", fontSize: 18, fontWeight: "900", marginBottom: 6 }}>No Transfers Yet</Text>
+                            <Text style={{ color: "#9ca3af", fontSize: 13, fontWeight: "600", textAlign: "center", paddingHorizontal: 40 }}>Tap the + button to allocate funds from your income</Text>
                         </View>
+                    }
+                    renderItem={({ item }) => (
+                        <TouchableOpacity
+                            activeOpacity={0.88}
+                            style={{
+                                width: "48%",
+                                marginBottom: 16,
+                                borderRadius: 24,
+                                backgroundColor: "white",
+                                padding: 16,
+                                borderWidth: 1,
+                                borderColor: "#f0f0f0",
+                                elevation: 2,
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.08,
+                                shadowRadius: 8,
+                            }}
+                        >
+                            {/* Icon + badge */}
+                            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                                <View style={{ backgroundColor: "#f0fdf4", padding: 8, borderRadius: 12 }}>
+                                    <Ionicons name="swap-horizontal" size={18} color="#2f5d34" />
+                                </View>
+                                <View style={{ backgroundColor: "#fef3c7", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 }}>
+                                    <Text style={{ color: "#d97706", fontSize: 8, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 }}>Transfer</Text>
+                                </View>
+                            </View>
+
+                            {/* Name */}
+                            <View style={{ marginBottom: 8 }}>
+                                <Text style={{ color: "#9ca3af", fontSize: 9, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1 }}>Fund Name</Text>
+                                <Text style={{ color: "#1f2937", fontWeight: "800", fontSize: 13, marginTop: 2 }} numberOfLines={2}>{item.name}</Text>
+                            </View>
+
+                            {/* Amount */}
+                            <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: "auto" }}>
+                                <Text style={{ color: "#2f5d34", fontWeight: "900", fontSize: 18 }}>₹{item.amount?.toLocaleString("en-IN")}</Text>
+                                <Ionicons name="chevron-forward" size={12} color="#9ca3af" />
+                            </View>
+
+                            {/* Remaining */}
+                            {item.remainingAmount !== undefined && item.remainingAmount !== item.amount && (
+                                <View style={{ marginTop: 6, backgroundColor: "#f0fdf4", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 }}>
+                                    <Text style={{ color: "#2f5d34", fontSize: 9, fontWeight: "800" }}>Remaining: ₹{item.remainingAmount?.toLocaleString("en-IN")}</Text>
+                                </View>
+                            )}
+
+                            {/* Date */}
+                            <View style={{ marginTop: 10, paddingTop: 8, borderTopWidth: 1, borderTopColor: "#f9fafb", flexDirection: "row", alignItems: "center" }}>
+                                <Ionicons name="time-outline" size={10} color="#9ca3af" style={{ marginRight: 4 }} />
+                                <Text style={{ color: "#9ca3af", fontSize: 9, fontWeight: "600" }}>
+                                    {item.createdAt ? formatDate(item.createdAt) : "Recently"}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
                     )}
                 />
-
             </View>
 
-
-            {/* FLOAT BUTTON */}
+            {/* ── FAB ────────────────────────────────────────────────── */}
             <TouchableOpacity
-                onPress={() => setShowSheet(true)}
+                onPress={openSheet}
                 style={{
                     position: "absolute",
-                    bottom: 90,
-                    right: 20,
-                    width: 60,
-                    height: 60,
-                    borderRadius: 30,
+                    bottom: 70,
+                    right: 24,
+                    width: 66,
+                    height: 66,
+                    borderRadius: 33,
                     backgroundColor: "#2f5d34",
+                    alignItems: "center",
                     justifyContent: "center",
-                    alignItems: "center"
+                    elevation: 12,
+                    shadowColor: "#2f5d34",
+                    shadowOffset: { width: 0, height: 6 },
+                    shadowOpacity: 0.4,
+                    shadowRadius: 16,
+                    zIndex: 99,
                 }}
             >
-                <Ionicons name="add" size={30} color="white" />
+                <Ionicons name="add" size={36} color="white" />
             </TouchableOpacity>
 
-
-            {/* BOTTOM SHEET */}
+            {/* ── BOTTOM SHEET ───────────────────────────────────────── */}
             <Modal visible={showSheet} transparent animationType="slide">
+                <KeyboardAvoidingView
+                    behavior="padding"
+                    style={{ flex: 1 }}
+                >
+                    <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)", justifyContent: "flex-end" }}>
+                        <View style={{
+                            backgroundColor: "white",
+                            maxHeight: "90%",
+                            borderTopLeftRadius: 40,
+                            borderTopRightRadius: 40,
+                            paddingTop: 24,
+                            paddingHorizontal: 24,
+                            paddingBottom: 36,
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: -8 },
+                            shadowOpacity: 0.15,
+                            shadowRadius: 24,
+                            elevation: 24,
+                        }}>
+                            {/* Drag handle */}
+                            <View style={{ width: 44, height: 5, borderRadius: 3, backgroundColor: "#e5e7eb", alignSelf: "center", marginBottom: 20 }} />
 
-                <View className="flex-1 justify-end bg-black/40">
+                            {/* Sheet Header */}
+                            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                                <View>
+                                    <Text style={{ fontSize: 24, fontWeight: "900", color: "#111827" }}>New Transfer</Text>
+                                    <Text style={{ fontSize: 11, fontWeight: "700", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginTop: 2 }}>Allocate your funds</Text>
+                                </View>
+                                <TouchableOpacity
+                                    onPress={() => setShowSheet(false)}
+                                    style={{ backgroundColor: "#f1f5f9", padding: 10, borderRadius: 16 }}
+                                >
+                                    <Ionicons name="close" size={22} color="#374151" />
+                                </TouchableOpacity>
+                            </View>
 
-                    <View className="bg-white p-6 rounded-t-3xl">
+                            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 60 }}>
 
-                        {/* HEADER */}
-                        <View className="flex-row justify-between items-center mb-4">
+                                {/* Income Source picker */}
+                                <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>
+                                    Income Source
+                                </Text>
+                                <View style={{
+                                    backgroundColor: "#f8fafc",
+                                    borderRadius: 18,
+                                    borderWidth: 1.5,
+                                    borderColor: "#f0f0f0",
+                                    marginBottom: 20,
+                                    overflow: "hidden",
+                                }}>
+                                    <Picker
+                                        selectedValue={selectedIncome?.id ?? null}
+                                        onValueChange={(value) => {
+                                            const income = incomeList.find((i) => i.id === value);
+                                            setSelectedIncome(income || null);
+                                        }}
+                                        dropdownIconColor="#111827"
+                                        style={{ color: "#111827" }}
+                                    >
+                                        <Picker.Item label="Select income source..." value={null} color="#9ca3af" />
+                                        {incomeList.map((item) => (
+                                            <Picker.Item
+                                                key={item.id}
+                                                label={`${item.workName}  •  ₹${(item.remainingAmount ?? item.amount ?? 0).toLocaleString("en-IN")} available`}
+                                                value={item.id}
+                                                color="#111827"
+                                            />
+                                        ))}
+                                    </Picker>
+                                </View>
 
-                            <Text className="text-xl font-bold">
-                                Add Transfer
-                            </Text>
+                                {/* Balance chip */}
+                                {selectedIncome && (
+                                    <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f0fdf4", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 20, borderWidth: 1, borderColor: "#dcfce7" }}>
+                                        <Ionicons name="wallet-outline" size={16} color="#2f5d34" style={{ marginRight: 8 }} />
+                                        <Text style={{ color: "#2f5d34", fontWeight: "800", fontSize: 13 }}>
+                                            Available: ₹{(selectedIncome.remainingAmount ?? selectedIncome.amount ?? 0).toLocaleString("en-IN")}
+                                        </Text>
+                                    </View>
+                                )}
 
-                            <TouchableOpacity onPress={() => setShowSheet(false)}>
-                                <Ionicons name="close-circle" size={26} color="#374151" />
-                            </TouchableOpacity>
-
-                        </View>
-
-
-                        {/* SELECT INCOME */}
-                        {/* INCOME SOURCE LABEL */}
-                        <Text className="text-gray-700 font-semibold mb-1">
-                            Income Source
-                        </Text>
-
-                        <View className="w-full bg-[#dfe7c7] rounded-lg px-3 py-1 mb-4">
-
-                            <Picker
-                                selectedValue={selectedIncome?.id}
-                                onValueChange={(value) => {
-                                    const income = incomeList.find((i) => i.id === value);
-                                    setSelectedIncome(income);
-                                }}
-                            >
-
-                                <Picker.Item label="Select Income Source" value={null} />
-
-                                {incomeList.map((item) => (
-                                    <Picker.Item
-                                        key={item.id}
-                                        label={`${item.workName} - ₹${item.remainingAmount ?? item.amount} (${formatDate(item.createdAt)})`}
-                                        value={item.id}
+                                {/* Amount input */}
+                                <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6 }}>
+                                    Transfer Amount
+                                </Text>
+                                <View style={{
+                                    backgroundColor: "#f8fafc",
+                                    borderRadius: 18,
+                                    paddingVertical: 12,
+                                    paddingHorizontal: 18,
+                                    alignItems: "center",
+                                    borderWidth: 1.5,
+                                    borderColor: "#f0f0f0",
+                                    marginBottom: 20,
+                                    flexDirection: "row",
+                                    justifyContent: "center",
+                                }}>
+                                    <Text style={{ fontSize: 22, fontWeight: "900", color: "#2f5d34", marginRight: 6 }}>₹</Text>
+                                    <TextInput
+                                        placeholder="0.00"
+                                        keyboardType="numeric"
+                                        value={amount}
+                                        onChangeText={setAmount}
+                                        style={{ fontSize: 28, fontWeight: "900", color: "#111827", textAlign: "center", paddingVertical: 2, flex: 1 }}
+                                        placeholderTextColor="#9ca3af"
                                     />
-                                ))}
+                                </View>
 
-                            </Picker>
+                                {/* Transfer Name */}
+                                <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>
+                                    Transfer / Fund Name
+                                </Text>
+                                <TextInput
+                                    placeholder="E.g. Monthly Budget, Travel Fund, Emergency"
+                                    value={name}
+                                    onChangeText={setName}
+                                    style={{
+                                        backgroundColor: "#f8fafc",
+                                        borderRadius: 18,
+                                        padding: 16,
+                                        fontSize: 16,
+                                        fontWeight: "700",
+                                        color: "#111827",
+                                        borderWidth: 1.5,
+                                        borderColor: "#f0f0f0",
+                                        marginBottom: 28,
+                                    }}
+                                    placeholderTextColor="#9ca3af"
+                                />
 
+                                {/* Submit button */}
+                                <TouchableOpacity
+                                    onPress={addTransfer}
+                                    activeOpacity={0.85}
+                                    style={{
+                                        backgroundColor: "#2f5d34",
+                                        borderRadius: 24,
+                                        paddingVertical: 20,
+                                        alignItems: "center",
+                                        elevation: 6,
+                                        shadowColor: "#2f5d34",
+                                        shadowOffset: { width: 0, height: 6 },
+                                        shadowOpacity: 0.35,
+                                        shadowRadius: 12,
+                                    }}
+                                >
+                                    <Text style={{ color: "white", fontWeight: "900", fontSize: 16, textTransform: "uppercase", letterSpacing: 2 }}>
+                                        Confirm Transfer
+                                    </Text>
+                                </TouchableOpacity>
+                            </ScrollView>
                         </View>
-
-
-                        {/* TRANSFER NAME LABEL */}
-                        <Text className="text-gray-700 font-semibold mb-1">
-                            Transfer Name
-                        </Text>
-
-                        <TextInput
-                            placeholder="Enter transfer name"
-                            value={name}
-                            onChangeText={setName}
-                            className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
-                        />
-
-
-                        {/* AMOUNT LABEL */}
-                        <Text className="text-gray-700 font-semibold mb-1">
-                            Amount
-                        </Text>
-
-                        <TextInput
-                            placeholder="Enter amount"
-                            keyboardType="numeric"
-                            value={amount}
-                            onChangeText={setAmount}
-                            className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
-                        />
-
-                        <TouchableOpacity
-                            onPress={addTransfer}
-                            className="bg-green-700 p-4 rounded-xl mt-4"
-                        >
-                            <Text className="text-white text-center font-bold">
-                                Save Transfer
-                            </Text>
-                        </TouchableOpacity>
-
                     </View>
-
-                </View>
-
+                </KeyboardAvoidingView>
             </Modal>
+
+            {/* ── Toast ──────────────────────────────────────────────── */}
+            {toast && (
+                <Animated.View
+                    style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 20,
+                        right: 20,
+                        zIndex: 9999,
+                        transform: [{ translateY: toastAnim }],
+                        backgroundColor: toast.type === "success" ? "#2f5d34" : toast.type === "error" ? "#ef4444" : "#3b82f6",
+                        paddingVertical: 14,
+                        paddingHorizontal: 20,
+                        borderRadius: 20,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 12,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 8 },
+                        shadowOpacity: 0.2,
+                        shadowRadius: 12,
+                        elevation: 10,
+                    }}
+                >
+                    <View style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 10, padding: 4 }}>
+                        <Ionicons
+                            name={toast.type === "success" ? "checkmark-circle" : toast.type === "error" ? "alert-circle" : "information-circle"}
+                            size={20}
+                            color="white"
+                        />
+                    </View>
+                    <Text style={{ color: "white", fontWeight: "800", fontSize: 14, flex: 1 }}>{toast.message}</Text>
+                </Animated.View>
+            )}
+
         </SafeAreaView>
     );
 }

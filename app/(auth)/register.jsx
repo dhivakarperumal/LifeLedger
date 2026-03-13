@@ -60,7 +60,7 @@ export default function Register() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#e8efd9" }}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior="padding"
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >

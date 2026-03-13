@@ -5,7 +5,10 @@ import {
   TouchableOpacity,
   FlatList,
   Modal,
-  Image
+  Image,
+  KeyboardAvoidingView,
+  ScrollView,
+  Platform
 } from "react-native";
 import { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -244,152 +247,139 @@ export default function AddExpense() {
 
       {/* BOTTOM SHEET */}
       <Modal visible={showSheet} transparent animationType="slide">
+        <KeyboardAvoidingView
+          behavior="padding"
+          style={{ flex: 1 }}
+        >
+          <View className="flex-1 justify-end bg-black/40">
+            <View className="bg-white p-6 rounded-t-3xl max-h-[90%]">
+              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 60 }}>
+                <View className="flex-row justify-between items-center mb-4">
+                  <Text className="text-xl font-bold">
+                    Add Expense
+                  </Text>
+                  <TouchableOpacity onPress={() => setShowSheet(false)}>
+                    <Ionicons name="close-circle" size={26} color="#374151" />
+                  </TouchableOpacity>
+                </View>
 
-        <View className="flex-1 justify-end bg-black/40">
+                {/* TRANSFER SOURCE */}
+                <Text className="text-gray-700 font-semibold mb-1">
+                  Transfer Source
+                </Text>
+                <View className="w-full bg-[#dfe7c7] rounded-lg mb-4">
+                  <Picker
+                    selectedValue={selectedTransfer?.id}
+                    onValueChange={(value) => {
+                      const transfer = transferList.find(i => i.id === value);
+                      setSelectedTransfer(transfer);
+                    }}
+                  >
+                    <Picker.Item label="Select Transfer Source" value={null} />
+                    {transferList.map((item) => (
+                      <Picker.Item
+                        key={item.id}
+                        label={`${item.name} - ₹${item.remainingAmount ?? item.amount}`}
+                        value={item.id}
+                      />
+                    ))}
+                  </Picker>
+                </View>
 
-          <View className="bg-white p-6 rounded-t-3xl">
+                {selectedTransfer && (
+                  <Text className="text-green-600 mb-3">
+                    Balance: ₹{selectedTransfer.remainingAmount ?? selectedTransfer.amount}
+                  </Text>
+                )}
 
-            <View className="flex-row justify-between items-center mb-4">
+                {/* AMOUNT */}
+                <Text className="text-gray-700 font-semibold mb-1">
+                  Amount
+                </Text>
+                <TextInput
+                  placeholder="Enter amount"
+                  keyboardType="numeric"
+                  value={amount}
+                  onChangeText={setAmount}
+                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
+                />
 
-              <Text className="text-xl font-bold">
-                Add Expense
-              </Text>
+                {/* CATEGORY */}
+                <Text className="text-gray-700 font-semibold mb-1">
+                  Category
+                </Text>
+                <TextInput
+                  placeholder="Food / Travel / Shopping"
+                  value={category}
+                  onChangeText={setCategory}
+                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
+                />
 
-              <TouchableOpacity onPress={()=>setShowSheet(false)}>
-                <Ionicons name="close-circle" size={26} color="#374151"/>
-              </TouchableOpacity>
+                {/* PAYMENT METHOD */}
+                <Text className="text-gray-700 font-semibold mb-1">
+                  Payment Method
+                </Text>
+                <TextInput
+                  placeholder="Cash / UPI / Card"
+                  value={paymentMethod}
+                  onChangeText={setPaymentMethod}
+                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
+                />
 
-            </View>
+                {/* NOTES */}
+                <Text className="text-gray-700 font-semibold mb-1">
+                  Notes
+                </Text>
+                <TextInput
+                  placeholder="Add notes"
+                  value={notes}
+                  onChangeText={setNotes}
+                  multiline
+                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
+                />
 
-            {/* TRANSFER SOURCE */}
-            <Text className="text-gray-700 font-semibold mb-1">
-              Transfer Source
-            </Text>
+                {/* LOCATION */}
+                <Text className="text-gray-700 font-semibold mb-1">
+                  Location
+                </Text>
+                <TextInput
+                  placeholder="Enter location"
+                  value={location}
+                  onChangeText={setLocation}
+                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
+                />
 
-            <View className="w-full bg-[#dfe7c7] rounded-lg mb-4">
+                {/* RECEIPT */}
+                <TouchableOpacity
+                  onPress={pickImage}
+                  className="p-4 rounded-xl mb-4 border border-gray-300 items-center"
+                >
+                  <Text className="font-semibold">
+                    Upload Receipt Image
+                  </Text>
+                </TouchableOpacity>
 
-              <Picker
-                selectedValue={selectedTransfer?.id}
-                onValueChange={(value)=>{
-                  const transfer = transferList.find(i=>i.id===value);
-                  setSelectedTransfer(transfer);
-                }}
-              >
-
-                <Picker.Item label="Select Transfer Source" value={null}/>
-
-                {transferList.map((item)=>(
-                  <Picker.Item
-                    key={item.id}
-                    label={`${item.name} - ₹${item.remainingAmount ?? item.amount}`}
-                    value={item.id}
+                {receipt && (
+                  <Image
+                    source={{ uri: receipt }}
+                    style={{ width: "100%", height: 120, borderRadius: 10, marginBottom: 10 }}
                   />
-                ))}
+                )}
 
-              </Picker>
-
+                {/* SAVE */}
+                <TouchableOpacity
+                  onPress={addExpense}
+                  className="p-5 rounded-xl"
+                  style={{ backgroundColor: "#2f5d34" }}
+                >
+                  <Text className="text-white text-center font-bold">
+                    Save Expense
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
             </View>
-
-            {selectedTransfer && (
-              <Text className="text-green-600 mb-3">
-                Balance: ₹{selectedTransfer.remainingAmount ?? selectedTransfer.amount}
-              </Text>
-            )}
-
-            {/* AMOUNT */}
-            <Text className="text-gray-700 font-semibold mb-1">
-              Amount
-            </Text>
-
-            <TextInput
-              placeholder="Enter amount"
-              keyboardType="numeric"
-              value={amount}
-              onChangeText={setAmount}
-              className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
-            />
-
-            {/* CATEGORY */}
-            <Text className="text-gray-700 font-semibold mb-1">
-              Category
-            </Text>
-
-            <TextInput
-              placeholder="Food / Travel / Shopping"
-              value={category}
-              onChangeText={setCategory}
-              className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
-            />
-
-            {/* PAYMENT METHOD */}
-            <Text className="text-gray-700 font-semibold mb-1">
-              Payment Method
-            </Text>
-
-            <TextInput
-              placeholder="Cash / UPI / Card"
-              value={paymentMethod}
-              onChangeText={setPaymentMethod}
-              className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
-            />
-
-            {/* NOTES */}
-            <Text className="text-gray-700 font-semibold mb-1">
-              Notes
-            </Text>
-
-            <TextInput
-              placeholder="Add notes"
-              value={notes}
-              onChangeText={setNotes}
-              multiline
-              className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
-            />
-
-            {/* LOCATION */}
-            <Text className="text-gray-700 font-semibold mb-1">
-              Location
-            </Text>
-
-            <TextInput
-              placeholder="Enter location"
-              value={location}
-              onChangeText={setLocation}
-              className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
-            />
-
-            {/* RECEIPT */}
-            <TouchableOpacity
-              onPress={pickImage}
-              className="p-4 rounded-xl mb-4 border border-gray-300 items-center"
-            >
-              <Text className="font-semibold">
-                Upload Receipt Image
-              </Text>
-            </TouchableOpacity>
-
-            {receipt && (
-              <Image
-                source={{uri:receipt}}
-                style={{width:"100%",height:120,borderRadius:10,marginBottom:10}}
-              />
-            )}
-
-            {/* SAVE */}
-            <TouchableOpacity
-              onPress={addExpense}
-              className="p-5 rounded-xl"
-              style={{backgroundColor:"#2f5d34"}}
-            >
-              <Text className="text-white text-center font-bold">
-                Save Expense
-              </Text>
-            </TouchableOpacity>
-
           </View>
-
-        </View>
-
+        </KeyboardAvoidingView>
       </Modal>
 
     </SafeAreaView>

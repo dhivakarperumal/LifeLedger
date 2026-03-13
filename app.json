@@ -31,7 +31,8 @@
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE"
       ],
-      "package": "com.anonymous.LifeLedger"
+      "package": "com.anonymous.LifeLedger",
+      "softwareSoftInputMode": "adjustResize"
     },
     "web": {
       "output": "static",

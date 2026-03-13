@@ -474,7 +474,7 @@ export default function RemindersScreen() {
                 {/* Modal */}
                 <Modal visible={showModal} animationType="slide" transparent>
                     <KeyboardAvoidingView
-                        behavior={Platform.OS === "ios" ? "padding" : "height"}
+                        behavior="padding"
                         style={{ flex: 1 }}
                     >
                         <View className="flex-1 justify-end bg-black/50">
@@ -491,7 +491,7 @@ export default function RemindersScreen() {
                                     </TouchableOpacity>
                                 </View>
 
-                                <ScrollView showsVerticalScrollIndicator={false} className="flex-1" keyboardShouldPersistTaps="handled">
+                                <ScrollView showsVerticalScrollIndicator={false} className="flex-1" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 60 }}>
                                     <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-2">Event Title</Text>
                                     <View className="bg-gray-50 rounded-[24px] px-6 py-1 mb-5 border border-gray-100">
                                         <TextInput
