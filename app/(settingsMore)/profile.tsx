@@ -3,8 +3,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { deleteUser, sendPasswordResetEmail, signOut, updateProfile } from "firebase/auth";
 import { collection, deleteDoc, doc, getDocs, onSnapshot, query, setDoc, where } from "firebase/firestore";
-import { useEffect, useState } from "react";
-import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Alert, Animated, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../../firebase";
 
@@ -18,6 +18,19 @@ export default function Profile() {
     const [loading, setLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
+
+    // ── Toast ──────────────────────────────────────────────────────────
+    const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+    const toastAnim = useRef(new Animated.Value(-100)).current;
+
+    const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+        setToast({ message, type });
+        Animated.sequence([
+            Animated.spring(toastAnim, { toValue: 60, useNativeDriver: true, bounciness: 12 }),
+            Animated.delay(2500),
+            Animated.timing(toastAnim, { toValue: -100, duration: 400, useNativeDriver: true }),
+        ]).start(() => setToast(null));
+    };
 
     useEffect(() => {
         if (!user) return;
@@ -51,10 +64,10 @@ export default function Profile() {
                 updatedAt: new Date()
             }, { merge: true });
 
-            Alert.alert("Success", "Profile updated successfully!");
+            showToast("Profile updated successfully!");
             setIsEditing(false);
         } catch (error: any) {
-            Alert.alert("Error", error.message);
+            showToast(error.message || "Failed to update profile", "error");
         } finally {
             setLoading(false);
         }
@@ -336,6 +349,39 @@ export default function Profile() {
 
                 </View>
             </ScrollView>
+
+            {/* ── Toast Notification ── */}
+            {toast && (
+                <Animated.View
+                    style={{
+                        position: "absolute",
+                        top: 60,
+                        left: 20,
+                        right: 20,
+                        zIndex: 9999,
+                        transform: [{ translateY: toastAnim }],
+                        backgroundColor: toast.type === "success" ? "#2f5d34" : toast.type === "error" ? "#ef4444" : "#3b82f6",
+                        paddingVertical: 14,
+                        paddingHorizontal: 20,
+                        borderRadius: 20,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 12,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 8 },
+                        shadowOpacity: 0.2,
+                        shadowRadius: 12,
+                        elevation: 10,
+                    }}
+                >
+                    <Ionicons
+                        name={toast.type === "success" ? "checkmark-circle" : toast.type === "error" ? "alert-circle" : "information-circle"}
+                        size={24}
+                        color="white"
+                    />
+                    <Text style={{ color: "white", fontWeight: "800", fontSize: 13, flex: 1 }}>{toast.message}</Text>
+                </Animated.View>
+            )}
         </SafeAreaView>
     );
 }

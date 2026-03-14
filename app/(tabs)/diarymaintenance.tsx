@@ -708,7 +708,7 @@ export default function DiaryMaintenance() {
                     dropdownIconColor="#111827"
                     style={{ color: "#75777cff" }}
                   >
-                    <Picker.Item label="How are you feeling?" value="" color="#111827" />
+                    <Picker.Item label="How are you feeling?" value="" color="#9ca3af" />
                     <Picker.Item label="😊 Happy" value="Happy" color="#111827" />
                     <Picker.Item label="😌 Relaxed" value="Relaxed" color="#111827" />
                     <Picker.Item label="😢 Sad" value="Sad" color="#111827" />

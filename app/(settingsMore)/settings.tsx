@@ -3,10 +3,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as LocalAuthentication from "expo-local-authentication";
 import { router } from "expo-router";
 import { signOut } from "firebase/auth";
-import React, { useEffect, useState } from "react";
-import { Alert, Modal, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { auth } from "../../firebase";
+import React, { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Alert, Animated, Modal, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const BIOMETRIC_KEY = "is_biometric_enabled";
 
@@ -18,6 +18,19 @@ export default function Settings() {
     const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
     const [showPinSetup, setShowPinSetup] = useState(false);
     const [tempPin, setTempPin] = useState("");
+
+    // ── Toast ──────────────────────────────────────────────────────────
+    const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+    const toastAnim = useRef(new Animated.Value(-100)).current;
+
+    const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+        setToast({ message, type });
+        Animated.sequence([
+            Animated.spring(toastAnim, { toValue: 60, useNativeDriver: true, bounciness: 12 }),
+            Animated.delay(2500),
+            Animated.timing(toastAnim, { toValue: -100, duration: 400, useNativeDriver: true }),
+        ]).start(() => setToast(null));
+    };
 
     useEffect(() => {
         loadSettings();
@@ -87,7 +100,7 @@ export default function Settings() {
             setBiometric(true);
             setSelectedMethod(method);
             setShowMethodModal(false);
-            Alert.alert("Identity Verified", `${method} has been set as your default unlock method.`);
+            showToast(`${method} enabled successfully!`);
         }
     };
 
@@ -103,7 +116,7 @@ export default function Settings() {
         setBiometric(true);
         setShowPinSetup(false);
         setTempPin("");
-        Alert.alert("Security Updated", `Your ${selectedMethod} has been successfully saved and activated.`);
+        showToast("Security updated!");
     };
 
     const handleLogout = async () => {
@@ -432,6 +445,39 @@ export default function Settings() {
                     </View>
                 </View>
             </Modal>
+
+            {/* ── Toast Notification ── */}
+            {toast && (
+                <Animated.View
+                    style={{
+                        position: "absolute",
+                        top: 60,
+                        left: 20,
+                        right: 20,
+                        zIndex: 9999,
+                        transform: [{ translateY: toastAnim }],
+                        backgroundColor: toast.type === "success" ? "#2f5d34" : toast.type === "error" ? "#ef4444" : "#3b82f6",
+                        paddingVertical: 14,
+                        paddingHorizontal: 20,
+                        borderRadius: 20,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 12,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 8 },
+                        shadowOpacity: 0.2,
+                        shadowRadius: 12,
+                        elevation: 10,
+                    }}
+                >
+                    <Ionicons
+                        name={toast.type === "success" ? "checkmark-circle" : toast.type === "error" ? "alert-circle" : "information-circle"}
+                        size={24}
+                        color="white"
+                    />
+                    <Text style={{ color: "white", fontWeight: "800", fontSize: 13, flex: 1 }}>{toast.message}</Text>
+                </Animated.View>
+            )}
         </SafeAreaView>
     );
 }

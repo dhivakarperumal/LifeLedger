@@ -141,9 +141,10 @@ export default function FilterSheet({
     return (
         <Modal visible={visible} transparent animationType="slide" onShow={handleOpen}>
             <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
-                <SafeAreaView edges={["bottom"]} style={{ backgroundColor: "white", borderTopLeftRadius: 36, borderTopRightRadius: 36, maxHeight: "90%", paddingTop: 10 }}>
-                    <View style={{ paddingTop: 14, paddingHorizontal: 20 }}>
-                        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+                <View style={{ backgroundColor: "white", borderTopLeftRadius: 40, borderTopRightRadius: 40, overflow: 'hidden', maxHeight: '92%' }}>
+                    <SafeAreaView edges={["bottom"]} style={{ backgroundColor: "white" }}>
+                        <View style={{ paddingTop: 14, paddingHorizontal: 20 }}>
+                            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
                             {/* Header */}
                             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                                 <View>
@@ -265,9 +266,10 @@ export default function FilterSheet({
                             >
                                 <Text style={{ color: "white", fontWeight: "900", fontSize: 16, textTransform: "uppercase", letterSpacing: 2 }}>Apply Filters</Text>
                             </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
-                </SafeAreaView>
+                    </SafeAreaView>
+                </View>
             </View>
         </Modal>
     );

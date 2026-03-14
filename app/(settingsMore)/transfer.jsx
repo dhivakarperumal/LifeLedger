@@ -3,6 +3,7 @@ import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+    ActivityIndicator,
     Animated,
     FlatList,
     KeyboardAvoidingView,
@@ -48,6 +49,7 @@ export default function TransferScreen() {
     const [searchQuery, setSearchQuery] = useState("");
     const [filterVisible, setFilterVisible] = useState(false);
     const [filterState, setFilterState] = useState(defaultFilterState());
+    const [loading, setLoading] = useState(false);
 
     // ── Toast ──────────────────────────────────────────────────────────
     const [toast, setToast] = useState(null);
@@ -93,23 +95,37 @@ export default function TransferScreen() {
     }, 0);
 
     const fetchIncome = async () => {
-        const snap = await getDocs(incomeRef);
-        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        setIncomeList(list);
+        try {
+            setLoading(true);
+            const snap = await getDocs(incomeRef);
+            const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            setIncomeList(list);
+        } catch (e) {
+            showToast("Failed to load income", "error");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const fetchTransfers = async () => {
         if (!uid) return;
-        const q = query(transferRef, where("userId", "==", uid));
-        const snap = await getDocs(q);
-        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-        list.sort((a, b) => {
-            if (!a.createdAt) return 1;
-            if (!b.createdAt) return -1;
-            return b.createdAt.toMillis() - a.createdAt.toMillis();
-        });
-        setTransferList(list);
-        setFilteredTransferList(list);
+        try {
+            setLoading(true);
+            const q = query(transferRef, where("userId", "==", uid));
+            const snap = await getDocs(q);
+            const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            list.sort((a, b) => {
+                if (!a.createdAt) return 1;
+                if (!b.createdAt) return -1;
+                return b.createdAt.toMillis() - a.createdAt.toMillis();
+            });
+            setTransferList(list);
+            setFilteredTransferList(list);
+        } catch (e) {
+            showToast("Failed to load transfers", "error");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const addTransfer = async () => {
@@ -127,26 +143,33 @@ export default function TransferScreen() {
             return;
         }
 
-        await addDoc(transferRef, {
-            name,
-            amount: transferAmount,
-            remainingAmount: transferAmount,
-            userId: uid,
-            createdAt: serverTimestamp(),
-        });
+        try {
+            setLoading(true);
+            await addDoc(transferRef, {
+                name,
+                amount: transferAmount,
+                remainingAmount: transferAmount,
+                userId: uid,
+                createdAt: serverTimestamp(),
+            });
 
-        const incomeDoc = doc(db, "income", selectedIncome.id);
-        await updateDoc(incomeDoc, {
-            remainingAmount: (selectedIncome.remainingAmount ?? selectedIncome.amount ?? 0) - transferAmount,
-        });
+            const incomeDoc = doc(db, "income", selectedIncome.id);
+            await updateDoc(incomeDoc, {
+                remainingAmount: (selectedIncome.remainingAmount ?? selectedIncome.amount ?? 0) - transferAmount,
+            });
 
-        setAmount("");
-        setName("");
-        setSelectedIncome(null);
-        setShowSheet(false);
-        showToast("Transfer added successfully!", "success");
-        fetchTransfers();
-        fetchIncome();
+            setAmount("");
+            setName("");
+            setSelectedIncome(null);
+            setShowSheet(false);
+            showToast("Transfer added successfully!", "success");
+            fetchTransfers();
+            fetchIncome();
+        } catch (e) {
+            showToast("Failed to add transfer", "error");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const formatDate = (timestamp) => {
@@ -213,7 +236,7 @@ export default function TransferScreen() {
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                             style={{ flex: 1, color: "white", fontSize: 14, fontWeight: "600" }}
-                            placeholderTextColor="gray"
+                            placeholderTextColor="#9ca3af"
                         />
                         {searchQuery.length > 0 && (
                             <TouchableOpacity onPress={() => setSearchQuery("")}>
@@ -241,8 +264,12 @@ export default function TransferScreen() {
                 activeFilters={filterState}
             />
 
-            {/* ── CONTENT ────────────────────────────────────────────── */}
             <View style={{ flex: 1, backgroundColor: "#f9fafb", borderTopLeftRadius: 32, borderTopRightRadius: 32 }}>
+                {loading && (
+                    <View style={{ padding: 20 }}>
+                        <ActivityIndicator size="large" color="#2f5d34" />
+                    </View>
+                )}
                 <FlatList
                     data={filteredTransferList}
                     keyExtractor={(item) => item.id}
@@ -448,7 +475,7 @@ export default function TransferScreen() {
                                         value={amount}
                                         onChangeText={setAmount}
                                         style={{ fontSize: 28, fontWeight: "900", color: "#111827", textAlign: "center", paddingVertical: 2, flex: 1 }}
-                                        placeholderTextColor="gray"
+                                        placeholderTextColor="#9ca3af"
                                     />
                                 </View>
 

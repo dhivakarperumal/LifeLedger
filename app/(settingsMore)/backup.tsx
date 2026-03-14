@@ -7,8 +7,8 @@ import * as Sharing from "expo-sharing";
 import * as WebBrowser from "expo-web-browser";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import JSZip from "jszip";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Alert, Animated, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../../firebase";
 
@@ -25,6 +25,19 @@ export default function BackupExport() {
     const [uid, setUid] = useState(auth.currentUser?.uid || null);
     const [authLoaded, setAuthLoaded] = useState(false);
     const userEmail = auth.currentUser?.email || "unknown";
+
+    // ── Toast ──────────────────────────────────────────────────────────
+    const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+    const toastAnim = useRef(new Animated.Value(-100)).current;
+
+    const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+        setToast({ message, type });
+        Animated.sequence([
+            Animated.spring(toastAnim, { toValue: 60, useNativeDriver: true, bounciness: 12 }),
+            Animated.delay(2500),
+            Animated.timing(toastAnim, { toValue: -100, duration: 400, useNativeDriver: true }),
+        ]).start(() => setToast(null));
+    };
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -150,14 +163,10 @@ export default function BackupExport() {
 
             // 2. Upload Individual Media (Images/Videos) if requested
             // This is a simplified version that just lets user know data is safe
-            Alert.alert(
-                "Backup Complete",
-                `Data and settings have been synced to your Google Drive folder: ${folderName}\n\nExisting media attachments are included in the backup index.`
-            );
-
+            showToast("Backup complete! Check your Drive.");
         } catch (e: any) {
             console.error("Drive upload exception:", e);
-            Alert.alert("Error", e.message || "Could not upload to Google Drive.");
+            showToast(e.message || "Failed Drive backup", "error");
         } finally {
             setLoading(false);
         }
@@ -400,6 +409,39 @@ export default function BackupExport() {
                     </Text>
                 </View>
             </ScrollView>
+
+            {/* ── Toast Notification ── */}
+            {toast && (
+                <Animated.View
+                    style={{
+                        position: "absolute",
+                        top: 60,
+                        left: 20,
+                        right: 20,
+                        zIndex: 9999,
+                        transform: [{ translateY: toastAnim }],
+                        backgroundColor: toast.type === "success" ? "#2f5d34" : toast.type === "error" ? "#ef4444" : "#3b82f6",
+                        paddingVertical: 14,
+                        paddingHorizontal: 20,
+                        borderRadius: 20,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 12,
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 8 },
+                        shadowOpacity: 0.2,
+                        shadowRadius: 12,
+                        elevation: 10,
+                    }}
+                >
+                    <Ionicons
+                        name={toast.type === "success" ? "checkmark-circle" : toast.type === "error" ? "alert-circle" : "information-circle"}
+                        size={24}
+                        color="white"
+                    />
+                    <Text style={{ color: "white", fontWeight: "800", fontSize: 13, flex: 1 }}>{toast.message}</Text>
+                </Animated.View>
+            )}
         </SafeAreaView>
     );
 }

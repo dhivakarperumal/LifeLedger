@@ -403,6 +403,7 @@ export default function Memories() {
   const executeDelete = async () => {
     setDeleteModalVisible(false);
     try {
+      setLoading(true);
       if (isDeletingSelected) {
         await Promise.all([...selectedIds].map(id => deleteDoc(doc(db, "memories", id))));
         exitSelection();
@@ -415,6 +416,8 @@ export default function Memories() {
       fetchData();
     } catch (error) {
       showToast("Failed to delete memories.", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -828,6 +831,7 @@ export default function Memories() {
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 40}
         >
           <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
             <View style={{ backgroundColor: "white", maxHeight: "92%", borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingTop: 24, paddingHorizontal: 24, paddingBottom: 40 }}>
@@ -996,7 +1000,7 @@ export default function Memories() {
                   value={title}
                   onChangeText={setTitle}
                   style={{ backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 18, paddingVertical: 16, fontSize: 15, fontWeight: "700", color: "#111827", marginBottom: 14 }}
-                  placeholderTextColor="gray"
+                  placeholderTextColor="#9ca3af"
                 />
 
                 {/* Date + Place */}
@@ -1010,11 +1014,10 @@ export default function Memories() {
                     <Text style={{ color: "#374151", fontWeight: "700", fontSize: 13 }}>{formatDate(date)}</Text>
                   </TouchableOpacity>
                   <TextInput
-                    placeholder="Location"
                     value={place}
                     onChangeText={setPlace}
                     style={{ flex: 1, backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 14, paddingVertical: 16, fontSize: 13, fontWeight: "700", color: "#111827" }}
-                    placeholderTextColor="gray"
+                    placeholderTextColor="#9ca3af"
                   />
                 </View>
 

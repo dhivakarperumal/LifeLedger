@@ -4,6 +4,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Animated,
   FlatList,
@@ -55,6 +56,7 @@ export default function Income() {
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   // ─── Toast ────────────────────────────────────────────────────────
   const [toast, setToast] = useState(null);
@@ -99,6 +101,7 @@ export default function Income() {
     console.log("[Income] Fetching income for UID:", uid);
     
     try {
+      setLoading(true);
       const q = query(incomeRef, where("userId", "==", uid));
       const snapshot = await getDocs(q);
 
@@ -119,11 +122,12 @@ export default function Income() {
       setFilteredIncomeList(list);
     } catch (e) {
       console.error("FETCH INCOME ERROR:", e.message || e);
-      // If it's a permission error, it might be due to rules or index issues.
       if (e.code === 'permission-denied') {
         console.warn("[Income] Access denied. Check Firestore security rules for 'income' collection.");
       }
-      showToast("Failed to load income data (Auth Error)", "error");
+      showToast("Failed to load income data", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -191,9 +195,11 @@ export default function Income() {
     }
 
     try {
+      setLoading(true);
       const incomeAmount = Number(amount);
       if (isNaN(incomeAmount) || incomeAmount <= 0) {
         showToast("Enter a valid amount", "error");
+        setLoading(false);
         return;
       }
 
@@ -232,6 +238,8 @@ export default function Income() {
     } catch (e) {
       console.error("ADD INCOME ERROR", e);
       showToast("Failed to save income", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -253,10 +261,18 @@ export default function Income() {
   const deleteIncome = async () => {
     if (!itemToDelete) return;
     setDeleteModalVisible(false);
-    await deleteDoc(doc(db, "income", itemToDelete));
-    setItemToDelete(null);
-    showToast("Income deleted successfully!", "success");
-    fetchIncome();
+    try {
+      setLoading(true);
+      await deleteDoc(doc(db, "income", itemToDelete));
+      setItemToDelete(null);
+      showToast("Income deleted successfully!", "success");
+      fetchIncome();
+    } catch (e) {
+      console.error("DELETE INCOME ERROR", e);
+      showToast("Failed to delete income", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatDate = (timestamp) => {
@@ -304,7 +320,7 @@ export default function Income() {
               value={searchQuery}
               onChangeText={setSearchQuery}
               className="flex-1 ml-2 text-[#111827] font-bold"
-              placeholderTextColor="gray"
+              placeholderTextColor="#9ca3af"
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery("")}>
@@ -326,6 +342,12 @@ export default function Income() {
           onApply={(s) => setFilterState(s)}
           activeFilters={filterState}
         />
+
+        {loading && (
+          <View className="py-2 items-center">
+            <ActivityIndicator size="large" color="#2f5d34" />
+          </View>
+        )}
 
         <FlatList
           contentContainerStyle={{ padding: 16, paddingBottom: 120 }}

@@ -7,6 +7,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Animated,
   FlatList,
@@ -140,51 +141,63 @@ export default function ExpenseTrack() {
 
   // FETCH TRANSFERS
   const fetchTransfers = async () => {
+    try {
+      setLoading(true);
+      const q = query(
+        transferRef,
+        where("userId", "==", uid)
+      );
 
-    const q = query(
-      transferRef,
-      where("userId", "==", uid)
-    );
+      const snap = await getDocs(q);
 
-    const snap = await getDocs(q);
+      const list = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
 
-    const list = snap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+      list.sort((a: any, b: any) => {
+        if (!a.createdAt) return 1;
+        if (!b.createdAt) return -1;
+        return b.createdAt.toMillis() - a.createdAt.toMillis();
+      });
 
-    list.sort((a: any, b: any) => {
-      if (!a.createdAt) return 1;
-      if (!b.createdAt) return -1;
-      return b.createdAt.toMillis() - a.createdAt.toMillis();
-    });
-
-    setTransferList(list);
+      setTransferList(list);
+    } catch (e) {
+      showToast("Failed to load sources", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // FETCH EXPENSES
   const fetchExpenses = async () => {
+    try {
+      setLoading(true);
+      const q = query(
+        expenseRef,
+        where("userId", "==", uid)
+      );
 
-    const q = query(
-      expenseRef,
-      where("userId", "==", uid)
-    );
+      const snap = await getDocs(q);
 
-    const snap = await getDocs(q);
+      const list = snap.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      }));
 
-    const list = snap.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
+      list.sort((a: any, b: any) => {
+        if (!a.createdAt) return 1;
+        if (!b.createdAt) return -1;
+        return b.createdAt.toMillis() - a.createdAt.toMillis();
+      });
 
-    list.sort((a: any, b: any) => {
-      if (!a.createdAt) return 1;
-      if (!b.createdAt) return -1;
-      return b.createdAt.toMillis() - a.createdAt.toMillis();
-    });
-
-    setExpenseList(list);
-    setFilteredExpenseList(list);
+      setExpenseList(list);
+      setFilteredExpenseList(list);
+    } catch (e) {
+      showToast("Failed to load expenses", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -462,12 +475,15 @@ export default function ExpenseTrack() {
     if (!itemToDelete) return;
     setDeleteModalVisible(false);
     try {
+      setLoading(true);
       await deleteDoc(doc(db, "expenses", itemToDelete.id));
       setItemToDelete(null);
       showToast("Expense deleted successfully", "success");
       fetchExpenses();
     } catch (e) {
       showToast("Failed to delete", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -578,6 +594,12 @@ export default function ExpenseTrack() {
           chipGroups={EXPENSE_FILTER_GROUPS}
           activeFilters={filterState}
         />
+
+        {loading && (
+          <View style={{ paddingVertical: 10 }}>
+            <ActivityIndicator size="large" color="#2f5d34" />
+          </View>
+        )}
 
         <FlatList
           data={filteredExpenseList}
