@@ -26,9 +26,12 @@ import {
   Dimensions,
   FlatList,
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   RefreshControl,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -820,13 +823,16 @@ export default function Memories() {
       {/* MODALS */}
       <LightboxModal />
 
-      {/* ADD/EDIT MODAL */}
+      {/* Capture/Edit Modal */}
       <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <View style={{ backgroundColor: "white", maxHeight: "92%", borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingTop: 24, paddingHorizontal: 24, paddingBottom: 36 }}>
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-
-              {/* Google Drive Status */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+            <View style={{ backgroundColor: "white", maxHeight: "92%", borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingTop: 24, paddingHorizontal: 24, paddingBottom: 40 }}>
+              
+              {/* Google Drive Status Wrapper */}
               <View style={{ backgroundColor: "#f8fafc", borderRadius: 20, padding: 16, marginBottom: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#f0f0f0' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                   <View style={{ backgroundColor: googleAccessToken ? '#f0fdf4' : '#fef2f2', padding: 8, borderRadius: 12 }}>
@@ -867,184 +873,184 @@ export default function Memories() {
                 </TouchableOpacity>
               </View>
 
-              {/* Media Picker + Preview */}
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" }}>
-                <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 }}>
-                  Photos & Videos ({mediaItems.length})
-                </Text>
-                <View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}>
-                  <TouchableOpacity onPress={takePhoto} style={{ backgroundColor: "#f0fdf4", padding: 8, borderRadius: 12 }}>
-                    <Ionicons name="camera" size={18} color="#2f5d34" />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={pickMedia} style={{ backgroundColor: "#f0fdf4", padding: 8, borderRadius: 12 }}>
-                    <Ionicons name="images" size={18} color="#2f5d34" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Large preview */}
-              <TouchableOpacity
-                onPress={() => mediaItems.length ? null : pickMedia()}
-                style={{ width: "100%", height: 210, borderRadius: 24, overflow: "hidden", borderWidth: 2, borderStyle: mediaItems.length ? "solid" : "dashed", borderColor: mediaItems.length ? "#e5e7eb" : "#d1d5db", backgroundColor: "#f8fafc", marginBottom: 10 }}
-              >
-                {mediaItems.length > 0 && mediaItems[previewIndex] ? (
-                  <View style={{ flex: 1 }}>
-                    {mediaItems[previewIndex].type === "video" ? (
-                      <View style={{ flex: 1, backgroundColor: "#111827", alignItems: "center", justifyContent: "center" }}>
-                        <Ionicons name="videocam" size={52} color="#4ade80" />
-                        <Text style={{ color: "white", fontWeight: "700", marginTop: 8 }}>Video #{previewIndex + 1}</Text>
-                      </View>
-                    ) : (
-                      <Image source={{ uri: mediaItems[previewIndex].uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-                    )}
-                    <TouchableOpacity
-                      onPress={() => removeMedia(previewIndex)}
-                      style={{ position: "absolute", top: 12, right: 12, backgroundColor: "rgba(239,68,68,0.9)", borderRadius: 12, padding: 8 }}
-                    >
-                      <Ionicons name="trash" size={18} color="white" />
+              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                {/* Media Picker + Preview */}
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" }}>
+                  <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 }}>
+                    Photos & Videos ({mediaItems.length})
+                  </Text>
+                  <View style={{ flexDirection: "row", gap: 8, marginBottom: 8 }}>
+                    <TouchableOpacity onPress={takePhoto} style={{ backgroundColor: "#f0fdf4", padding: 8, borderRadius: 12 }}>
+                      <Ionicons name="camera" size={18} color="#2f5d34" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={pickMedia} style={{ backgroundColor: "#f0fdf4", padding: 8, borderRadius: 12 }}>
+                      <Ionicons name="images" size={18} color="#2f5d34" />
                     </TouchableOpacity>
                   </View>
-                ) : (
-                  <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-                    <Ionicons name="images" size={50} color="#cbd5e1" />
-                    <Text style={{ color: "#9ca3af", fontWeight: "700", marginTop: 10, fontSize: 14 }}>Tap to add Photos & Videos</Text>
-                    <View style={{ flexDirection: "row", gap: 15, marginTop: 12 }}>
-                      <View style={{ alignItems: 'center' }}>
-                        <Ionicons name="camera-outline" size={24} color="#2f5d34" />
-                        <Text style={{ fontSize: 10, color: '#2f5d34', fontWeight: 'bold' }}>Camera</Text>
-                      </View>
-                      <View style={{ alignItems: 'center' }}>
-                        <Ionicons name="images-outline" size={24} color="#2f5d34" />
-                        <Text style={{ fontSize: 10, color: '#2f5d34', fontWeight: 'bold' }}>Gallery</Text>
+                </View>
+
+                {/* Large preview */}
+                <TouchableOpacity
+                  onPress={() => mediaItems.length ? null : pickMedia()}
+                  style={{ width: "100%", height: 210, borderRadius: 24, overflow: "hidden", borderWidth: 2, borderStyle: mediaItems.length ? "solid" : "dashed", borderColor: mediaItems.length ? "#e5e7eb" : "#d1d5db", backgroundColor: "#f8fafc", marginBottom: 10 }}
+                >
+                  {mediaItems.length > 0 && mediaItems[previewIndex] ? (
+                    <View style={{ flex: 1 }}>
+                      {mediaItems[previewIndex].type === "video" ? (
+                        <View style={{ flex: 1, backgroundColor: "#111827", alignItems: "center", justifyContent: "center" }}>
+                          <Ionicons name="videocam" size={52} color="#4ade80" />
+                          <Text style={{ color: "white", fontWeight: "700", marginTop: 8 }}>Video #{previewIndex + 1}</Text>
+                        </View>
+                      ) : (
+                        <Image source={{ uri: mediaItems[previewIndex].uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+                      )}
+                      <TouchableOpacity
+                        onPress={() => removeMedia(previewIndex)}
+                        style={{ position: "absolute", top: 12, right: 12, backgroundColor: "rgba(239,68,68,0.9)", borderRadius: 12, padding: 8 }}
+                      >
+                        <Ionicons name="trash" size={18} color="white" />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="images" size={50} color="#cbd5e1" />
+                      <Text style={{ color: "#9ca3af", fontWeight: "700", marginTop: 10, fontSize: 14 }}>Tap to add Photos & Videos</Text>
+                      <View style={{ flexDirection: "row", gap: 15, marginTop: 12 }}>
+                        <View style={{ alignItems: 'center' }}>
+                          <Ionicons name="camera-outline" size={24} color="#2f5d34" />
+                          <Text style={{ fontSize: 10, color: '#2f5d34', fontWeight: 'bold' }}>Camera</Text>
+                        </View>
+                        <View style={{ alignItems: 'center' }}>
+                          <Ionicons name="images-outline" size={24} color="#2f5d34" />
+                          <Text style={{ fontSize: 10, color: '#2f5d34', fontWeight: 'bold' }}>Gallery</Text>
+                        </View>
                       </View>
                     </View>
-                  </View>
-                )}
-              </TouchableOpacity>
-
-              {/* Thumbnail strip */}
-              {mediaItems.length > 0 && (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }} contentContainerStyle={{ gap: 8 }}>
-                  {mediaItems.map((m, i) => (
-                    <TouchableOpacity key={i} onPress={() => setPreviewIndex(i)} style={{ position: "relative" }}>
-                      <View style={{ width: 60, height: 60, borderRadius: 14, overflow: "hidden", borderWidth: 2, borderColor: i === previewIndex ? "#2f5d34" : "transparent" }}>
-                        {m.type === "video" ? (
-                          <View style={{ flex: 1, backgroundColor: "#1f2937", alignItems: "center", justifyContent: "center" }}>
-                            <Ionicons name="videocam" size={24} color="#4ade80" />
-                          </View>
-                        ) : (
-                          <Image source={{ uri: m.uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-                        )}
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => removeMedia(i)}
-                        style={{ position: "absolute", top: -5, right: -5, backgroundColor: "#ef4444", borderRadius: 10, width: 18, height: 18, alignItems: "center", justifyContent: "center" }}
-                      >
-                        <Ionicons name="close" size={11} color="white" />
-                      </TouchableOpacity>
-                    </TouchableOpacity>
-                  ))}
-                  {/* Add more button */}
-                  <TouchableOpacity onPress={pickMedia} style={{ width: 60, height: 60, borderRadius: 14, backgroundColor: "#f0fdf4", borderWidth: 1.5, borderStyle: "dashed", borderColor: "#86efac", alignItems: "center", justifyContent: "center" }}>
-                    <Ionicons name="add" size={24} color="#2f5d34" />
-                  </TouchableOpacity>
-                </ScrollView>
-              )}
-
-              {/* Voice Note */}
-              <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>Voice Memories</Text>
-              <View style={{ marginBottom: 14 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 10 }}>
-                  <TouchableOpacity
-                    onPress={isRecording ? stopRecording : startRecording}
-                    style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: isRecording ? "#ef4444" : "#2f5d34", alignItems: "center", justifyContent: "center" }}
-                  >
-                    <Ionicons name={isRecording ? "stop" : "mic"} size={22} color="white" />
-                  </TouchableOpacity>
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    {isRecording ? (
-                      <Text style={{ color: "#ef4444", fontWeight: "800", fontSize: 13 }}>Recording...</Text>
-                    ) : (
-                      <Text style={{ color: "#9ca3af", fontSize: 12, fontWeight: "600" }}>Tap mic to record audio</Text>
-                    )}
-                  </View>
-                </View>
-
-                {voiceNotes.map((note, vIdx) => (
-                  <View key={`v-note-${vIdx}`} style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f0fdf4", borderWidth: 1, borderColor: "#dcfce7", borderRadius: 16, padding: 12, marginBottom: 8 }}>
-                    <TouchableOpacity onPress={() => playSound(note)} style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: "#2f5d34", alignItems: "center", justifyContent: "center", marginRight: 10 }}>
-                      <Ionicons name="play" size={16} color="white" />
-                    </TouchableOpacity>
-                    <Text style={{ flex: 1, color: "#2f5d34", fontWeight: "700", fontSize: 13 }}>Voice Note #{vIdx + 1}</Text>
-                    <TouchableOpacity onPress={() => setVoiceNotes(prev => prev.filter((_, i) => i !== vIdx))}>
-                      <Ionicons name="trash-outline" size={18} color="#ef4444" />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-
-              {/* Title */}
-              <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>Title</Text>
-              <TextInput
-                placeholder="A beautiful sunset..."
-                value={title}
-                onChangeText={setTitle}
-                style={{ backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 18, paddingVertical: 16, fontSize: 15, fontWeight: "700", color: "#111827", marginBottom: 14 }}
-                placeholderTextColor="#9ca3af"
-              />
-
-              {/* Date + Place */}
-              <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>When & Where</Text>
-              <View style={{ flexDirection: "row", gap: 10, marginBottom: 14 }}>
-                <TouchableOpacity
-                  onPress={() => setShowDatePicker(true)}
-                  style={{ flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 14, paddingVertical: 16 }}
-                >
-                  <Ionicons name="calendar" size={16} color="#2f5d34" style={{ marginRight: 8 }} />
-                  <Text style={{ color: "#374151", fontWeight: "700", fontSize: 13 }}>{formatDate(date)}</Text>
-                </TouchableOpacity>
-                <TextInput
-                  placeholder="Location"
-                  value={place}
-                  onChangeText={setPlace}
-                  style={{ flex: 1, backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 14, paddingVertical: 16, fontSize: 13, fontWeight: "700", color: "#111827" }}
-                  placeholderTextColor="#9ca3af"
-                />
-              </View>
-
-              {showDatePicker && (
-                <DateTimePicker value={date} mode="date" display="default" onChange={(_, d) => { setShowDatePicker(false); if (d) setDate(d); }} maximumDate={new Date()} />
-              )}
-
-              {/* Action buttons */}
-              <View style={{ flexDirection: "row", gap: 10, marginTop: 8 }}>
-                {editingId && (
-                  <TouchableOpacity
-                    onPress={() => confirmDelete(editingId)}
-                    style={{ flex: 1, backgroundColor: "#fef2f2", paddingVertical: 16, borderRadius: 18, alignItems: "center", borderWidth: 1, borderColor: "#fecaca" }}
-                  >
-                    <Text style={{ color: "#ef4444", fontWeight: "900", fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Delete</Text>
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  onPress={handleSave}
-                  disabled={loading}
-                  style={{ flex: 2, backgroundColor: "#2f5d34", paddingVertical: 16, borderRadius: 18, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8, elevation: 4, shadowColor: "#2f5d34", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, opacity: loading ? 0.7 : 1 }}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="white" size="small" />
-                  ) : (
-                    <>
-                      <Ionicons name="checkmark-circle" size={20} color="white" />
-                      <Text style={{ color: "white", fontWeight: "900", fontSize: 14, textTransform: "uppercase", letterSpacing: 1 }}>{editingId ? "Update" : "Save"}</Text>
-                    </>
                   )}
                 </TouchableOpacity>
-              </View>
 
-            </ScrollView>
+                {/* Thumbnail strip */}
+                {mediaItems.length > 0 && (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }} contentContainerStyle={{ gap: 8 }}>
+                    {mediaItems.map((m, i) => (
+                      <TouchableOpacity key={i} onPress={() => setPreviewIndex(i)} style={{ position: "relative" }}>
+                        <View style={{ width: 60, height: 60, borderRadius: 14, overflow: "hidden", borderWidth: 2, borderColor: i === previewIndex ? "#2f5d34" : "transparent" }}>
+                          {m.type === "video" ? (
+                            <View style={{ flex: 1, backgroundColor: "#1f2937", alignItems: "center", justifyContent: "center" }}>
+                              <Ionicons name="videocam" size={24} color="#4ade80" />
+                            </View>
+                          ) : (
+                            <Image source={{ uri: m.uri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+                          )}
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => removeMedia(i)}
+                          style={{ position: "absolute", top: -5, right: -5, backgroundColor: "#ef4444", borderRadius: 10, width: 18, height: 18, alignItems: "center", justifyContent: "center" }}
+                        >
+                          <Ionicons name="close" size={11} color="white" />
+                        </TouchableOpacity>
+                      </TouchableOpacity>
+                    ))}
+                    <TouchableOpacity onPress={pickMedia} style={{ width: 60, height: 60, borderRadius: 14, backgroundColor: "#f0fdf4", borderWidth: 1.5, borderStyle: "dashed", borderColor: "#86efac", alignItems: "center", justifyContent: "center" }}>
+                      <Ionicons name="add" size={24} color="#2f5d34" />
+                    </TouchableOpacity>
+                  </ScrollView>
+                )}
+
+                {/* Voice Note */}
+                <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>Voice Memories</Text>
+                <View style={{ marginBottom: 14 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 10 }}>
+                    <TouchableOpacity
+                      onPress={isRecording ? stopRecording : startRecording}
+                      style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: isRecording ? "#ef4444" : "#2f5d34", alignItems: "center", justifyContent: "center" }}
+                    >
+                      <Ionicons name={isRecording ? "stop" : "mic"} size={22} color="white" />
+                    </TouchableOpacity>
+                    <View style={{ flex: 1, marginLeft: 12 }}>
+                      {isRecording ? (
+                        <Text style={{ color: "#ef4444", fontWeight: "800", fontSize: 13 }}>Recording...</Text>
+                      ) : (
+                        <Text style={{ color: "#9ca3af", fontSize: 12, fontWeight: "600" }}>Tap mic to record audio</Text>
+                      )}
+                    </View>
+                  </View>
+
+                  {voiceNotes.map((note, vIdx) => (
+                    <View key={`v-note-${vIdx}`} style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f0fdf4", borderWidth: 1, borderColor: "#dcfce7", borderRadius: 16, padding: 12, marginBottom: 8 }}>
+                      <TouchableOpacity onPress={() => playSound(note)} style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: "#2f5d34", alignItems: "center", justifyContent: "center", marginRight: 10 }}>
+                        <Ionicons name="play" size={16} color="white" />
+                      </TouchableOpacity>
+                      <Text style={{ flex: 1, color: "#2f5d34", fontWeight: "700", fontSize: 13 }}>Voice Note #{vIdx + 1}</Text>
+                      <TouchableOpacity onPress={() => setVoiceNotes(prev => prev.filter((_, i) => i !== vIdx))}>
+                        <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Title */}
+                <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>Title</Text>
+                <TextInput
+                  placeholder="A beautiful sunset..."
+                  value={title}
+                  onChangeText={setTitle}
+                  style={{ backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 18, paddingVertical: 16, fontSize: 15, fontWeight: "700", color: "#111827", marginBottom: 14 }}
+                  placeholderTextColor="gray"
+                />
+
+                {/* Date + Place */}
+                <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>When & Where</Text>
+                <View style={{ flexDirection: "row", gap: 10, marginBottom: 14 }}>
+                  <TouchableOpacity
+                    onPress={() => setShowDatePicker(true)}
+                    style={{ flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 14, paddingVertical: 16 }}
+                  >
+                    <Ionicons name="calendar" size={16} color="#2f5d34" style={{ marginRight: 8 }} />
+                    <Text style={{ color: "#374151", fontWeight: "700", fontSize: 13 }}>{formatDate(date)}</Text>
+                  </TouchableOpacity>
+                  <TextInput
+                    placeholder="Location"
+                    value={place}
+                    onChangeText={setPlace}
+                    style={{ flex: 1, backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 14, paddingVertical: 16, fontSize: 13, fontWeight: "700", color: "#111827" }}
+                    placeholderTextColor="gray"
+                  />
+                </View>
+
+                {showDatePicker && (
+                  <DateTimePicker value={date} mode="date" display="default" onChange={(_, d) => { setShowDatePicker(false); if (d) setDate(d); }} maximumDate={new Date()} />
+                )}
+
+                {/* Action buttons */}
+                <View style={{ flexDirection: "row", gap: 10, marginTop: 8, marginBottom: 40 }}>
+                  {editingId && (
+                    <TouchableOpacity
+                      onPress={() => confirmDelete(editingId)}
+                      style={{ flex: 1, backgroundColor: "#fef2f2", paddingVertical: 16, borderRadius: 18, alignItems: "center", borderWidth: 1, borderColor: "#fecaca" }}
+                    >
+                      <Text style={{ color: "#ef4444", fontWeight: "900", fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>Delete</Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity
+                    onPress={handleSave}
+                    disabled={loading}
+                    style={{ flex: 2, backgroundColor: "#2f5d34", paddingVertical: 16, borderRadius: 18, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8, elevation: 4, shadowColor: "#2f5d34", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, opacity: loading ? 0.7 : 1 }}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="white" size="small" />
+                    ) : (
+                      <>
+                        <Ionicons name="checkmark-circle" size={20} color="white" />
+                        <Text style={{ color: "white", fontWeight: "900", fontSize: 14, textTransform: "uppercase", letterSpacing: 1 }}>{editingId ? "Update" : "Save"}</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* DELETE CONFIRMATION MODAL */}

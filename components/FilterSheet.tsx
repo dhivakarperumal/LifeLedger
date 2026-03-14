@@ -8,6 +8,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -140,133 +141,133 @@ export default function FilterSheet({
     return (
         <Modal visible={visible} transparent animationType="slide" onShow={handleOpen}>
             <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
-                <View style={{ backgroundColor: "white", borderTopLeftRadius: 36, borderTopRightRadius: 36, maxHeight: "90%", paddingTop: 24, paddingHorizontal: 20, paddingBottom: 30 }}>
+                <SafeAreaView edges={["bottom"]} style={{ backgroundColor: "white", borderTopLeftRadius: 36, borderTopRightRadius: 36, maxHeight: "90%", paddingTop: 10 }}>
+                    <View style={{ paddingTop: 14, paddingHorizontal: 20 }}>
+                        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+                            {/* Header */}
+                            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                                <View>
+                                    <Text style={{ fontSize: 22, fontWeight: "900", color: "#1f2937" }}>Filter</Text>
+                                    <Text style={{ fontSize: 10, fontWeight: "700", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5 }}>Narrow your results</Text>
+                                </View>
+                                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                                    {hasActiveFilters(local) && (
+                                        <TouchableOpacity onPress={reset} style={{ backgroundColor: "#fee2e2", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 }}>
+                                            <Text style={{ color: "#ef4444", fontWeight: "800", fontSize: 12 }}>Clear All</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                    <TouchableOpacity onPress={onClose} style={{ backgroundColor: "#f3f4f6", padding: 8, borderRadius: 20 }}>
+                                        <Ionicons name="close" size={20} color="#374151" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
 
-                    {/* Header */}
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                        <View>
-                            <Text style={{ fontSize: 22, fontWeight: "900", color: "#1f2937" }}>Filter</Text>
-                            <Text style={{ fontSize: 10, fontWeight: "700", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5 }}>Narrow your results</Text>
-                        </View>
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                            {hasActiveFilters(local) && (
-                                <TouchableOpacity onPress={reset} style={{ backgroundColor: "#fee2e2", paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 }}>
-                                    <Text style={{ color: "#ef4444", fontWeight: "800", fontSize: 12 }}>Clear All</Text>
-                                </TouchableOpacity>
+                            {/* Date Presets */}
+                            <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12, marginLeft: 4 }}>Date Range</Text>
+                            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+                                {DATE_PRESETS.map((p, idx) => {
+                                    const active = local.datePreset === p.key;
+                                    return (
+                                        <TouchableOpacity
+                                            key={`date-preset-${p.key}-${idx}`}
+                                            onPress={() => setDatePreset(p.key)}
+                                            style={{
+                                                flexDirection: "row", alignItems: "center",
+                                                paddingHorizontal: 14, paddingVertical: 9,
+                                                borderRadius: 20, borderWidth: 1.5,
+                                                backgroundColor: active ? "#2f5d34" : "white",
+                                                borderColor: active ? "#2f5d34" : "#e5e7eb",
+                                            }}
+                                        >
+                                            <Ionicons name={p.icon as any} size={13} color={active ? "white" : "#6b7280"} style={{ marginRight: 5 }} />
+                                            <Text style={{ fontSize: 12, fontWeight: "700", color: active ? "white" : "#374151" }}>{p.label}</Text>
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+
+                            {/* Custom range pickers */}
+                            {local.datePreset === "custom" && (
+                                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 20, gap: 10 }}>
+                                    <TouchableOpacity
+                                        onPress={() => setShowFromPicker(true)}
+                                        style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: "#e5e7eb", flexDirection: "row", alignItems: "center" }}
+                                    >
+                                        <Ionicons name="calendar-outline" size={16} color="#2f5d34" style={{ marginRight: 6 }} />
+                                        <Text style={{ fontSize: 12, fontWeight: "700", color: local.customFrom ? "#1f2937" : "#9ca3af" }}>
+                                            {local.customFrom ? local.customFrom.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "From"}
+                                        </Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={() => setShowToPicker(true)}
+                                        style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: "#e5e7eb", flexDirection: "row", alignItems: "center" }}
+                                    >
+                                        <Ionicons name="calendar-outline" size={16} color="#2f5d34" style={{ marginRight: 6 }} />
+                                        <Text style={{ fontSize: 12, fontWeight: "700", color: local.customTo ? "#1f2937" : "#9ca3af" }}>
+                                            {local.customTo ? local.customTo.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "To"}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
                             )}
-                            <TouchableOpacity onPress={onClose} style={{ backgroundColor: "#f3f4f6", padding: 8, borderRadius: 20 }}>
-                                <Ionicons name="close" size={20} color="#374151" />
+
+                            {showFromPicker && (
+                                <DateTimePicker
+                                    value={local.customFrom || new Date()}
+                                    mode="date"
+                                    display="default"
+                                    maximumDate={local.customTo || new Date()}
+                                    onChange={(_, d) => { setShowFromPicker(false); if (d) setLocal((prev) => ({ ...prev, customFrom: d })); }}
+                                />
+                            )}
+                            {showToPicker && (
+                                <DateTimePicker
+                                    value={local.customTo || new Date()}
+                                    mode="date"
+                                    display="default"
+                                    minimumDate={local.customFrom || undefined}
+                                    maximumDate={new Date()}
+                                    onChange={(_, d) => { setShowToPicker(false); if (d) setLocal((prev) => ({ ...prev, customTo: d })); }}
+                                />
+                            )}
+
+                            {/* Dynamic chip groups */}
+                            {chipGroups.map((group) => (
+                                <View key={group.key} style={{ marginBottom: 20 }}>
+                                    <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12, marginLeft: 4 }}>{group.label}</Text>
+                                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                                        {group.options.map((opt, oIdx) => {
+                                            const selected = (local.chips[group.key] || []).includes(opt);
+                                            return (
+                                                <TouchableOpacity
+                                                    key={`filter-chip-${group.key}-${oIdx}`}
+                                                    onPress={() => toggleChip(group.key, opt, group.multi ?? false)}
+                                                    style={{
+                                                        paddingHorizontal: 14, paddingVertical: 9,
+                                                        borderRadius: 20, borderWidth: 1.5,
+                                                        backgroundColor: selected ? "#2f5d34" : "white",
+                                                        borderColor: selected ? "#2f5d34" : "#e5e7eb",
+                                                    }}
+                                                >
+                                                    <Text style={{ fontSize: 12, fontWeight: "700", color: selected ? "white" : "#374151" }}>{opt}</Text>
+                                                </TouchableOpacity>
+                                            );
+                                        })}
+                                    </View>
+                                </View>
+                            ))}
+                        </ScrollView>
+
+                        {/* Apply Button Section */}
+                        <View style={{ paddingBottom: 24, marginTop: 8 }}>
+                            <TouchableOpacity
+                                onPress={() => { onApply(local); onClose(); }}
+                                style={{ backgroundColor: "#2f5d34", borderRadius: 24, paddingVertical: 18, alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 6 }}
+                            >
+                                <Text style={{ color: "white", fontWeight: "900", fontSize: 16, textTransform: "uppercase", letterSpacing: 2 }}>Apply Filters</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
-
-                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
-
-                        {/* Date Presets */}
-                        <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12, marginLeft: 4 }}>Date Range</Text>
-                        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
-                            {DATE_PRESETS.map((p, idx) => {
-                                const active = local.datePreset === p.key;
-                                return (
-                                    <TouchableOpacity
-                                        key={`date-preset-${p.key}-${idx}`}
-                                        onPress={() => setDatePreset(p.key)}
-                                        style={{
-                                            flexDirection: "row", alignItems: "center",
-                                            paddingHorizontal: 14, paddingVertical: 9,
-                                            borderRadius: 20, borderWidth: 1.5,
-                                            backgroundColor: active ? "#2f5d34" : "white",
-                                            borderColor: active ? "#2f5d34" : "#e5e7eb",
-                                        }}
-                                    >
-                                        <Ionicons name={p.icon as any} size={13} color={active ? "white" : "#6b7280"} style={{ marginRight: 5 }} />
-                                        <Text style={{ fontSize: 12, fontWeight: "700", color: active ? "white" : "#374151" }}>{p.label}</Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </View>
-
-                        {/* Custom range pickers */}
-                        {local.datePreset === "custom" && (
-                            <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 20, gap: 10 }}>
-                                <TouchableOpacity
-                                    onPress={() => setShowFromPicker(true)}
-                                    style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: "#e5e7eb", flexDirection: "row", alignItems: "center" }}
-                                >
-                                    <Ionicons name="calendar-outline" size={16} color="#2f5d34" style={{ marginRight: 6 }} />
-                                    <Text style={{ fontSize: 12, fontWeight: "700", color: local.customFrom ? "#1f2937" : "#9ca3af" }}>
-                                        {local.customFrom ? local.customFrom.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "From"}
-                                    </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    onPress={() => setShowToPicker(true)}
-                                    style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: "#e5e7eb", flexDirection: "row", alignItems: "center" }}
-                                >
-                                    <Ionicons name="calendar-outline" size={16} color="#2f5d34" style={{ marginRight: 6 }} />
-                                    <Text style={{ fontSize: 12, fontWeight: "700", color: local.customTo ? "#1f2937" : "#9ca3af" }}>
-                                        {local.customTo ? local.customTo.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "To"}
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-                        )}
-
-                        {showFromPicker && (
-                            <DateTimePicker
-                                value={local.customFrom || new Date()}
-                                mode="date"
-                                display="default"
-                                maximumDate={local.customTo || new Date()}
-                                onChange={(_, d) => { setShowFromPicker(false); if (d) setLocal((prev) => ({ ...prev, customFrom: d })); }}
-                            />
-                        )}
-                        {showToPicker && (
-                            <DateTimePicker
-                                value={local.customTo || new Date()}
-                                mode="date"
-                                display="default"
-                                minimumDate={local.customFrom || undefined}
-                                maximumDate={new Date()}
-                                onChange={(_, d) => { setShowToPicker(false); if (d) setLocal((prev) => ({ ...prev, customTo: d })); }}
-                            />
-                        )}
-
-                        {/* Dynamic chip groups */}
-                        {chipGroups.map((group) => (
-                            <View key={group.key} style={{ marginBottom: 20 }}>
-                                <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12, marginLeft: 4 }}>{group.label}</Text>
-                                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                                    {group.options.map((opt, oIdx) => {
-                                        const selected = (local.chips[group.key] || []).includes(opt);
-                                        return (
-                                            <TouchableOpacity
-                                                key={`filter-chip-${group.key}-${oIdx}`}
-                                                onPress={() => toggleChip(group.key, opt, group.multi ?? false)}
-                                                style={{
-                                                    paddingHorizontal: 14, paddingVertical: 9,
-                                                    borderRadius: 20, borderWidth: 1.5,
-                                                    backgroundColor: selected ? "#2f5d34" : "white",
-                                                    borderColor: selected ? "#2f5d34" : "#e5e7eb",
-                                                }}
-                                            >
-                                                <Text style={{ fontSize: 12, fontWeight: "700", color: selected ? "white" : "#374151" }}>{opt}</Text>
-                                            </TouchableOpacity>
-                                        );
-                                    })}
-                                </View>
-                            </View>
-                        ))}
-
-                    </ScrollView>
-
-                    {/* Apply Button */}
-                    <TouchableOpacity
-                        onPress={() => { onApply(local); onClose(); }}
-                        style={{ backgroundColor: "#2f5d34", borderRadius: 24, paddingVertical: 18, alignItems: "center", marginTop: 8, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 6 }}
-                    >
-                        <Text style={{ color: "white", fontWeight: "900", fontSize: 16, textTransform: "uppercase", letterSpacing: 2 }}>Apply Filters</Text>
-                    </TouchableOpacity>
-
-                </View>
+                </SafeAreaView>
             </View>
         </Modal>
     );

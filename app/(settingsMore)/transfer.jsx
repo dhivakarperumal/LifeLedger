@@ -28,6 +28,11 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../../firebase";
 
+import FilterSheet, {
+    applyFilters,
+    defaultFilterState
+} from "../../components/FilterSheet";
+
 export default function TransferScreen() {
     const router = useRouter();
     const uid = auth.currentUser?.uid;
@@ -38,6 +43,11 @@ export default function TransferScreen() {
     const [incomeList, setIncomeList] = useState([]);
     const [selectedIncome, setSelectedIncome] = useState(null);
     const [transferList, setTransferList] = useState([]);
+
+    const [filteredTransferList, setFilteredTransferList] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filterVisible, setFilterVisible] = useState(false);
+    const [filterState, setFilterState] = useState(defaultFilterState());
 
     // ── Toast ──────────────────────────────────────────────────────────
     const [toast, setToast] = useState(null);
@@ -59,6 +69,18 @@ export default function TransferScreen() {
         fetchIncome();
         fetchTransfers();
     }, []);
+
+    useEffect(() => {
+        let result = applyFilters(transferList, filterState, "createdAt");
+        if (searchQuery.trim() !== "") {
+            const lower = searchQuery.toLowerCase();
+            result = result.filter(item => 
+                item.name?.toLowerCase().includes(lower) ||
+                item.amount?.toString().includes(lower)
+            );
+        }
+        setFilteredTransferList(result);
+    }, [searchQuery, transferList, filterState]);
 
     const totalIncome = incomeList.reduce((sum, it) => {
         const val = Number(it.remainingAmount ?? it.amount ?? 0);
@@ -87,6 +109,7 @@ export default function TransferScreen() {
             return b.createdAt.toMillis() - a.createdAt.toMillis();
         });
         setTransferList(list);
+        setFilteredTransferList(list);
     };
 
     const addTransfer = async () => {
@@ -160,7 +183,7 @@ export default function TransferScreen() {
                 </View>
 
                 {/* ── SUMMARY BANNER ─────────────────────────────────── */}
-                <View style={{ flexDirection: "row", gap: 12 }}>
+                <View style={{ flexDirection: "row", gap: 12, marginBottom: 16 }}>
                     <View style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 20, padding: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" }}>
                         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
                             <View style={{ backgroundColor: "#f0fdf4", padding: 6, borderRadius: 10, marginRight: 8 }}>
@@ -180,12 +203,48 @@ export default function TransferScreen() {
                         <Text style={{ color: "#f87171", fontSize: 22, fontWeight: "900" }}>₹{totalTransferred.toLocaleString("en-IN")}</Text>
                     </View>
                 </View>
+
+                {/* ── SEARCH & FILTER ────────────────────────────────── */}
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                    <View style={{ flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "rgba(255,255,255,0.06)", borderRadius: 16, paddingHorizontal: 16, height: 50, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" }}>
+                        <Ionicons name="search-outline" size={18} color="#9ca3af" style={{ marginRight: 10 }} />
+                        <TextInput
+                            placeholder="Search transfers..."
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                            style={{ flex: 1, color: "white", fontSize: 14, fontWeight: "600" }}
+                            placeholderTextColor="gray"
+                        />
+                        {searchQuery.length > 0 && (
+                            <TouchableOpacity onPress={() => setSearchQuery("")}>
+                                <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                    <TouchableOpacity
+                        onPress={() => setFilterVisible(true)}
+                        style={{
+                            width: 50, height: 50, borderRadius: 16, alignItems: "center", justifyContent: "center",
+                            backgroundColor: (filterState.datePreset !== "all") ? "#2f5d34" : "rgba(255,255,255,0.06)",
+                            borderWidth: 1, borderColor: "rgba(255,255,255,0.1)"
+                        }}
+                    >
+                        <Ionicons name="filter-outline" size={20} color="white" />
+                    </TouchableOpacity>
+                </View>
             </View>
+
+            <FilterSheet
+                visible={filterVisible}
+                onClose={() => setFilterVisible(false)}
+                onApply={(s) => setFilterState(s)}
+                activeFilters={filterState}
+            />
 
             {/* ── CONTENT ────────────────────────────────────────────── */}
             <View style={{ flex: 1, backgroundColor: "#f9fafb", borderTopLeftRadius: 32, borderTopRightRadius: 32 }}>
                 <FlatList
-                    data={transferList}
+                    data={filteredTransferList}
                     keyExtractor={(item) => item.id}
                     numColumns={2}
                     columnWrapperStyle={{ justifyContent: "space-between" }}
@@ -389,7 +448,7 @@ export default function TransferScreen() {
                                         value={amount}
                                         onChangeText={setAmount}
                                         style={{ fontSize: 28, fontWeight: "900", color: "#111827", textAlign: "center", paddingVertical: 2, flex: 1 }}
-                                        placeholderTextColor="#9ca3af"
+                                        placeholderTextColor="gray"
                                     />
                                 </View>
 
@@ -412,7 +471,7 @@ export default function TransferScreen() {
                                         borderColor: "#f0f0f0",
                                         marginBottom: 28,
                                     }}
-                                    placeholderTextColor="#9ca3af"
+                                    placeholderTextColor="gray"
                                 />
 
                                 {/* Submit button */}
