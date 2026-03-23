@@ -692,10 +692,10 @@ export default function ExpenseTrack() {
         onPress={startScanning}
         style={{
           position: "absolute",
-          bottom: 100,
+          bottom: 90,
           right: 20,
-          width: 60,
-          height: 60,
+          width: 55,
+          height: 55,
           borderRadius: 30,
           backgroundColor: "#1e40af",
           justifyContent: "center",
@@ -822,44 +822,24 @@ export default function ExpenseTrack() {
                   Total Amount
                 </Text>
 
-                <View
+                <TextInput
+                  placeholder="Enter Amount (₹)"
+                  keyboardType="numeric"
+                  value={amount}
+                  onChangeText={setAmount}
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
                     backgroundColor: "#f8fafc",
-                    borderRadius: 12,
-                    paddingHorizontal: 14,
-                    paddingVertical: 10,
+                    borderRadius: 18,
+                    padding: 16,
+                    fontSize: 15,
+                    fontWeight: "700",
+                    color: "#111827",
                     borderWidth: 1.5,
-                    borderColor: "#f0f0f0"
+                    borderColor: "#f0f0f0",
+                    marginBottom: 20
                   }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 22,
-                      fontWeight: "900",
-                      color: "#2f5d34",
-                      marginRight: 8
-                    }}
-                  >
-                    ₹
-                  </Text>
-
-                  <TextInput
-                    placeholder="0.00"
-                    keyboardType="numeric"
-                    value={amount}
-                    onChangeText={setAmount}
-                    style={{
-                      flex: 1,
-                      fontSize: 18,
-                      fontWeight: "700",
-                      color: "#111827",
-                      paddingVertical: 4
-                    }}
-                    placeholderTextColor="#9ca3af"
-                  />
-                </View>
+                  placeholderTextColor="#9ca3af"
+                />
                 {/* Unified Picker style for Source & Mode */}
 
 

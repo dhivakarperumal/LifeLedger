@@ -438,13 +438,13 @@ export default function Income() {
           setShowModal(true);
         }}
         style={{
-          position: "absolute", bottom: 70, right: 24, width: 66, height: 66, borderRadius: 33,
+          position: "absolute", bottom: 70, right: 24, width: 55, height: 55, borderRadius: 28,
           backgroundColor: "#2f5d34", alignItems: "center", justifyContent: "center",
           elevation: 12, shadowColor: "#2f5d34", shadowOffset: { width: 0, height: 6 },
           shadowOpacity: 0.4, shadowRadius: 16, zIndex: 99
         }}
       >
-        <Ionicons name="add" size={36} color="white" />
+        <Ionicons name="add" size={32} color="white" />
       </TouchableOpacity>
 
       {/* MODAL */}
@@ -518,64 +518,24 @@ export default function Income() {
                   Transaction Details
                 </Text>
 
-                <View
+                <TextInput
+                  placeholder="Enter Amount (₹)"
+                  keyboardType="numeric"
+                  value={amount}
+                  onChangeText={setAmount}
                   style={{
                     backgroundColor: "#f8fafc",
-                    borderRadius: 16,
-                    paddingVertical: 10,
-                    paddingHorizontal: 16,
-                    alignItems: "center",
+                    borderRadius: 18,
+                    padding: 16,
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#111827",
                     borderWidth: 1.5,
                     borderColor: "#f0f0f0",
-                    marginBottom: 12
+                    marginBottom: 20
                   }}
-                >
-                  <Text
-                    style={{
-                      color: "#9ca3af",
-                      fontSize: 10,
-                      fontWeight: "800",
-                      textTransform: "uppercase",
-                      marginBottom: 6
-                    }}
-                  >
-                    Total Amount Received
-                  </Text>
-
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "center"
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 20,
-                        fontWeight: "900",
-                        color: "#2f5d34",
-                        marginRight: 6
-                      }}
-                    >
-                      ₹
-                    </Text>
-
-                    <TextInput
-                      placeholder="0.00"
-                      keyboardType="numeric"
-                      value={amount}
-                      onChangeText={setAmount}
-                      style={{
-                        fontSize: 26,
-                        fontWeight: "900",
-                        color: "#111827",
-                        textAlign: "center",
-                        paddingVertical: 1
-                      }}
-                      placeholderTextColor="#9ca3af"
-                    />
-                  </View>
-                </View>
+                  placeholderTextColor="#9ca3af"
+                />
 
                 {/* Work Name */}
                 <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>Income Source / Work Name</Text>
@@ -583,7 +543,7 @@ export default function Income() {
                   placeholder="E.g. Freelance project, Monthly Salary, Bonus"
                   value={workName}
                   onChangeText={setWorkName}
-                  style={{ backgroundColor: "#f8fafc", borderRadius: 18, padding: 16, fontSize: 16, fontWeight: "700", color: "#111827", borderWidth: 1.5, borderColor: "#f0f0f0", marginBottom: 24 }}
+                  style={{ backgroundColor: "#f8fafc", borderRadius: 18, padding: 16, fontSize: 14, fontWeight: "700", color: "#111827", borderWidth: 1.5, borderColor: "#f0f0f0", marginBottom: 24 }}
                   placeholderTextColor="#9ca3af"
                 />
 
