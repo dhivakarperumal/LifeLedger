@@ -816,7 +816,7 @@ export default function Memories() {
       {!selectionMode && (
         <TouchableOpacity
           onPress={() => setModalVisible(true)}
-          style={{ position: "absolute", bottom: 40, right: 24, width: 66, height: 66, borderRadius: 33, backgroundColor: "#2f5d34", alignItems: "center", justifyContent: "center", elevation: 12, shadowColor: "#2f5d34", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 16 }}
+          style={{ position: "absolute", bottom: 25, right: 24, width: 55, height: 55, borderRadius: 33, backgroundColor: "#2f5d34", alignItems: "center", justifyContent: "center", elevation: 12, shadowColor: "#2f5d34", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 16 }}
         >
           <Ionicons name="add" size={36} color="white" />
         </TouchableOpacity>
@@ -828,9 +828,8 @@ export default function Memories() {
       {/* Capture/Edit Modal */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior="padding"
           style={{ flex: 1 }}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 40}
         >
           <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
             <View style={{ backgroundColor: "white", maxHeight: "92%", borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingTop: 24, paddingHorizontal: 24, paddingBottom: 40 }}>
@@ -1003,21 +1002,30 @@ export default function Memories() {
                 />
 
                 {/* Date + Place */}
-                <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>When & Where</Text>
                 <View style={{ flexDirection: "row", gap: 10, marginBottom: 14 }}>
-                  <TouchableOpacity
-                    onPress={() => setShowDatePicker(true)}
-                    style={{ flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 14, paddingVertical: 16 }}
-                  >
-                    <Ionicons name="calendar" size={16} color="#2f5d34" style={{ marginRight: 8 }} />
-                    <Text style={{ color: "#374151", fontWeight: "700", fontSize: 13 }}>{formatDate(date)}</Text>
-                  </TouchableOpacity>
-                  <TextInput
-                    value={place}
-                    onChangeText={setPlace}
-                    style={{ flex: 1, backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 14, paddingVertical: 16, fontSize: 13, fontWeight: "700", color: "#111827" }}
-                    placeholderTextColor="#9ca3af"
-                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>Date</Text>
+                    <TouchableOpacity
+                      onPress={() => setShowDatePicker(true)}
+                      style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 14, paddingVertical: 16 }}
+                    >
+                      <Ionicons name="calendar" size={16} color="#2f5d34" style={{ marginRight: 8 }} />
+                      <Text style={{ color: "#374151", fontWeight: "700", fontSize: 13 }}>{formatDate(date)}</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>Place</Text>
+                    <View style={{ backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, paddingHorizontal: 14, paddingVertical: 16, flexDirection: "row", alignItems: "center" }}>
+                      <Ionicons name="location-outline" size={16} color="#2f5d34" style={{ marginRight: 8 }} />
+                      <TextInput
+                        value={place}
+                        onChangeText={setPlace}
+                        placeholder="Enter place..."
+                        style={{ flex: 1, fontSize: 13, fontWeight: "700", color: "#111827", padding: 0 }}
+                        placeholderTextColor="#9ca3af"
+                      />
+                    </View>
+                  </View>
                 </View>
 
                 {showDatePicker && (
