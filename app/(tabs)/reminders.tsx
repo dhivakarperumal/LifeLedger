@@ -98,6 +98,8 @@ export default function RemindersScreen() {
     const [repeat, setRepeat] = useState("None");
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
+    const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+    const [selectedRemindersList, setSelectedRemindersList] = useState<Reminder[]>([]);
 
     const [loading, setLoading] = useState(false);
 
@@ -334,7 +336,14 @@ export default function RemindersScreen() {
 
                 <Calendar
                     current={selectedDate}
-                    onDayPress={(day: any) => setSelectedDate(day.dateString)}
+                    onDayPress={(day: any) => {
+                        setSelectedDate(day.dateString);
+                        const dayReminders = reminders.filter(r => r.date === day.dateString);
+                        if (dayReminders.length > 0) {
+                            setSelectedRemindersList(dayReminders);
+                            setDetailsModalVisible(true);
+                        }
+                    }}
                     markedDates={markedDates}
                     theme={{
                         backgroundColor: "#f9fafb",
@@ -529,6 +538,80 @@ export default function RemindersScreen() {
                     </KeyboardAvoidingView>
                 </Modal>
             </View>
+
+            {/* ── Details Modal ── */}
+            <Modal visible={detailsModalVisible} transparent animationType="fade">
+                <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center", padding: 20 }}>
+                    <View style={{ backgroundColor: "white", width: "100%", borderRadius: 32, padding: 24, maxHeight: "80%" }}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>
+                            <View>
+                                <Text style={{ fontSize: 22, fontWeight: "900", color: "#111827" }}>
+                                    {new Date(selectedDate).toLocaleDateString("en-IN", { day: 'numeric', month: 'long' })}
+                                </Text>
+                                <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5 }}>Scheduled Reminders</Text>
+                            </View>
+                            <TouchableOpacity onPress={() => setDetailsModalVisible(false)} style={{ backgroundColor: "#f3f4f6", padding: 8, borderRadius: 12 }}>
+                                <Ionicons name="close" size={20} color="#374151" />
+                            </TouchableOpacity>
+                        </View>
+
+                        <ScrollView showsVerticalScrollIndicator={false}>
+                            {selectedRemindersList.map((item) => {
+                                const typeInfo = EVENT_TYPES.find(t => t.label === item.type) || EVENT_TYPES[5];
+                                return (
+                                    <View key={item.id} style={{ backgroundColor: "#f9fafb", borderRadius: 24, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: "#f1f5f9" }}>
+                                        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
+                                            <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: typeInfo.color + "15", alignItems: "center", justifyContent: "center", marginRight: 12 }}>
+                                                <Ionicons name={typeInfo.icon as any} size={20} color={typeInfo.color} />
+                                            </View>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={{ fontSize: 16, fontWeight: "900", color: "#111827" }} numberOfLines={1}>{item.title}</Text>
+                                                <Text style={{ fontSize: 11, fontWeight: "700", color: typeInfo.color, textTransform: "uppercase" }}>{item.type}</Text>
+                                            </View>
+                                            <View style={{ backgroundColor: "white", paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, borderWidth: 1, borderColor: "#e5e7eb" }}>
+                                                <Text style={{ fontSize: 12, fontWeight: "800", color: "#111827" }}>{item.time}</Text>
+                                            </View>
+                                        </View>
+
+                                        {item.description ? (
+                                            <Text style={{ fontSize: 13, color: "#64748b", fontWeight: "600", marginBottom: 16, lineHeight: 18 }}>{item.description}</Text>
+                                        ) : null}
+
+                                        <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 10, borderTopWidth: 1, borderTopColor: "#f1f5f9", paddingTop: 12 }}>
+                                            <TouchableOpacity 
+                                                onPress={() => { setDetailsModalVisible(false); openEdit(item); }} 
+                                                style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f0fdf4", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 }}
+                                            >
+                                                <Ionicons name="create-outline" size={16} color="#2f5d34" style={{ marginRight: 6 }} />
+                                                <Text style={{ color: "#2f5d34", fontWeight: "800", fontSize: 12 }}>Edit</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity 
+                                                onPress={() => { setDetailsModalVisible(false); handleDelete(item.id); }} 
+                                                style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#fef2f2", paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 }}
+                                            >
+                                                <Ionicons name="trash-outline" size={16} color="#ef4444" style={{ marginRight: 6 }} />
+                                                <Text style={{ color: "#ef4444", fontWeight: "800", fontSize: 12 }}>Delete</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                );
+                            })}
+                        </ScrollView>
+
+                        <TouchableOpacity
+                            onPress={() => {
+                                setDetailsModalVisible(false);
+                                resetForm();
+                                setDate(new Date(selectedDate));
+                                setShowModal(true);
+                            }}
+                            style={{ backgroundColor: "#111827", borderRadius: 20, paddingVertical: 16, alignItems: "center", marginTop: 10 }}
+                        >
+                            <Text style={{ color: "white", fontWeight: "900", fontSize: 14, textTransform: "uppercase", letterSpacing: 1.5 }}>Add One More</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
 
             {/* ── Toast Notification ── */}
             {toast && (

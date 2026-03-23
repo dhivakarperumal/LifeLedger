@@ -17,6 +17,17 @@ export default function TopHeader() {
 
   const [reminderCount, setReminderCount] = useState(0);
   const [latestReminders, setLatestReminders] = useState<any[]>([]);
+  const [selectedReminder, setSelectedReminder] = useState<any>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [detailFadeAnim] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    Animated.timing(detailFadeAnim, {
+      toValue: showDetails ? 1 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [showDetails]);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -70,6 +81,15 @@ export default function TopHeader() {
       return "";
     }
   };
+
+  const EVENT_TYPES = [
+    { label: "Birthday", icon: "gift", color: "#ec4899" },
+    { label: "Meeting", icon: "people", color: "#3b82f6" },
+    { label: "Bill", icon: "receipt", color: "#ef4444" },
+    { label: "Task", icon: "checkbox", color: "#10b981" },
+    { label: "Goal", icon: "trophy", color: "#f59e0b" },
+    { label: "Other", icon: "notifications", color: "#6366f1" },
+  ];
 
   return (
     <View className="bg-gray-900 px-5 pt-12 pb-4 shadow-md z-50">
@@ -208,7 +228,11 @@ export default function TopHeader() {
               {latestReminders.map((item, index) => (
                 <TouchableOpacity
                   key={index}
-                  onPress={() => { setRemindersOpen(false); router.push("/(tabs)/reminders"); }}
+                  onPress={() => {
+                    setSelectedReminder(item);
+                    setShowDetails(true);
+                    setRemindersOpen(false);
+                  }}
                   className="mb-3 flex-row items-center gap-3 bg-gray-50/50 p-3 rounded-xl border border-gray-100/50"
                 >
                   <View className="w-2 h-2 rounded-full bg-emerald-500" />
@@ -232,6 +256,63 @@ export default function TopHeader() {
             <Text className="text-white font-black text-[10px] tracking-[2px] uppercase">Plan Your Day</Text>
           </TouchableOpacity>
         </Animated.View>
+      )}
+
+      {/* Quick View Details Modal */}
+      {showDetails && selectedReminder && (
+        <View className="absolute inset-0 w-screen h-screen items-center justify-center z-[100]" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
+          <Animated.View 
+            style={{ opacity: detailFadeAnim, transform: [{ scale: detailFadeAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) }] }}
+            className="bg-white w-[85%] rounded-[32px] p-8 shadow-2xl"
+          >
+            {/* Header */}
+            <View className="flex-row justify-between items-start mb-6">
+              <View className="bg-emerald-50 px-3 py-1 rounded-full">
+                <Text className="text-emerald-700 font-black text-[9px] uppercase tracking-widest">{selectedReminder.type || "REMINDER"}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowDetails(false)} className="bg-gray-100 p-2 rounded-full">
+                <Ionicons name="close" size={20} color="#4b5563" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Content */}
+            <View className="items-center mb-6">
+              <View className="w-16 h-16 rounded-3xl bg-gray-50 items-center justify-center mb-4 shadow-sm">
+                <Ionicons 
+                  name={(EVENT_TYPES.find(t => t.label === selectedReminder.type)?.icon as any) || "notifications"} 
+                  size={32} 
+                  color={(EVENT_TYPES.find(t => t.label === selectedReminder.type)?.color) || "#10b981"} 
+                />
+              </View>
+              <Text className="text-xl font-black text-gray-900 text-center mb-2 px-2">{selectedReminder.title}</Text>
+              <View className="flex-row items-center bg-gray-50 px-4 py-2 rounded-2xl">
+                <Ionicons name="time-outline" size={14} color="#6b7280" className="mr-2" />
+                <Text className="text-gray-500 font-bold text-xs ml-1">
+                  {selectedReminder.time ? selectedReminder.time : formatReminderTime(selectedReminder.createdAt)}
+                </Text>
+              </View>
+            </View>
+
+            {selectedReminder.description && (
+              <View className="bg-gray-50 rounded-2xl p-4 mb-6">
+                <Text className="text-gray-600 font-medium text-xs leading-5 text-center italic">
+                  "{selectedReminder.description}"
+                </Text>
+              </View>
+            )}
+
+            {/* Actions */}
+            <TouchableOpacity 
+              onPress={() => {
+                setShowDetails(false);
+                router.push("/(tabs)/reminders");
+              }}
+              className="bg-emerald-600 py-4 rounded-2xl items-center justify-center shadow-lg active:scale-95 transition-all"
+            >
+              <Text className="text-white font-black text-xs uppercase tracking-[2px]">Manage All Reminders</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
       )}
     </View>
   );
