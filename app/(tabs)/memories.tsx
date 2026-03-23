@@ -528,6 +528,7 @@ export default function Memories() {
     const isSelected = selectedIds.has(item.id);
     const thumb = getFirstImage(item);
     const count = getMediaCount(item);
+    
     return (
       <TouchableOpacity
         activeOpacity={0.88}
@@ -537,76 +538,98 @@ export default function Memories() {
         }}
         onLongPress={() => { if (!selectionMode) enterSelection(item.id); }}
         style={{
-          width: "48%", marginBottom: 14, borderRadius: 24,
+          width: "48%", 
+          marginBottom: 16, 
+          borderRadius: 28,
           backgroundColor: "white",
-          borderWidth: isSelected ? 2.5 : 1,
-          borderColor: isSelected ? "#2f5d34" : "#f0f0f0",
-          overflow: "hidden",
-          elevation: isSelected ? 6 : 2,
-          shadowColor: isSelected ? "#2f5d34" : "#000",
-          shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8,
+          borderWidth: isSelected ? 2 : 1,
+          borderColor: isSelected ? "#2f5d34" : "#f3f4f6",
+          padding: 12,
+          elevation: isSelected ? 4 : 2,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 }, 
+          shadowOpacity: 0.05, 
+          shadowRadius: 8,
+          position: 'relative',
+          overflow: 'hidden'
         }}
       >
-        {/* Thumbnail */}
-        <View style={{ position: "relative" }}>
+        {/* Selection Checkbox */}
+        {selectionMode && (
+          <View style={{ 
+            position: "absolute", top: 8, right: 8, zIndex: 10, width: 22, height: 22, borderRadius: 11, 
+            backgroundColor: isSelected ? "#2f5d34" : "rgba(255,255,255,0.9)", 
+            alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: isSelected ? "#2f5d34" : "#d1d5db" 
+          }}>
+            {isSelected && <Ionicons name="checkmark" size={12} color="white" />}
+          </View>
+        )}
+
+        {/* Thumbnail Section */}
+        <View style={{ position: "relative", marginBottom: 12 }}>
           {thumb ? (
-            <Image source={{ uri: thumb }} style={{ width: "100%", height: 145 }} resizeMode="cover" />
+            <Image source={{ uri: thumb }} style={{ width: "100%", height: 125, borderRadius: 18 }} resizeMode="cover" />
           ) : (
-            <View style={{ width: "100%", height: 145, backgroundColor: "#f1f5f9", alignItems: "center", justifyContent: "center" }}>
-              <Ionicons name="image-outline" size={40} color="#cbd5e1" />
+            <View style={{ width: "100%", height: 125, backgroundColor: "#f8fafc", borderRadius: 18, alignItems: "center", justifyContent: "center" }}>
+              <Ionicons name="image-outline" size={32} color="#cbd5e1" />
             </View>
           )}
+          
+          {/* Media Indicators on Image */}
+          <View style={{ position: "absolute", bottom: 6, left: 6, flexDirection: 'row', gap: 4 }}>
+            {count > 1 && (
+              <View style={{ backgroundColor: "rgba(0,0,0,0.55)", borderRadius: 8, flexDirection: "row", alignItems: "center", paddingHorizontal: 6, paddingVertical: 2 }}>
+                <Ionicons name="copy-outline" size={10} color="white" />
+                <Text style={{ color: "white", fontSize: 9, fontWeight: "800", marginLeft: 2 }}>{count}</Text>
+              </View>
+            )}
+            {item.media?.some((m: MediaItem) => m.type === "video") && (
+              <View style={{ backgroundColor: "rgba(0,0,0,0.55)", borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 }}>
+                <Ionicons name="videocam" size={10} color="white" />
+              </View>
+            )}
+          </View>
 
-          {/* Gradient overlay */}
-          <LinearGradient colors={["transparent", "rgba(0,0,0,0.55)"]} style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 56, justifyContent: "flex-end", padding: 8 }}>
-            <Text style={{ color: "white", fontWeight: "800", fontSize: 12 }} numberOfLines={1}>{item.title}</Text>
-          </LinearGradient>
-
-          {/* Media count badge */}
-          {count > 1 && (
-            <View style={{ position: "absolute", top: 8, left: 8, backgroundColor: "rgba(0,0,0,0.55)", borderRadius: 10, flexDirection: "row", alignItems: "center", paddingHorizontal: 7, paddingVertical: 3 }}>
-              <Ionicons name="copy-outline" size={11} color="white" />
-              <Text style={{ color: "white", fontSize: 10, fontWeight: "800", marginLeft: 3 }}>{count}</Text>
-            </View>
-          )}
-
-          {/* Video badge */}
-          {item.media?.some((m: MediaItem) => m.type === "video") && (
-            <View style={{ position: "absolute", top: 8, right: selectionMode ? 36 : 8, backgroundColor: "rgba(0,0,0,0.55)", borderRadius: 10, paddingHorizontal: 7, paddingVertical: 3 }}>
-              <Ionicons name="videocam" size={12} color="white" />
-            </View>
-          )}
-
-          {/* Selection checkbox */}
-          {selectionMode && (
-            <View style={{ position: "absolute", top: 8, right: 8, width: 22, height: 22, borderRadius: 11, backgroundColor: isSelected ? "#2f5d34" : "rgba(255,255,255,0.85)", alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: isSelected ? "#2f5d34" : "#d1d5db" }}>
-              {isSelected && <Ionicons name="checkmark" size={13} color="white" />}
-            </View>
-          )}
-
-          {/* Share button (only when not in selection mode) */}
+          {/* Share Button (Hidden in selection mode) */}
           {!selectionMode && (
             <TouchableOpacity
               onPress={() => {
-                const uris: string[] = item.media?.length
-                  ? item.media.map((m: MediaItem) => m.uri)
-                  : [item.image];
+                const uris: string[] = item.media?.length ? item.media.map((m: MediaItem) => m.uri) : [item.image];
                 shareMedia(uris.filter(Boolean));
               }}
-              style={{ position: "absolute", top: 8, right: 8, backgroundColor: "rgba(0,0,0,0.45)", borderRadius: 18, padding: 6 }}
+              style={{ position: "absolute", top: 8, right: 8, backgroundColor: "rgba(0,0,0,0.45)", borderRadius: 12, padding: 6 }}
             >
-              <Ionicons name="share-social" size={14} color="white" />
+              <Ionicons name="share-social" size={12} color="white" />
             </TouchableOpacity>
           )}
         </View>
 
-        {/* Info row */}
-        <View style={{ padding: 10 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 2 }}>
-            <Ionicons name="location" size={11} color="#2f5d34" />
-            <Text style={{ fontSize: 10, color: "#6b7280", fontWeight: "700", marginLeft: 3 }} numberOfLines={1}>{item.place || "No location"}</Text>
-          </View>
-          <Text style={{ fontSize: 9, color: "#9ca3af", fontWeight: "600" }}>{formatDate(item.createdAt?.toDate() || new Date())}</Text>
+        {/* Memory Info */}
+        <Text style={{ fontSize: 13, fontWeight: "900", color: "#1f2937", marginBottom: 6 }} numberOfLines={1}>
+          {item.title}
+        </Text>
+
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+          <Ionicons name="location" size={10} color="#2f5d34" />
+          <Text style={{ fontSize: 10, color: "#64748b", fontWeight: "700", marginLeft: 2, flex: 1 }} numberOfLines={1}>
+            {item.place || "No location"}
+          </Text>
+        </View>
+
+        {/* Date and Extras */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: '#f1f5f9', paddingTop: 8 }}>
+          <Text style={{ fontSize: 9, color: "#94a3b8", fontWeight: "800", textTransform: 'uppercase' }}>
+            {item.createdAt ? item.createdAt.toDate().toLocaleDateString("en-IN", { day: '2-digit', month: 'short' }) : "Recently"}
+          </Text>
+          
+          {(item.voiceNotes?.length > 0 || item.voiceNote) && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+              <Ionicons name="mic" size={10} color="#2f5d34" />
+              <View style={{ backgroundColor: '#f0fdf4', borderRadius: 6, padding: 2 }}>
+                <Ionicons name="play" size={8} color="#2f5d34" />
+              </View>
+            </View>
+          )}
         </View>
       </TouchableOpacity>
     );
