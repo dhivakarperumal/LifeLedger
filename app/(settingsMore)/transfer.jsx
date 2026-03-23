@@ -50,6 +50,9 @@ export default function TransferScreen() {
     const [filterVisible, setFilterVisible] = useState(false);
     const [filterState, setFilterState] = useState(defaultFilterState());
     const [loading, setLoading] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
 
     // ── Toast ──────────────────────────────────────────────────────────
     const [toast, setToast] = useState(null);
@@ -128,47 +131,81 @@ export default function TransferScreen() {
         }
     };
 
-    const addTransfer = async () => {
+    const handleSave = async () => {
         const transferAmount = Number(amount);
         if (!name || !transferAmount) {
             showToast("Please fill in all required fields", "error");
             return;
         }
-        if (!selectedIncome) {
-            showToast("Please select an income source", "error");
-            return;
-        }
-        if (transferAmount > (selectedIncome.remainingAmount ?? selectedIncome.amount ?? 0)) {
-            showToast("Not enough balance in selected source", "error");
-            return;
-        }
 
         try {
             setLoading(true);
-            await addDoc(transferRef, {
-                name,
-                amount: transferAmount,
-                remainingAmount: transferAmount,
-                userId: uid,
-                createdAt: serverTimestamp(),
-            });
+            if (editingId) {
+                await updateDoc(doc(db, "transfers", editingId), {
+                    name,
+                    amount: transferAmount,
+                    remainingAmount: transferAmount, // Reset remaining for simplicity or handle logic if needed
+                });
+                showToast("Transfer updated successfully!", "success");
+            } else {
+                if (!selectedIncome) {
+                    showToast("Please select an income source", "error");
+                    setLoading(false);
+                    return;
+                }
+                if (transferAmount > (selectedIncome.remainingAmount ?? selectedIncome.amount ?? 0)) {
+                    showToast("Not enough balance in selected source", "error");
+                    setLoading(false);
+                    return;
+                }
 
-            const incomeDoc = doc(db, "income", selectedIncome.id);
-            await updateDoc(incomeDoc, {
-                remainingAmount: (selectedIncome.remainingAmount ?? selectedIncome.amount ?? 0) - transferAmount,
-            });
+                await addDoc(transferRef, {
+                    name,
+                    amount: transferAmount,
+                    remainingAmount: transferAmount,
+                    userId: uid,
+                    createdAt: serverTimestamp(),
+                });
+
+                const incomeDoc = doc(db, "income", selectedIncome.id);
+                await updateDoc(incomeDoc, {
+                    remainingAmount: (selectedIncome.remainingAmount ?? selectedIncome.amount ?? 0) - transferAmount,
+                });
+                showToast("Transfer added successfully!", "success");
+            }
 
             setAmount("");
             setName("");
             setSelectedIncome(null);
+            setEditingId(null);
             setShowSheet(false);
-            showToast("Transfer added successfully!", "success");
             fetchTransfers();
             fetchIncome();
         } catch (e) {
-            showToast("Failed to add transfer", "error");
+            showToast("Failed to save transfer", "error");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const confirmDelete = (item) => {
+        setItemToDelete(item);
+        setDeleteModalVisible(true);
+    };
+
+    const deleteTransfer = async () => {
+        if (!itemToDelete) return;
+        try {
+            setLoading(true);
+            await deleteDoc(doc(db, "transfers", itemToDelete.id));
+            showToast("Transfer deleted", "success");
+            fetchTransfers();
+        } catch (e) {
+            showToast("Failed to delete", "error");
+        } finally {
+            setLoading(false);
+            setDeleteModalVisible(false);
+            setItemToDelete(null);
         }
     };
 
@@ -184,14 +221,23 @@ export default function TransferScreen() {
     };
 
     const openSheet = () => {
+        setEditingId(null);
         setName("");
         setAmount("");
         setSelectedIncome(null);
         setShowSheet(true);
     };
 
+    const openEdit = (item) => {
+        setEditingId(item.id);
+        setName(item.name);
+        setAmount(item.amount.toString());
+        setSelectedIncome(null); // Income source selection only for new transfers
+        setShowSheet(true);
+    };
+
     return (
-        <SafeAreaView edges={["top", "bottom"]} style={{ flex: 1, backgroundColor: "#111827" }}>
+        <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#111827" }}>
 
             {/* ── HEADER ─────────────────────────────────────────────── */}
             <View style={{ backgroundColor: "#111827", paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 }}>
@@ -304,13 +350,18 @@ export default function TransferScreen() {
                                 shadowRadius: 8,
                             }}
                         >
-                            {/* Icon + badge */}
+                            {/* Icon + Actions */}
                             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                                 <View style={{ backgroundColor: "#f0fdf4", padding: 8, borderRadius: 12 }}>
                                     <Ionicons name="swap-horizontal" size={18} color="#2f5d34" />
                                 </View>
-                                <View style={{ backgroundColor: "#fef3c7", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 }}>
-                                    <Text style={{ color: "#d97706", fontSize: 8, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 }}>Transfer</Text>
+                                <View style={{ flexDirection: "row", gap: 8 }}>
+                                    <TouchableOpacity onPress={() => openEdit(item)} style={{ backgroundColor: "#f0fdf4", padding: 6, borderRadius: 8 }}>
+                                        <Ionicons name="pencil" size={14} color="#2f5d34" />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => confirmDelete(item)} style={{ backgroundColor: "#fef2f2", padding: 6, borderRadius: 8 }}>
+                                        <Ionicons name="trash" size={14} color="#ef4444" />
+                                    </TouchableOpacity>
                                 </View>
                             </View>
 
@@ -323,7 +374,6 @@ export default function TransferScreen() {
                             {/* Amount */}
                             <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: "auto" }}>
                                 <Text style={{ color: "#2f5d34", fontWeight: "900", fontSize: 18 }}>₹{item.amount?.toLocaleString("en-IN")}</Text>
-                                <Ionicons name="chevron-forward" size={12} color="#9ca3af" />
                             </View>
 
                             {/* Remaining */}
@@ -350,11 +400,11 @@ export default function TransferScreen() {
                 onPress={openSheet}
                 style={{
                     position: "absolute",
-                    bottom: 70,
+                    bottom: 50,
                     right: 24,
-                    width: 66,
-                    height: 66,
-                    borderRadius: 33,
+                    width: 55,
+                    height: 55,
+                    borderRadius: 30,
                     backgroundColor: "#2f5d34",
                     alignItems: "center",
                     justifyContent: "center",
@@ -366,13 +416,13 @@ export default function TransferScreen() {
                     zIndex: 99,
                 }}
             >
-                <Ionicons name="add" size={36} color="white" />
+                <Ionicons name="add" size={32} color="white" />
             </TouchableOpacity>
 
             {/* ── BOTTOM SHEET ───────────────────────────────────────── */}
             <Modal visible={showSheet} transparent animationType="slide">
                 <KeyboardAvoidingView
-                    behavior="padding"
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
                     style={{ flex: 1 }}
                 >
                     <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)", justifyContent: "flex-end" }}>
@@ -396,7 +446,7 @@ export default function TransferScreen() {
                             {/* Sheet Header */}
                             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
                                 <View>
-                                    <Text style={{ fontSize: 24, fontWeight: "900", color: "#111827" }}>New Transfer</Text>
+                                    <Text style={{ fontSize: 24, fontWeight: "900", color: "#111827" }}>{editingId ? "Edit Transfer" : "New Transfer"}</Text>
                                     <Text style={{ fontSize: 11, fontWeight: "700", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginTop: 2 }}>Allocate your funds</Text>
                                 </View>
                                 <TouchableOpacity
@@ -409,75 +459,75 @@ export default function TransferScreen() {
 
                             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 60 }}>
 
-                                {/* Income Source picker */}
-                                <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>
-                                    Income Source
-                                </Text>
-                                <View style={{
-                                    backgroundColor: "#f8fafc",
-                                    borderRadius: 18,
-                                    borderWidth: 1.5,
-                                    borderColor: "#f0f0f0",
-                                    marginBottom: 20,
-                                    overflow: "hidden",
-                                }}>
-                                    <Picker
-                                        selectedValue={selectedIncome?.id ?? null}
-                                        onValueChange={(value) => {
-                                            const income = incomeList.find((i) => i.id === value);
-                                            setSelectedIncome(income || null);
-                                        }}
-                                        dropdownIconColor="#111827"
-                                        style={{ color: "#111827" }}
-                                    >
-                                        <Picker.Item label="Select income source..." value={null} color="#9ca3af" />
-                                        {incomeList.map((item) => (
-                                            <Picker.Item
-                                                key={item.id}
-                                                label={`${item.workName}  •  ₹${(item.remainingAmount ?? item.amount ?? 0).toLocaleString("en-IN")} available`}
-                                                value={item.id}
-                                                color="#111827"
-                                            />
-                                        ))}
-                                    </Picker>
-                                </View>
-
-                                {/* Balance chip */}
-                                {selectedIncome && (
-                                    <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f0fdf4", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 20, borderWidth: 1, borderColor: "#dcfce7" }}>
-                                        <Ionicons name="wallet-outline" size={16} color="#2f5d34" style={{ marginRight: 8 }} />
-                                        <Text style={{ color: "#2f5d34", fontWeight: "800", fontSize: 13 }}>
-                                            Available: ₹{(selectedIncome.remainingAmount ?? selectedIncome.amount ?? 0).toLocaleString("en-IN")}
+                                {/* Income Source picker (Only for new transfers) */}
+                                {!editingId && (
+                                    <>
+                                        <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>
+                                            Income Source
                                         </Text>
-                                    </View>
+                                        <View style={{
+                                            backgroundColor: "#f8fafc",
+                                            borderRadius: 18,
+                                            borderWidth: 1.5,
+                                            borderColor: "#f0f0f0",
+                                            marginBottom: 20,
+                                            overflow: "hidden",
+                                        }}>
+                                            <Picker
+                                                selectedValue={selectedIncome?.id ?? null}
+                                                onValueChange={(value) => {
+                                                    const income = incomeList.find((i) => i.id === value);
+                                                    setSelectedIncome(income || null);
+                                                }}
+                                                dropdownIconColor="#111827"
+                                                style={{ color: "#111827" }}
+                                            >
+                                                <Picker.Item label="Select income source..." value={null} color="#9ca3af" />
+                                                {incomeList.map((item) => (
+                                                    <Picker.Item
+                                                        key={item.id}
+                                                        label={`${item.workName}  •  ₹${(item.remainingAmount ?? item.amount ?? 0).toLocaleString("en-IN")} available`}
+                                                        value={item.id}
+                                                        color="#111827"
+                                                    />
+                                                ))}
+                                            </Picker>
+                                        </View>
+
+                                        {/* Balance chip */}
+                                        {selectedIncome && (
+                                            <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f0fdf4", borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, marginBottom: 20, borderWidth: 1, borderColor: "#dcfce7" }}>
+                                                <Ionicons name="wallet-outline" size={16} color="#2f5d34" style={{ marginRight: 8 }} />
+                                                <Text style={{ color: "#2f5d34", fontWeight: "800", fontSize: 13 }}>
+                                                    Available: ₹{(selectedIncome.remainingAmount ?? selectedIncome.amount ?? 0).toLocaleString("en-IN")}
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </>
                                 )}
 
                                 {/* Amount input */}
                                 <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6 }}>
                                     Transfer Amount
                                 </Text>
-                                <View style={{
-                                    backgroundColor: "#f8fafc",
-                                    borderRadius: 18,
-                                    paddingVertical: 12,
-                                    paddingHorizontal: 18,
-                                    alignItems: "center",
-                                    borderWidth: 1.5,
-                                    borderColor: "#f0f0f0",
-                                    marginBottom: 20,
-                                    flexDirection: "row",
-                                    justifyContent: "center",
-                                }}>
-                                    <Text style={{ fontSize: 22, fontWeight: "900", color: "#2f5d34", marginRight: 6 }}>₹</Text>
-                                    <TextInput
-                                        placeholder="0.00"
-                                        keyboardType="numeric"
-                                        value={amount}
-                                        onChangeText={setAmount}
-                                        style={{ fontSize: 28, fontWeight: "900", color: "#111827", textAlign: "center", paddingVertical: 2, flex: 1 }}
-                                        placeholderTextColor="#9ca3af"
-                                    />
-                                </View>
+                                <TextInput
+                                    placeholder="Enter amount (₹)"
+                                    keyboardType="numeric"
+                                    value={amount}
+                                    onChangeText={setAmount}
+                                    style={{
+                                        backgroundColor: "#f8fafc",
+                                        borderRadius: 18,
+                                        padding: 16,
+                                        fontSize: 16,
+                                        fontWeight: "700",
+                                        color: "#111827",
+                                        borderWidth: 1.5,
+                                        borderColor: "#f0f0f0",
+                                        marginBottom: 20,
+                                    }}
+                                    placeholderTextColor="#9ca3af"
+                                />
 
                                 {/* Transfer Name */}
                                 <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>
@@ -491,7 +541,7 @@ export default function TransferScreen() {
                                         backgroundColor: "#f8fafc",
                                         borderRadius: 18,
                                         padding: 16,
-                                        fontSize: 16,
+                                        fontSize: 14,
                                         fontWeight: "700",
                                         color: "#111827",
                                         borderWidth: 1.5,
@@ -503,7 +553,7 @@ export default function TransferScreen() {
 
                                 {/* Submit button */}
                                 <TouchableOpacity
-                                    onPress={addTransfer}
+                                    onPress={handleSave}
                                     activeOpacity={0.85}
                                     style={{
                                         backgroundColor: "#2f5d34",
@@ -518,7 +568,7 @@ export default function TransferScreen() {
                                     }}
                                 >
                                     <Text style={{ color: "white", fontWeight: "900", fontSize: 16, textTransform: "uppercase", letterSpacing: 2 }}>
-                                        Confirm Transfer
+                                        {editingId ? "Update Transfer" : "Confirm Transfer"}
                                     </Text>
                                 </TouchableOpacity>
                             </ScrollView>
@@ -527,12 +577,33 @@ export default function TransferScreen() {
                 </KeyboardAvoidingView>
             </Modal>
 
+            {/* ── DELETE MODAL ─────────────────────────────────────── */}
+            <Modal visible={deleteModalVisible} transparent animationType="fade">
+                <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center", paddingHorizontal: 20 }}>
+                    <View style={{ backgroundColor: "white", width: "100%", borderRadius: 32, padding: 24, alignItems: "center" }}>
+                        <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "#fef2f2", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+                            <Ionicons name="trash" size={32} color="#ef4444" />
+                        </View>
+                        <Text style={{ fontSize: 22, fontWeight: "900", color: "#111827", marginBottom: 8 }}>Delete Transfer?</Text>
+                        <Text style={{ color: "#6b7280", textAlign: "center", marginBottom: 32, fontWeight: "600" }}>Are you sure you want to delete this transfer fund? This action cannot be undone.</Text>
+                        <View style={{ flexDirection: "row", width: "100%", gap: 12 }}>
+                            <TouchableOpacity onPress={() => setDeleteModalVisible(false)} style={{ flex: 1, paddingVertical: 16, borderRadius: 16, backgroundColor: "#f3f4f6", alignItems: "center" }}>
+                                <Text style={{ color: "#374151", fontWeight: "800", fontSize: 16 }}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={deleteTransfer} style={{ flex: 1, paddingVertical: 16, borderRadius: 16, backgroundColor: "#ef4444", alignItems: "center" }}>
+                                <Text style={{ color: "white", fontWeight: "800", fontSize: 16 }}>Delete</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
             {/* ── Toast ──────────────────────────────────────────────── */}
             {toast && (
                 <Animated.View
                     style={{
                         position: "absolute",
-                        top: 0,
+                        top: 20,
                         left: 20,
                         right: 20,
                         zIndex: 9999,

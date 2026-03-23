@@ -609,9 +609,9 @@ export default function DiaryMaintenance() {
       {/* FLOAT BUTTON */}
       <TouchableOpacity
         onPress={openAddModal}
-        className="absolute bg-[#2f5d34] bottom-6 right-6 w-16 h-16 rounded-full items-center justify-center shadow-lg"
+        style={{ position: "absolute", bottom: 24, right: 24, width: 55, height: 55, borderRadius: 28, backgroundColor: "#2f5d34", alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4.65, elevation: 8 }}
       >
-        <Ionicons name="add" size={28} color="white" />
+        <Ionicons name="add" size={32} color="white" />
       </TouchableOpacity>
 
       {/* BOTTOM SHEET MODAL */}

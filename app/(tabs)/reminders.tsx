@@ -410,9 +410,9 @@ export default function RemindersScreen() {
 
                 <TouchableOpacity
                     onPress={() => { resetForm(); setShowModal(true); }}
-                    style={{ position: "absolute", bottom: 30, right: 20, width: 60, height: 60, borderRadius: 30, backgroundColor: "#2f5d34", alignItems: "center", justifyContent: "center", elevation: 8, shadowColor: "#2f5d34", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10 }}
+                    style={{ position: "absolute", bottom: 30, right: 20, width: 55, height: 55, borderRadius: 30, backgroundColor: "#2f5d34", alignItems: "center", justifyContent: "center", elevation: 8, shadowColor: "#2f5d34", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10 }}
                 >
-                    <Ionicons name="add" size={36} color="white" />
+                    <Ionicons name="add" size={32} color="white" />
                 </TouchableOpacity>
 
                 <FilterSheet visible={filterVisible} onClose={() => setFilterVisible(false)} onApply={setFilterState} chipGroups={REMINDER_FILTER_GROUPS} activeFilters={filterState} />

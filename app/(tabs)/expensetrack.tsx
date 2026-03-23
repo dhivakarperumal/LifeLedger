@@ -709,13 +709,13 @@ export default function ExpenseTrack() {
       <TouchableOpacity
         onPress={openAddModal}
         style={{
-          position: "absolute", bottom: 23, right: 20, width: 60, height: 60, borderRadius: 33,
+          position: "absolute", bottom: 23, right: 20, width: 55, height: 55, borderRadius: 33,
           backgroundColor: "#2f5d34", alignItems: "center", justifyContent: "center",
           elevation: 12, shadowColor: "#2f5d34", shadowOffset: { width: 0, height: 6 },
           shadowOpacity: 0.4, shadowRadius: 16, zIndex: 99
         }}
       >
-        <Ionicons name="add" size={36} color="white" />
+        <Ionicons name="add" size={32} color="white" />
       </TouchableOpacity>
 
       <Modal visible={showSheet} transparent animationType="slide">
