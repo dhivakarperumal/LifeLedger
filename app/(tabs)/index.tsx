@@ -250,7 +250,7 @@ export default function Home() {
     setShowDetailSheet(true);
   };
 
-   if (loading && !refreshing) {
+  if (loading && !refreshing) {
     return (
       <View style={{ flex: 1, backgroundColor: "#f9fafb", justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color="#2f5d34" />

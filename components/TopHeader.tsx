@@ -93,6 +93,25 @@ export default function TopHeader() {
 
   return (
     <View className="bg-gray-900 px-5 pt-12 pb-4 shadow-md z-50">
+      {/* ── Outside Click Backdrop ── */}
+      {(open || remindersOpen) && (
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => {
+            setOpen(false);
+            setRemindersOpen(false);
+          }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 1000, // Cover more than screen width
+            height: 2000, // Cover the whole screen
+            backgroundColor: 'transparent',
+            zIndex: 1,
+          }}
+        />
+      )}
 
       {/* Header Row */}
       <View className="flex-row items-center justify-between px-0 py-0">
@@ -263,7 +282,7 @@ export default function TopHeader() {
       {/* Quick View Details Modal */}
       {showDetails && selectedReminder && (
         <View className="absolute inset-0 w-screen h-screen items-center justify-center z-[100]" style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}>
-          <Animated.View 
+          <Animated.View
             style={{ opacity: detailFadeAnim, transform: [{ scale: detailFadeAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) }] }}
             className="bg-white w-[85%] rounded-[32px] p-8 shadow-2xl"
           >
@@ -280,10 +299,10 @@ export default function TopHeader() {
             {/* Content */}
             <View className="items-center mb-6">
               <View className="w-16 h-16 rounded-3xl bg-gray-50 items-center justify-center mb-4 shadow-sm">
-                <Ionicons 
-                  name={(EVENT_TYPES.find(t => t.label === selectedReminder.type)?.icon as any) || "notifications"} 
-                  size={32} 
-                  color={(EVENT_TYPES.find(t => t.label === selectedReminder.type)?.color) || "#10b981"} 
+                <Ionicons
+                  name={(EVENT_TYPES.find(t => t.label === selectedReminder.type)?.icon as any) || "notifications"}
+                  size={32}
+                  color={(EVENT_TYPES.find(t => t.label === selectedReminder.type)?.color) || "#10b981"}
                 />
               </View>
               <Text className="text-xl font-black text-gray-900 text-center mb-2 px-2">{selectedReminder.title}</Text>
@@ -304,7 +323,7 @@ export default function TopHeader() {
             )}
 
             {/* Actions */}
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => {
                 setShowDetails(false);
                 router.push("/(tabs)/reminders");
