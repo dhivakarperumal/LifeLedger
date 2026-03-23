@@ -3,6 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Modal,
   RefreshControl,
@@ -34,6 +35,7 @@ export default function Home() {
   const [categories, setCategories] = useState<any>({});
   const [showDetailSheet, setShowDetailSheet] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const quotes = [
     "A penny saved is a penny earned.",
@@ -64,9 +66,7 @@ export default function Home() {
   const fetchData = async (userId: string) => {
     if (!userId) return;
     try {
-      // Logic handled by onSnapshot now for userName
-      // Just keep other fetches here
-
+      setLoading(true);
       // EXPENSES & STATS
       const expQ = query(collection(db, "expenses"), where("userId", "==", userId));
       const expSnap = await getDocs(expQ);
@@ -150,6 +150,8 @@ export default function Home() {
 
     } catch (e) {
       console.log(e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -248,6 +250,15 @@ export default function Home() {
     setShowDetailSheet(true);
   };
 
+   if (loading && !refreshing) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "#f9fafb", justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#2f5d34" />
+        <Text style={{ marginTop: 12, color: "#6b7280", fontWeight: "700", textTransform: "uppercase", letterSpacing: 1 }}>Loading Ledger...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: "#f9fafb" }}>
       <ScrollView
@@ -304,7 +315,7 @@ export default function Home() {
           {/* QUICK ACTIONS */}
           <View className="flex-row justify-between mb-8">
             {[
-              { label: "Expense", icon: "wallet", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", route: "/(settingsMore)/addexpensive" },
+              { label: "Expense", icon: "wallet", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", route: "/(tabs)/expensetrack" },
               { label: "Diary", icon: "journal", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", route: "/(tabs)/diarymaintenance" },
               { label: "Event", icon: "calendar", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", route: "/(tabs)/reminders" },
               { label: "Memory", icon: "images", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", route: "/(tabs)/memories" },
@@ -511,7 +522,7 @@ export default function Home() {
                 <Ionicons name="wallet-outline" size={32} color="#cbd5e1" />
               </View>
               <Text style={{ color: "#9ca3af", fontWeight: "600", marginBottom: 16, fontSize: 14 }}>No transactions yet</Text>
-              <TouchableOpacity onPress={() => router.push("/(settingsMore)/addexpensive")} style={{ backgroundColor: "#2f5d34", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 20 }}>
+              <TouchableOpacity onPress={() => router.push("/(tabs)/expensetrack")} style={{ backgroundColor: "#2f5d34", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 20 }}>
                 <Text style={{ color: "white", fontWeight: "800", fontSize: 13 }}>+ Add First Expense</Text>
               </TouchableOpacity>
             </View>
@@ -586,7 +597,7 @@ export default function Home() {
           <View className="mb-4">
             {[
               { title: "Review Spending", desc: "Check if you're inside the budget", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", icon: "pie-chart", route: "/(tabs)/expensetrack" },
-              { title: "Add Expenses", desc: "Log today's final purchases", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", icon: "wallet", route: "/(settingsMore)/addexpensive" },
+              { title: "Add Expenses", desc: "Log today's final purchases", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", icon: "wallet", route: "/(tabs)/expensetrack" },
               { title: "Write Diary", desc: "Capture memories before the day ends", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", icon: "book", route: "/(tabs)/diarymaintenance" },
             ].map((task, i) => (
               <TouchableOpacity key={i} onPress={() => router.push(task.route as any)} className={`bg-white p-4 rounded-3xl flex-row items-center mb-3 shadow-sm border border-gray-100`}>
