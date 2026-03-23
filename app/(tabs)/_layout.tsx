@@ -90,6 +90,7 @@ export default function TabsLayout() {
         name="reminders"
         options={{
           title: "Calendar",
+          headerShown: false,
           href: null,
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons

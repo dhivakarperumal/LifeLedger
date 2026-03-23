@@ -3,6 +3,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
+import { useRouter } from "expo-router";
 import {
     addDoc,
     collection,
@@ -70,6 +71,7 @@ const EVENT_TYPES = [
 const REPEAT_OPTIONS = ["None", "Daily", "Weekly", "Yearly"];
 
 export default function RemindersScreen() {
+    const router = useRouter();
     const uid = auth.currentUser?.uid;
     const [reminders, setReminders] = useState<Reminder[]>([]);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
@@ -309,18 +311,25 @@ export default function RemindersScreen() {
     markedDates[selectedDate] = { ...markedDates[selectedDate], selected: true, selectedColor: "#2f5d34" };
 
     return (
-        <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#f9fafb" }}>
-            <View style={{ flex: 1 }}>
-                <View style={{ padding: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                    <View>
-                        <Text style={{ fontSize: 24, fontWeight: "900", color: "#1f2937" }}>Reminders</Text>
-                        <Text style={{ fontSize: 12, fontWeight: "700", color: "#6b7280", textTransform: "uppercase", letterSpacing: 1.5 }}>Stay organized</Text>
+        <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#111827" }}>
+            <View style={{ flex: 1, backgroundColor: "#f9fafb" }}>
+                {/* DARK HEADER */}
+                <View style={{ backgroundColor: "#111827", paddingHorizontal: 16, paddingVertical: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 12 }}>
+                            <Ionicons name="arrow-back-circle-outline" size={34} color="white" />
+                        </TouchableOpacity>
+                        <View>
+                            <Text style={{ fontSize: 18, fontWeight: "900", color: "white" }}>Calendar</Text>
+                            <Text style={{ fontSize: 10, fontWeight: "700", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.2 }}>Stay organized</Text>
+                        </View>
                     </View>
+                    
                     <TouchableOpacity
                         onPress={() => setFilterVisible(true)}
-                        style={{ padding: 10, backgroundColor: "white", borderRadius: 12, borderWidth: 1, borderColor: "#e5e7eb" }}
+                        style={{ width: 44, height: 44, backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" }}
                     >
-                        <Ionicons name="options-outline" size={24} color="#374151" />
+                        <Ionicons name="options-outline" size={22} color="white" />
                     </TouchableOpacity>
                 </View>
 
