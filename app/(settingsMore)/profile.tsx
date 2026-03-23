@@ -156,7 +156,7 @@ export default function Profile() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#1a361d" }} edges={["top"]}>
+        <SafeAreaView edges={["top", "bottom"]} style={{ flex: 1, backgroundColor: "#111827" }}>
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 style={{ backgroundColor: "#f9fafb" }}

@@ -237,7 +237,7 @@ export default function TransferScreen() {
     };
 
     return (
-        <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#111827" }}>
+        <SafeAreaView edges={["top", "bottom"]} style={{ flex: 1, backgroundColor: "#111827" }}>
 
             {/* ── HEADER ─────────────────────────────────────────────── */}
             <View style={{ backgroundColor: "#111827", paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 }}>
