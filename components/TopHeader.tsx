@@ -238,7 +238,9 @@ export default function TopHeader() {
                   <View className="w-2 h-2 rounded-full bg-emerald-500" />
                   <View className="flex-1">
                     <Text className="text-gray-800 font-black text-xs leading-tight" numberOfLines={1}>{item.title}</Text>
-                    <Text className="text-gray-400 text-[9px] font-bold italic mt-1">{formatReminderTime(item.time || item.createdAt)}</Text>
+                    <Text className="text-gray-400 text-[9px] font-bold italic mt-1">
+                      {item.date ? new Date(item.date).toLocaleDateString([], { day: 'numeric', month: 'short' }) : "Recently"} • {item.time || "--:--"}
+                    </Text>
                   </View>
                   <Ionicons name="chevron-forward" size={12} color="#cbd5e1" />
                 </TouchableOpacity>
