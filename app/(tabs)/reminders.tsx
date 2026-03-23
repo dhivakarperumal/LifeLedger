@@ -130,7 +130,7 @@ export default function RemindersScreen() {
                     if (finalStatus !== 'granted' && Platform.OS !== 'web') {
                         Alert.alert('Permission Needed', 'Please enable notifications in settings to receive reminders.');
                     }
-                } catch (e) {}
+                } catch (e) { }
             };
             requestPermissions();
         }
@@ -321,10 +321,9 @@ export default function RemindersScreen() {
                         </TouchableOpacity>
                         <View>
                             <Text style={{ fontSize: 18, fontWeight: "900", color: "white" }}>Calendar</Text>
-                            <Text style={{ fontSize: 10, fontWeight: "700", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.2 }}>Stay organized</Text>
                         </View>
                     </View>
-                    
+
                     <TouchableOpacity
                         onPress={() => setFilterVisible(true)}
                         style={{ width: 44, height: 44, backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 12, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" }}
