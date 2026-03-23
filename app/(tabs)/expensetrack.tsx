@@ -544,7 +544,7 @@ export default function ExpenseTrack() {
 
   return (
 
-    <SafeAreaView className="flex-1 ">
+    <SafeAreaView edges={[]} className="flex-1 ">
 
       <View className="flex-1 bg-gray-100 p-0 px-4">
 
@@ -606,6 +606,7 @@ export default function ExpenseTrack() {
           keyExtractor={(item) => item.id}
           keyboardDismissMode="on-drag"
           numColumns={2}
+          showsVerticalScrollIndicator={false}
           columnWrapperStyle={{ justifyContent: "space-between", paddingHorizontal: 0 }}
           contentContainerStyle={{ paddingBottom: 120, paddingTop: 4 }}
           ListEmptyComponent={

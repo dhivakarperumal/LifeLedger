@@ -31,11 +31,10 @@ import {
   Platform,
   RefreshControl,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import FilterSheet, {
@@ -748,7 +747,7 @@ export default function Memories() {
   const filterActive = filterState.datePreset !== "all" || Object.values(filterState.chips).some(a => a.length > 0);
 
   return (
-    <SafeAreaView edges={["bottom"]} style={{ flex: 1, backgroundColor: "#f9fafb" }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: "#f9fafb" }}>
 
       {/* ── Selection action bar ── */}
 
@@ -797,7 +796,7 @@ export default function Memories() {
             numColumns={2}
             showsVerticalScrollIndicator={false}
             columnWrapperStyle={{ justifyContent: "space-between" }}
-            contentContainerStyle={{ paddingBottom: 120, paddingTop: 10 }}
+            contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} tintColor="#2f5d34" />}
             ListEmptyComponent={
               <View style={{ flex: 1, alignItems: "center", justifyContent: "center", marginTop: 80 }}>
@@ -835,7 +834,7 @@ export default function Memories() {
         >
           <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
             <View style={{ backgroundColor: "white", maxHeight: "92%", borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingTop: 24, paddingHorizontal: 24, paddingBottom: 40 }}>
-              
+
               {/* Google Drive Status Wrapper */}
               <View style={{ backgroundColor: "#f8fafc", borderRadius: 20, padding: 16, marginBottom: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#f0f0f0' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
