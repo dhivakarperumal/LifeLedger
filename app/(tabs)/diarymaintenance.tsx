@@ -33,10 +33,11 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import FilterSheet, { applyFilters, defaultFilterState, FilterState } from "../../components/FilterSheet";
 import { getOrCreateFolder, GOOGLE_DRIVE_FOLDER_NAME, uploadMediaToDrive } from "../../components/GoogleDriveHelper";
 import { auth, db } from "../../firebase";
+import { useData } from "../../context/DataContext";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -47,8 +48,9 @@ const googleDiscovery = {
 };
 
 export default function DiaryMaintenance() {
-  const [uid, setUid] = useState<string | null>(auth.currentUser?.uid || null);
-  const [authLoaded, setAuthLoaded] = useState(false);
+  const insets = useSafeAreaInsets();
+  const { diaries: diaryList, isInitialLoadDone } = useData();
+  const [uid] = useState<string | null>(auth.currentUser?.uid || null);
 
   const [showSheet, setShowSheet] = useState(false);
 
@@ -76,7 +78,6 @@ export default function DiaryMaintenance() {
   const TAG_OPTIONS = ["Travel", "Family", "Work", "Personal", "Health", "Important"];
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [diaryList, setDiaryList] = useState<any[]>([]);
   const [filteredDiaryList, setFilteredDiaryList] = useState<any[]>([]);
 
   const DIARY_FILTER_GROUPS = [
@@ -127,43 +128,7 @@ export default function DiaryMaintenance() {
 
   const [useDriveSync, setUseDriveSync] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setUid(user.uid);
-        setAuthLoaded(true);
-      } else {
-        setUid(null);
-        setAuthLoaded(true);
-      }
-    });
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    if (authLoaded && uid) fetchDiaries();
-  }, [uid, authLoaded]);
-
-  const fetchDiaries = async () => {
-    if (!uid) return;
-    try {
-      const q = query(diaryRef, where("userId", "==", uid));
-      const snap = await getDocs(q);
-      const list = snap.docs.map(d => ({
-        id: d.id,
-        ...d.data()
-      }));
-      list.sort((a: any, b: any) => {
-        if (!a.createdAt) return 1;
-        if (!b.createdAt) return -1;
-        return b.createdAt.toMillis() - a.createdAt.toMillis();
-      });
-      setDiaryList(list);
-      setFilteredDiaryList(list);
-    } catch (e) {
-      console.log("Fetch Diaries Error:", e);
-    }
-  };
+  // Data is synced automatically via DataProvider
 
   useEffect(() => {
     let result = applyFilters(diaryList, filterState, "createdAt");
@@ -383,9 +348,7 @@ export default function DiaryMaintenance() {
       setVoiceNotes([]);
       setDate(new Date());
       setEditingId(null);
-      setShowSheet(false);
-
-      await fetchDiaries();
+      // Data is synced automatically
     } catch (e: any) {
       console.error("ADD DIARY ERROR:", e);
       showToast("Failed to save entry.", "error");
@@ -425,14 +388,18 @@ export default function DiaryMaintenance() {
 
   const deleteDiaryEntry = async () => {
     if (!itemToDelete) return;
-    setDeleteModalVisible(false);
     try {
+      setLoading(true);
       await deleteDoc(doc(db, "diaries", itemToDelete));
       setItemToDelete(null);
       showToast("Diary entry deleted successfully!", "success");
-      fetchDiaries();
+      setDeleteModalVisible(false);
+      // Data is synced automatically
     } catch (error) {
       showToast("Failed to delete.", "error");
+      setDeleteModalVisible(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -621,7 +588,7 @@ export default function DiaryMaintenance() {
           className="flex-1"
         >
           <View className="flex-1 justify-end bg-black/50">
-            <View className="bg-white p-6 rounded-t-3xl h-[85%] shadow-2xl">
+            <View style={{ backgroundColor: "white", borderTopLeftRadius: 24, borderTopRightRadius: 24, height: '85%', padding: 24, paddingBottom: Math.max(24, insets.bottom + 10), shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20 }}>
               <View className="flex-row justify-between items-center mb-6">
                 <Text className="text-2xl font-black text-gray-800">
                   {editingId ? "Edit Diary Entry" : "New Diary Entry"}
@@ -1002,9 +969,10 @@ export default function DiaryMaintenance() {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={deleteDiaryEntry}
+                disabled={loading}
                 className="flex-1 py-4 rounded-2xl bg-red-500 items-center shadow-lg shadow-red-500/30"
               >
-                <Text className="text-white font-bold text-lg">Delete</Text>
+                {loading ? <ActivityIndicator color="white" size="small" /> : <Text className="text-white font-bold text-lg">Delete</Text>}
               </TouchableOpacity>
             </View>
           </View>

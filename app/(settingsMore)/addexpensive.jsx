@@ -24,6 +24,7 @@ import { auth, db } from "../../firebase";
 import {
   addDoc,
   collection,
+  deleteDoc,
   getDocs,
   query,
   where,
@@ -31,15 +32,14 @@ import {
   doc,
   updateDoc
 } from "firebase/firestore";
+import { useData } from "../../context/DataContext";
 
 export default function AddExpense() {
-
   const router = useRouter();
+  const { expenses: expenseList, transfers: transferList, isInitialLoadDone } = useData();
   const uid = auth.currentUser?.uid;
 
   const [showSheet, setShowSheet] = useState(false);
-
-  const [transferList, setTransferList] = useState([]);
   const [selectedTransfer, setSelectedTransfer] = useState(null);
 
   const [name, setName] = useState("");
@@ -51,7 +51,6 @@ export default function AddExpense() {
   const [location, setLocation] = useState("");
   const [receipt, setReceipt] = useState(null);
 
-  const [expenseList, setExpenseList] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // ── Toast ──────────────────────────────────────────────────────────
@@ -70,46 +69,7 @@ export default function AddExpense() {
   const expenseRef = collection(db, "expenses");
   const transferRef = collection(db, "transfers");
 
-  useEffect(() => {
-    fetchTransfers();
-    fetchExpenses();
-  }, []);
-
-  // FETCH TRANSFERS
-  const fetchTransfers = async () => {
-    try {
-      setLoading(true);
-      const q = query(transferRef, where("userId", "==", uid));
-      const snap = await getDocs(q);
-      const list = snap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setTransferList(list);
-    } catch (e) {
-      showToast("Failed to load sources", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // FETCH EXPENSES
-  const fetchExpenses = async () => {
-    try {
-      setLoading(true);
-      const q = query(expenseRef, where("userId", "==", uid));
-      const snap = await getDocs(q);
-      const list = snap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setExpenseList(list);
-    } catch (e) {
-      showToast("Failed to load expenses", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Data is synced automatically via DataProvider
 
   // IMAGE PICKER
   const pickImage = async () => {
@@ -169,8 +129,7 @@ export default function AddExpense() {
       setReceipt(null);
       setShowSheet(false);
       showToast("Expense saved successfully!", "success");
-      fetchExpenses();
-      fetchTransfers();
+      // Data is synced automatically
     } catch (e) {
       showToast("Failed to save expense", "error");
     } finally {
@@ -201,8 +160,7 @@ export default function AddExpense() {
             }
 
             showToast("Expense deleted successfully!", "success");
-            fetchExpenses();
-            fetchTransfers();
+            // Data is synced automatically
           } catch (e) {
             showToast("Failed to delete expense", "error");
           } finally {
@@ -232,7 +190,7 @@ export default function AddExpense() {
       </View>
 
       <View className="flex-1 bg-gray-100 p-4">
-        {loading && (
+        {(!isInitialLoadDone || loading) && (
           <View style={{ paddingBottom: 10 }}>
             <ActivityIndicator size="large" color="#2f5d34" />
           </View>
@@ -385,10 +343,15 @@ export default function AddExpense() {
                 {/* SAVE */}
                 <TouchableOpacity
                   onPress={addExpense}
-                  className="p-5 rounded-xl"
-                  style={{ backgroundColor: "#2f5d34" }}
+                  disabled={loading}
+                  className="p-5 rounded-xl flex-row justify-center items-center"
+                  style={{ backgroundColor: "#2f5d34", opacity: loading ? 0.7 : 1 }}
                 >
-                  <Text className="text-white text-center font-bold">Save Expense</Text>
+                  {loading ? (
+                    <ActivityIndicator color="white" size="small" />
+                  ) : (
+                    <Text className="text-white text-center font-bold">Save Expense</Text>
+                  )}
                 </TouchableOpacity>
               </ScrollView>
             </View>

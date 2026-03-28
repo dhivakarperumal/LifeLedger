@@ -33,10 +33,11 @@ import {
 } from "firebase/firestore";
 import FilterSheet, { applyFilters, defaultFilterState } from "../../components/FilterSheet";
 import { auth, db } from "../../firebase";
+import { useData } from "../../context/DataContext";
 
 export default function Income() {
-  const [uid, setUid] = useState(auth.currentUser?.uid || null);
-  const [authLoaded, setAuthLoaded] = useState(false);
+  const { income: incomeList, isInitialLoadDone } = useData();
+  const [uid] = useState(auth.currentUser?.uid || null);
 
   const router = useRouter();
 
@@ -44,7 +45,6 @@ export default function Income() {
   const [amount, setAmount] = useState("");
   const [slip, setSlip] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [incomeList, setIncomeList] = useState([]);
   const [filteredIncomeList, setFilteredIncomeList] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -72,64 +72,6 @@ export default function Income() {
   };
 
   const incomeRef = collection(db, "income");
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setUid(user.uid);
-        setAuthLoaded(true);
-      } else {
-        setUid(null);
-        setAuthLoaded(true);
-      }
-    });
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    if (authLoaded && uid) {
-      fetchIncome();
-    }
-  }, [uid, authLoaded]);
-
-  const fetchIncome = async () => {
-    if (!uid) {
-      console.log("[Income] Skipping fetch - No UID available.");
-      return;
-    }
-    
-    console.log("[Income] Fetching income for UID:", uid);
-    
-    try {
-      setLoading(true);
-      const q = query(incomeRef, where("userId", "==", uid));
-      const snapshot = await getDocs(q);
-
-      console.log(`[Income] Fetch successful. Found ${snapshot.docs.length} records.`);
-
-      const list = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      list.sort((a, b) => {
-        if (!a.createdAt) return 1;
-        if (!b.createdAt) return -1;
-        return b.createdAt.toMillis() - a.createdAt.toMillis();
-      });
-
-      setIncomeList(list);
-      setFilteredIncomeList(list);
-    } catch (e) {
-      console.error("FETCH INCOME ERROR:", e.message || e);
-      if (e.code === 'permission-denied') {
-        console.warn("[Income] Access denied. Check Firestore security rules for 'income' collection.");
-      }
-      showToast("Failed to load income data", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     let result = applyFilters(incomeList, filterState, "createdAt");
@@ -212,7 +154,6 @@ export default function Income() {
           documentType,
           userId: uid,
         });
-        showToast("Income updated successfully!", "success");
       } else {
         await addDoc(incomeRef, {
           workName,
@@ -224,7 +165,6 @@ export default function Income() {
           userId: uid,
           createdAt: serverTimestamp(),
         });
-        showToast("Income added successfully!", "success");
       }
 
       setWorkName("");
@@ -232,12 +172,12 @@ export default function Income() {
       setSlip(null);
       setDocumentName(null);
       setDocumentType(null);
-      setEditingId(null);
       setShowModal(false);
-      fetchIncome();
+      setEditingId(null);
+      showToast("Record saved successfully!", "success");
     } catch (e) {
       console.error("ADD INCOME ERROR", e);
-      showToast("Failed to save income", "error");
+      showToast("Failed to save record", "error");
     } finally {
       setLoading(false);
     }
@@ -258,18 +198,18 @@ export default function Income() {
     setDeleteModalVisible(true);
   };
 
-  const deleteIncome = async () => {
+  const executeDelete = async () => {
     if (!itemToDelete) return;
-    setDeleteModalVisible(false);
     try {
       setLoading(true);
       await deleteDoc(doc(db, "income", itemToDelete));
       setItemToDelete(null);
-      showToast("Income deleted successfully!", "success");
-      fetchIncome();
+      showToast("Record deleted successfully!", "success");
+      setDeleteModalVisible(false);
     } catch (e) {
       console.error("DELETE INCOME ERROR", e);
-      showToast("Failed to delete income", "error");
+      showToast("Failed to delete record", "error");
+      setDeleteModalVisible(false);
     } finally {
       setLoading(false);
     }
@@ -343,8 +283,8 @@ export default function Income() {
           activeFilters={filterState}
         />
 
-        {loading && (
-          <View className="py-2 items-center">
+        {(!isInitialLoadDone || loading) && (
+          <View style={{ paddingBottom: 10 }}>
             <ActivityIndicator size="large" color="#2f5d34" />
           </View>
         )}
@@ -550,9 +490,14 @@ export default function Income() {
                 {/* Action Button */}
                 <TouchableOpacity
                   onPress={addIncome}
-                  style={{ backgroundColor: "#2f5d34", borderRadius: 20, paddingVertical: 18, alignItems: "center", shadowColor: "#2f5d34", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 }}
+                  disabled={loading}
+                  style={{ backgroundColor: loading ? "#9ca3af" : "#2f5d34", borderRadius: 20, paddingVertical: 18, alignItems: "center", shadowColor: loading ? "#9ca3af" : "#2f5d34", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 }}
                 >
-                  <Text style={{ color: "white", fontWeight: "900", textTransform: "uppercase", letterSpacing: 1.5 }}>{editingId ? "Update Entry" : "Confirm Income"}</Text>
+                  {loading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text style={{ color: "white", fontWeight: "900", textTransform: "uppercase", letterSpacing: 1.5 }}>{editingId ? "Update Entry" : "Confirm Income"}</Text>
+                  )}
                 </TouchableOpacity>
 
               </ScrollView>
@@ -581,9 +526,10 @@ export default function Income() {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={deleteIncome}
+                disabled={loading}
                 className="flex-1 py-4 rounded-2xl bg-red-500 items-center shadow-lg shadow-red-500/30"
               >
-                <Text className="text-white font-bold text-lg">Delete</Text>
+                {loading ? <ActivityIndicator color="white" size="small" /> : <Text className="text-white font-bold text-lg">Delete</Text>}
               </TouchableOpacity>
             </View>
           </View>

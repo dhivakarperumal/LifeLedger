@@ -20,6 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {
     addDoc,
     collection,
+    deleteDoc,
     doc,
     getDocs,
     query,
@@ -28,6 +29,7 @@ import {
     where
 } from "firebase/firestore";
 import { auth, db } from "../../firebase";
+import { useData } from "../../context/DataContext";
 
 import FilterSheet, {
     applyFilters,
@@ -36,14 +38,13 @@ import FilterSheet, {
 
 export default function TransferScreen() {
     const router = useRouter();
-    const uid = auth.currentUser?.uid;
+    const { transfers: transferList, income: incomeList, isInitialLoadDone } = useData();
+    const [uid] = useState(auth.currentUser?.uid || null);
 
     const [showSheet, setShowSheet] = useState(false);
     const [amount, setAmount] = useState("");
     const [name, setName] = useState("");
-    const [incomeList, setIncomeList] = useState([]);
     const [selectedIncome, setSelectedIncome] = useState(null);
-    const [transferList, setTransferList] = useState([]);
 
     const [filteredTransferList, setFilteredTransferList] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
@@ -67,13 +68,7 @@ export default function TransferScreen() {
         ]).start(() => setToast(null));
     };
 
-    const incomeRef = collection(db, "income");
     const transferRef = collection(db, "transfers");
-
-    useEffect(() => {
-        fetchIncome();
-        fetchTransfers();
-    }, []);
 
     useEffect(() => {
         let result = applyFilters(transferList, filterState, "createdAt");
@@ -97,40 +92,6 @@ export default function TransferScreen() {
         return sum + (isNaN(val) ? 0 : val);
     }, 0);
 
-    const fetchIncome = async () => {
-        try {
-            setLoading(true);
-            const snap = await getDocs(incomeRef);
-            const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-            setIncomeList(list);
-        } catch (e) {
-            showToast("Failed to load income", "error");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchTransfers = async () => {
-        if (!uid) return;
-        try {
-            setLoading(true);
-            const q = query(transferRef, where("userId", "==", uid));
-            const snap = await getDocs(q);
-            const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-            list.sort((a, b) => {
-                if (!a.createdAt) return 1;
-                if (!b.createdAt) return -1;
-                return b.createdAt.toMillis() - a.createdAt.toMillis();
-            });
-            setTransferList(list);
-            setFilteredTransferList(list);
-        } catch (e) {
-            showToast("Failed to load transfers", "error");
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const handleSave = async () => {
         const transferAmount = Number(amount);
         if (!name || !transferAmount) {
@@ -144,7 +105,7 @@ export default function TransferScreen() {
                 await updateDoc(doc(db, "transfers", editingId), {
                     name,
                     amount: transferAmount,
-                    remainingAmount: transferAmount, // Reset remaining for simplicity or handle logic if needed
+                    remainingAmount: transferAmount,
                 });
                 showToast("Transfer updated successfully!", "success");
             } else {
@@ -164,12 +125,14 @@ export default function TransferScreen() {
                     amount: transferAmount,
                     remainingAmount: transferAmount,
                     userId: uid,
+                    incomeId: selectedIncome.id,
                     createdAt: serverTimestamp(),
                 });
 
                 const incomeDoc = doc(db, "income", selectedIncome.id);
+                const currentRemaining = Number(selectedIncome.remainingAmount ?? selectedIncome.amount ?? 0);
                 await updateDoc(incomeDoc, {
-                    remainingAmount: (selectedIncome.remainingAmount ?? selectedIncome.amount ?? 0) - transferAmount,
+                    remainingAmount: currentRemaining - transferAmount,
                 });
                 showToast("Transfer added successfully!", "success");
             }
@@ -179,8 +142,6 @@ export default function TransferScreen() {
             setSelectedIncome(null);
             setEditingId(null);
             setShowSheet(false);
-            fetchTransfers();
-            fetchIncome();
         } catch (e) {
             showToast("Failed to save transfer", "error");
         } finally {
@@ -197,14 +158,32 @@ export default function TransferScreen() {
         if (!itemToDelete) return;
         try {
             setLoading(true);
+
+            if (itemToDelete.incomeId) {
+                try {
+                    const incomeRefDoc = doc(db, "income", itemToDelete.incomeId);
+                    const snap = await getDocs(query(collection(db, "income"), where("__name__", "==", itemToDelete.incomeId)));
+                    if (!snap.empty) {
+                        const incomeData = snap.docs[0].data();
+                        const currentRem = Number(incomeData.remainingAmount ?? incomeData.amount ?? 0);
+                        await updateDoc(incomeRefDoc, {
+                            remainingAmount: currentRem + (itemToDelete.amount ?? 0)
+                        });
+                    }
+                } catch (err) {
+                    console.log("Refund failed, but deleting transfer anyway:", err);
+                }
+            }
+
             await deleteDoc(doc(db, "transfers", itemToDelete.id));
-            showToast("Transfer deleted", "success");
-            fetchTransfers();
+            showToast("Transfer deleted and amount refunded", "success");
+            setDeleteModalVisible(false);
         } catch (e) {
+            console.error("DELETE ERROR:", e);
             showToast("Failed to delete", "error");
+            setDeleteModalVisible(false);
         } finally {
             setLoading(false);
-            setDeleteModalVisible(false);
             setItemToDelete(null);
         }
     };
@@ -232,7 +211,7 @@ export default function TransferScreen() {
         setEditingId(item.id);
         setName(item.name);
         setAmount(item.amount.toString());
-        setSelectedIncome(null); // Income source selection only for new transfers
+        setSelectedIncome(null);
         setShowSheet(true);
     };
 
@@ -311,7 +290,7 @@ export default function TransferScreen() {
             />
 
             <View style={{ flex: 1, backgroundColor: "#f9fafb", borderTopLeftRadius: 32, borderTopRightRadius: 32 }}>
-                {loading && (
+                {(!isInitialLoadDone || loading) && (
                     <View style={{ padding: 20 }}>
                         <ActivityIndicator size="large" color="#2f5d34" />
                     </View>
@@ -479,8 +458,8 @@ export default function TransferScreen() {
                                                     const income = incomeList.find((i) => i.id === value);
                                                     setSelectedIncome(income || null);
                                                 }}
-                                                dropdownIconColor="#111827"
                                                 style={{ color: "#111827" }}
+                                                dropdownIconColor="#111827"
                                             >
                                                 <Picker.Item label="Select income source..." value={null} color="#9ca3af" />
                                                 {incomeList.map((item) => (
@@ -555,21 +534,26 @@ export default function TransferScreen() {
                                 <TouchableOpacity
                                     onPress={handleSave}
                                     activeOpacity={0.85}
+                                    disabled={loading}
                                     style={{
-                                        backgroundColor: "#2f5d34",
+                                        backgroundColor: loading ? "#9ca3af" : "#2f5d34",
                                         borderRadius: 24,
                                         paddingVertical: 20,
                                         alignItems: "center",
                                         elevation: 6,
-                                        shadowColor: "#2f5d34",
+                                        shadowColor: loading ? "#9ca3af" : "#2f5d34",
                                         shadowOffset: { width: 0, height: 6 },
                                         shadowOpacity: 0.35,
                                         shadowRadius: 12,
                                     }}
                                 >
-                                    <Text style={{ color: "white", fontWeight: "900", fontSize: 16, textTransform: "uppercase", letterSpacing: 2 }}>
-                                        {editingId ? "Update Transfer" : "Confirm Transfer"}
-                                    </Text>
+                                    {loading ? (
+                                        <ActivityIndicator color="white" />
+                                    ) : (
+                                        <Text style={{ color: "white", fontWeight: "900", fontSize: 16, textTransform: "uppercase", letterSpacing: 2 }}>
+                                            {editingId ? "Update Transfer" : "Confirm Transfer"}
+                                        </Text>
+                                    )}
                                 </TouchableOpacity>
                             </ScrollView>
                         </View>
@@ -590,8 +574,12 @@ export default function TransferScreen() {
                             <TouchableOpacity onPress={() => setDeleteModalVisible(false)} style={{ flex: 1, paddingVertical: 16, borderRadius: 16, backgroundColor: "#f3f4f6", alignItems: "center" }}>
                                 <Text style={{ color: "#374151", fontWeight: "800", fontSize: 16 }}>Cancel</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={deleteTransfer} style={{ flex: 1, paddingVertical: 16, borderRadius: 16, backgroundColor: "#ef4444", alignItems: "center" }}>
-                                <Text style={{ color: "white", fontWeight: "800", fontSize: 16 }}>Delete</Text>
+                            <TouchableOpacity 
+                                onPress={deleteTransfer} 
+                                disabled={loading}
+                                style={{ flex: 1, paddingVertical: 16, borderRadius: 16, backgroundColor: loading ? "#fb7185" : "#ef4444", alignItems: "center" }}
+                            >
+                                {loading ? <ActivityIndicator color="white" size="small" /> : <Text style={{ color: "white", fontWeight: "800", fontSize: 16 }}>Delete</Text>}
                             </TouchableOpacity>
                         </View>
                     </View>

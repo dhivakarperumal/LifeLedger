@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../../firebase";
 
@@ -18,6 +18,7 @@ export default function Register() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
 
@@ -32,6 +33,7 @@ export default function Register() {
     }
 
     try {
+      setLoading(true);
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -54,6 +56,8 @@ export default function Register() {
 
     } catch (error) {
       Alert.alert("Register Error", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -167,10 +171,16 @@ export default function Register() {
               {/* Register Button */}
               <TouchableOpacity
                 onPress={handleRegister}
+                disabled={loading}
                 activeOpacity={0.8}
                 className="bg-[#2f5d34] w-full p-5 rounded-[24px] shadow-lg shadow-green-100 items-center justify-center flex-row"
+                style={{ opacity: loading ? 0.7 : 1 }}
               >
-                <Text className="text-white text-center font-black text-base uppercase tracking-widest">Register</Text>
+                {loading ? (
+                    <ActivityIndicator color="white" size="small" />
+                ) : (
+                    <Text className="text-white text-center font-black text-base uppercase tracking-widest">Register</Text>
+                )}
               </TouchableOpacity>
 
               {/* Login Link */}

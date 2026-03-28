@@ -30,9 +30,10 @@ import {
     View,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import FilterSheet, { defaultFilterState, FilterState } from "../../components/FilterSheet";
 import { auth, db } from "../../firebase";
+import { useData } from "../../context/DataContext";
 
 // Configure notifications
 if (Constants.appOwnership !== "expo") {
@@ -72,8 +73,8 @@ const REPEAT_OPTIONS = ["None", "Daily", "Weekly", "Yearly"];
 
 export default function RemindersScreen() {
     const router = useRouter();
+    const { reminders, isInitialLoadDone } = useData();
     const uid = auth.currentUser?.uid;
-    const [reminders, setReminders] = useState<Reminder[]>([]);
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -101,6 +102,7 @@ export default function RemindersScreen() {
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
     const [selectedRemindersList, setSelectedRemindersList] = useState<Reminder[]>([]);
 
+    const insets = useSafeAreaInsets();
     const [loading, setLoading] = useState(false);
 
     // ── Toast ──────────────────────────────────────────────────────────
@@ -136,30 +138,6 @@ export default function RemindersScreen() {
             };
             requestPermissions();
         }
-
-        setLoading(true);
-        const q = query(collection(db, "reminders"), where("userId", "==", uid));
-        const unsubscribe = onSnapshot(
-            q,
-            (snapshot) => {
-                const list = snapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    ...(doc.data() as any),
-                })) as Reminder[];
-                setReminders(list);
-                setLoading(false);
-            },
-            (error) => {
-                setLoading(false);
-                const isOffline = error?.code === "unavailable" || error?.message?.includes("unavailable");
-                if (!isOffline) {
-                    console.error("Reminders snapshot error:", error);
-                    showToast("Failed to sync reminders", "error");
-                }
-            }
-        );
-
-        return () => unsubscribe();
     }, [uid]);
 
     const scheduleNotification = async (title: string, date: Date, time: Date, repeat: string) => {
@@ -286,27 +264,27 @@ export default function RemindersScreen() {
     };
 
     const getRemindersForDate = (dateStr: string) => {
-        return reminders.filter((r) => r.date === dateStr);
+        return reminders.filter((r: any) => r.date === dateStr);
     };
 
     const getDisplayedReminders = (): Reminder[] => {
         const today = new Date().toISOString().split("T")[0];
         let base: Reminder[];
 
-        if (quickView === "today") base = reminders.filter(r => r.date === today);
-        else if (quickView === "upcoming") base = reminders.filter(r => r.date > today);
-        else if (quickView === "completed") base = reminders.filter(r => r.date < today);
+        if (quickView === "today") base = reminders.filter((r: any) => r.date === today);
+        else if (quickView === "upcoming") base = reminders.filter((r: any) => r.date > today);
+        else if (quickView === "completed") base = reminders.filter((r: any) => r.date < today);
         else base = getRemindersForDate(selectedDate);
 
         const typeFilter = filterState.chips["type"] || [];
         if (typeFilter.length > 0) {
-            base = base.filter(r => typeFilter.includes(r.type));
+            base = base.filter((r: any) => typeFilter.includes(r.type));
         }
         return base;
     };
 
     const displayedReminders = getDisplayedReminders();
-    const markedDates = reminders.reduce((acc: any, curr) => {
+    const markedDates = reminders.reduce((acc: any, curr: any) => {
         acc[curr.date] = { marked: true, dotColor: "#2f5d34" };
         return acc;
     }, {});
@@ -338,7 +316,7 @@ export default function RemindersScreen() {
                     current={selectedDate}
                     onDayPress={(day: any) => {
                         setSelectedDate(day.dateString);
-                        const dayReminders = reminders.filter(r => r.date === day.dateString);
+                        const dayReminders = reminders.filter((r: Reminder) => r.date === day.dateString);
                         if (dayReminders.length > 0) {
                             setSelectedRemindersList(dayReminders);
                             setDetailsModalVisible(true);
@@ -369,7 +347,7 @@ export default function RemindersScreen() {
                     enableSwipeMonths={true}
                 />
 
-                {loading && (
+                {(!isInitialLoadDone || loading) && (
                     <View style={{ padding: 10, alignItems: "center" }}>
                         <ActivityIndicator size="small" color="#2f5d34" />
                     </View>
@@ -414,8 +392,8 @@ export default function RemindersScreen() {
                                             <TouchableOpacity onPress={() => openEdit(item)} style={{ padding: 8, backgroundColor: "#f0fdf4", borderRadius: 10 }}>
                                                 <Ionicons name="create-outline" size={18} color="#2f5d34" />
                                             </TouchableOpacity>
-                                            <TouchableOpacity onPress={() => handleDelete(item.id)} style={{ padding: 8, backgroundColor: "#fef2f2", borderRadius: 10 }}>
-                                                <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                                            <TouchableOpacity onPress={() => handleDelete(item.id)} disabled={loading} style={{ padding: 8, backgroundColor: loading ? "#f1f5f9" : "#fef2f2", borderRadius: 10 }}>
+                                                {loading ? <ActivityIndicator size="small" color="#9ca3af" /> : <Ionicons name="trash-outline" size={18} color="#ef4444" />}
                                             </TouchableOpacity>
                                         </View>
                                     </View>
@@ -436,7 +414,7 @@ export default function RemindersScreen() {
 
                 <Modal visible={showModal} transparent animationType="slide">
                     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
-                        <View style={{ backgroundColor: "white", borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, maxHeight: "90%" }}>
+                        <View style={{ backgroundColor: "white", borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: Math.max(24, insets.bottom + 10), maxHeight: "90%" }}>
                             <ScrollView showsVerticalScrollIndicator={false}>
                                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
                                     <View>
@@ -528,10 +506,10 @@ export default function RemindersScreen() {
 
                                 <TouchableOpacity
                                     onPress={handleSave}
-                                    style={{ backgroundColor: "#2f5d34", borderRadius: 20, paddingVertical: 18, alignItems: "center", opacity: loading ? 0.7 : 1 }}
+                                    style={{ backgroundColor: loading ? "#9ca3af" : "#2f5d34", borderRadius: 20, paddingVertical: 18, alignItems: "center" }}
                                     disabled={loading}
                                 >
-                                    <Text style={{ color: "white", fontWeight: "900", fontSize: 16, textTransform: "uppercase", letterSpacing: 2 }}>{editingId ? "Update Reminder" : "Set Reminder"}</Text>
+                                    {loading ? <ActivityIndicator color="white" /> : <Text style={{ color: "white", fontWeight: "900", fontSize: 16, textTransform: "uppercase", letterSpacing: 2 }}>{editingId ? "Update Reminder" : "Set Reminder"}</Text>}
                                 </TouchableOpacity>
                             </ScrollView>
                         </View>

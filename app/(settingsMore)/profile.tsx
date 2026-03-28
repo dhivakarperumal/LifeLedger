@@ -268,9 +268,10 @@ export default function Profile() {
                                 onPress={handleUpdate}
                                 disabled={loading}
                                 className="bg-[#2f5d34] p-5 rounded-2xl flex-row justify-center items-center shadow-lg"
+                                style={{ opacity: loading ? 0.7 : 1 }}
                             >
                                 {loading ? (
-                                    <Text className="text-white font-bold">Updating...</Text>
+                                    <ActivityIndicator color="white" size="small" />
                                 ) : (
                                     <>
                                         <Ionicons name="checkmark-circle" size={20} color="white" />
@@ -340,7 +341,7 @@ export default function Profile() {
                             <View>
                                 <Text style={{ fontWeight: "800", color: "#dc2626", fontSize: 15 }}>Delete Account</Text>
                                 <Text style={{ fontSize: 11, color: "#ef4444", fontWeight: "600", marginTop: 2 }}>
-                                    {deleteLoading ? "Deleting..." : "Permanently removes all data"}
+                                    {deleteLoading ? <ActivityIndicator size="small" color="#ef4444" /> : "Permanently removes all data"}
                                 </Text>
                             </View>
                         </View>

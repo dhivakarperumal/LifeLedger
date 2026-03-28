@@ -8,7 +8,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -103,6 +103,7 @@ export default function FilterSheet({
     chipGroups = [],
     activeFilters,
 }: FilterSheetProps) {
+    const insets = useSafeAreaInsets();
     const [local, setLocal] = useState<FilterState>(activeFilters);
     const [showFromPicker, setShowFromPicker] = useState(false);
     const [showToPicker, setShowToPicker] = useState(false);
@@ -142,7 +143,7 @@ export default function FilterSheet({
         <Modal visible={visible} transparent animationType="slide" onShow={handleOpen}>
             <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
                 <View style={{ backgroundColor: "white", borderTopLeftRadius: 40, borderTopRightRadius: 40, overflow: 'hidden', maxHeight: '92%' }}>
-                    <SafeAreaView edges={["bottom"]} style={{ backgroundColor: "white" }}>
+                    <View style={{ backgroundColor: "white", paddingBottom: Math.max(24, insets.bottom + 10) }}>
                         <View style={{ paddingTop: 14, paddingHorizontal: 20 }}>
                             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
                             {/* Header */}
@@ -259,18 +260,18 @@ export default function FilterSheet({
                         </ScrollView>
 
                         {/* Apply Button Section */}
-                        <View style={{ paddingBottom: 24, marginTop: 8 }}>
+                        <View style={{ marginTop: 8 }}>
                             <TouchableOpacity
                                 onPress={() => { onApply(local); onClose(); }}
                                 style={{ backgroundColor: "#2f5d34", borderRadius: 24, paddingVertical: 18, alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 6 }}
                             >
                                 <Text style={{ color: "white", fontWeight: "900", fontSize: 16, textTransform: "uppercase", letterSpacing: 2 }}>Apply Filters</Text>
                             </TouchableOpacity>
-                            </View>
                         </View>
-                    </SafeAreaView>
+                    </View>
                 </View>
             </View>
-        </Modal>
-    );
+        </View>
+    </Modal>
+);
 }

@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../../firebase";
 
@@ -15,7 +15,10 @@ export default function Login() {
 
   const router = useRouter();
 
+  const [loading, setLoading] = useState(false);
+
   const handleLogin = async () => {
+    setLoading(true);
     try {
       let emailToLogin = loginInput;
       if (!loginInput.includes("@")) {
@@ -43,6 +46,8 @@ export default function Login() {
 
     } catch (error) {
       Alert.alert("Login Error", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -125,13 +130,21 @@ export default function Login() {
               {/* Login Button */}
               <TouchableOpacity
                 onPress={handleLogin}
+                disabled={loading}
                 activeOpacity={0.8}
                 className="bg-[#2f5d34] w-full p-6 rounded-[28px] shadow-lg shadow-green-200 flex-row justify-center items-center"
+                style={{ opacity: loading ? 0.7 : 1 }}
               >
-                <Text className="text-center text-white font-black text-lg uppercase tracking-[2px]">
-                  Sign In
-                </Text>
-                <Ionicons name="arrow-forward" size={18} color="white" className="ml-3" />
+                {loading ? (
+                    <ActivityIndicator color="white" size="small" />
+                ) : (
+                    <>
+                        <Text className="text-center text-white font-black text-lg uppercase tracking-[2px]">
+                        Sign In
+                        </Text>
+                        <Ionicons name="arrow-forward" size={18} color="white" className="ml-3" />
+                    </>
+                )}
               </TouchableOpacity>
 
               {/* Register */}

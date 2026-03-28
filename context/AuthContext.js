@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
@@ -20,8 +21,8 @@ export function AuthProvider({ children }) {
   const logout = () => signOut(auth);
 
   return (
-    <AuthContext.Provider value={{ user, logout }}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, loading, logout }}>
+      {children}
     </AuthContext.Provider>
   );
 }

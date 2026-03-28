@@ -12,30 +12,74 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { collection, doc, getDocs, onSnapshot, query, where } from "firebase/firestore";
 import { auth, db } from "../../firebase";
+import { doc, onSnapshot } from "firebase/firestore";
+import { useData } from "../../context/DataContext";
 
 export default function Home() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  const { 
+    expenses, 
+    diaries, 
+    memories, 
+    reminders, 
+    isInitialLoadDone 
+  } = useData();
 
   const [refreshing, setRefreshing] = useState(false);
   const [userName, setUserName] = useState("User");
 
-  const [expenses, setExpenses] = useState<any[]>([]);
-  const [todayExpense, setTodayExpense] = useState(0);
-  const [weekExpense, setWeekExpense] = useState(0);
-  const [monthExpense, setMonthExpense] = useState(0);
+  // Derived states from global data
+  const todayExpense = expenses.reduce((sum: number, e: any) => {
+    const d = e.createdAt?.toDate ? e.createdAt.toDate() : null;
+    const now = new Date();
+    if (d && d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+      return sum + Number(e.amount || 0);
+    }
+    return sum;
+  }, 0);
 
-  const [diaryPreview, setDiaryPreview] = useState<any>(null);
-  const [photosPreview, setPhotosPreview] = useState<any[]>([]);
-  const [upcomingReminders, setUpcomingReminders] = useState<any[]>([]);
-  const [reminderCount, setReminderCount] = useState(0);
+  const weekExpense = expenses.reduce((sum: number, e: any) => {
+    const d = e.createdAt?.toDate ? e.createdAt.toDate() : null;
+    const now = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(now.getDate() - 7);
+    if (d && d >= sevenDaysAgo && d <= now) {
+      return sum + Number(e.amount || 0);
+    }
+    return sum;
+  }, 0);
 
-  const [categories, setCategories] = useState<any>({});
+  const monthExpense = expenses.reduce((sum: number, e: any) => {
+    const d = e.createdAt?.toDate ? e.createdAt.toDate() : null;
+    const now = new Date();
+    if (d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+      return sum + Number(e.amount || 0);
+    }
+    return sum;
+  }, 0);
+
+  const categories = expenses.reduce((acc: any, e: any) => {
+    const d = e.createdAt?.toDate ? e.createdAt.toDate() : null;
+    const now = new Date();
+    if (d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+      const cat = e.category || "Other";
+      acc[cat] = (acc[cat] || 0) + Number(e.amount || 0);
+    }
+    return acc;
+  }, {});
+
+  const diaryPreview = diaries.length > 0 ? [...diaries].sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis())[0] : null;
+  const photosPreview = [...memories].sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis()).slice(0, 4);
+  const upcomingReminders = [...reminders].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()).slice(0, 3);
+  const reminderCount = reminders.length;
+
   const [showDetailSheet, setShowDetailSheet] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
 
   const quotes = [
     "A penny saved is a penny earned.",
@@ -63,111 +107,16 @@ export default function Home() {
     setQuote(quotes[Math.floor(Math.random() * quotes.length)]);
   }, []);
 
-  const fetchData = async (userId: string) => {
-    if (!userId) return;
-    try {
-      setLoading(true);
-      // EXPENSES & STATS
-      const expQ = query(collection(db, "expenses"), where("userId", "==", userId));
-      const expSnap = await getDocs(expQ);
-      const expList = expSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      expList.sort((a: any, b: any) => {
-        if (!a.createdAt) return 1;
-        if (!b.createdAt) return -1;
-        return b.createdAt.toMillis() - a.createdAt.toMillis();
-      });
-
-      setExpenses(expList);
-
-      const now = new Date();
-      let tExp = 0, wExp = 0, mExp = 0;
-      const cats: any = {};
-
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(now.getDate() - 7);
-
-      expList.forEach((e: any) => {
-        if (!e.createdAt) return;
-        const d = e.createdAt.toDate();
-        const amt = Number(e.amount || 0);
-
-        if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-          mExp += amt;
-          cats[e.category || "Other"] = (cats[e.category || "Other"] || 0) + amt;
-        }
-
-        if (d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-          tExp += amt;
-        }
-        if (d >= sevenDaysAgo && d <= now) {
-          wExp += amt;
-        }
-      });
-
-      setTodayExpense(tExp);
-      setWeekExpense(wExp);
-      setMonthExpense(mExp);
-      setCategories(cats);
-
-      // DIARY PREVIEW
-      const diaryQ = query(collection(db, "diaries"), where("userId", "==", userId));
-      const diarySnap = await getDocs(diaryQ);
-      const diaryList = diarySnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      diaryList.sort((a: any, b: any) => {
-        if (!a.createdAt) return 1;
-        if (!b.createdAt) return -1;
-        return b.createdAt.toMillis() - a.createdAt.toMillis();
-      });
-      setDiaryPreview(diaryList.length > 0 ? diaryList[0] : null);
-
-      // MEMORIES PREVIEW
-      const memQ = query(collection(db, "memories"), where("userId", "==", userId));
-      const memSnap = await getDocs(memQ);
-      const memList = memSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      memList.sort((a: any, b: any) => {
-        if (!a.createdAt) return 1;
-        if (!b.createdAt) return -1;
-        return b.createdAt.toMillis() - a.createdAt.toMillis();
-      });
-      setPhotosPreview(memList.slice(0, 4));
-
-      // REMINDERS PREVIEW & COUNT
-      const remQ = query(collection(db, "reminders"), where("userId", "==", userId));
-      const remUnsubscribe = onSnapshot(remQ, (snap) => {
-        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        // Sort by date (nearest first)
-        const sorted = list.sort((a: any, b: any) => {
-          const dateA = new Date(a.date).getTime();
-          const dateB = new Date(b.date).getTime();
-          return dateA - dateB;
-        });
-
-        // Only show future or today's events if needed, but for now show nearest 3
-        setUpcomingReminders(sorted.slice(0, 3));
-        setReminderCount(snap.size);
-      });
-
-    } catch (e) {
-      console.log(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     let unsubUser: (() => void) | undefined;
 
-    // 1. LISTEN TO AUTH STATE
     const unsubAuth = auth.onAuthStateChanged((user) => {
-      // Clear previous user listener if it exists
       if (unsubUser) {
         unsubUser();
         unsubUser = undefined;
       }
 
       if (user) {
-        // 2. LISTEN TO USER PROFILE IN FIRESTORE
         const userRef = doc(db, "users", user.uid);
         unsubUser = onSnapshot(userRef, (snap) => {
           if (snap.exists() && snap.data().username) {
@@ -176,8 +125,6 @@ export default function Home() {
             setUserName(user.displayName || "User");
           }
         });
-
-        fetchData(user.uid); // Fetch expenses and other stats using live uid
       } else {
         setUserName("User");
       }
@@ -191,9 +138,8 @@ export default function Home() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    const currentUid = auth.currentUser?.uid;
-    if (currentUid) await fetchData(currentUid);
-    setRefreshing(false);
+    // Data is synced automatically via onSnapshot in DataProvider
+    setTimeout(() => setRefreshing(false), 1000);
   };
 
   const getGreeting = () => {
@@ -250,7 +196,7 @@ export default function Home() {
     setShowDetailSheet(true);
   };
 
-  if (loading && !refreshing) {
+  if (!isInitialLoadDone && !refreshing) {
     return (
       <View style={{ flex: 1, backgroundColor: "#f9fafb", justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color="#2f5d34" />
@@ -788,6 +734,7 @@ export default function Home() {
                     router.push("/(tabs)/expensetrack");
                   }}
                   className="bg-[#2f5d34] py-5 rounded-[24px] items-center mt-4 shadow-lg shadow-emerald-900/20"
+                  style={{ marginBottom: Math.max(0, insets.bottom) }}
                 >
                   <Text className="text-white font-black uppercase tracking-widest text-xs">Manage in Tracker</Text>
                 </TouchableOpacity>

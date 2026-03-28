@@ -36,7 +36,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import FilterSheet, {
   applyFilters,
   defaultFilterState,
@@ -44,6 +44,7 @@ import FilterSheet, {
 } from "../../components/FilterSheet";
 import { getOrCreateFolder, GOOGLE_DRIVE_FOLDER_NAME, uploadMediaToDrive } from "../../components/GoogleDriveHelper";
 import { auth, db } from "../../firebase";
+import { useData } from "../../context/DataContext";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -58,13 +59,13 @@ const { width: SCREEN_W } = Dimensions.get("window");
 type MediaItem = { uri: string; type: "image" | "video" };
 
 export default function Memories() {
-  const [uid, setUid] = useState<string | null>(auth.currentUser?.uid || null);
-  const [authLoaded, setAuthLoaded] = useState(false);
+  const insets = useSafeAreaInsets();
+  const { memories, isInitialLoadDone } = useData();
+  const [uid] = useState<string | null>(auth.currentUser?.uid || null);
 
   // ─── Data states ─────────────────────────────────────────────────
-  const [memories, setMemories] = useState<any[]>([]);
   const [filteredMemories, setFilteredMemories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -146,43 +147,7 @@ export default function Memories() {
 
   const [useDriveSync, setUseDriveSync] = useState(true);
 
-  // ─── Fetch ────────────────────────────────────────────────────────
-  const fetchData = async () => {
-    if (!uid) return;
-    try {
-      setLoading(true);
-      const q = query(memoriesRef, where("userId", "==", uid));
-      const snap = await getDocs(q);
-      const list: any[] = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      list.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
-      setMemories(list);
-      setFilteredMemories(list);
-    } catch (e) {
-      showToast("Could not load memories.", "error");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setUid(user.uid);
-        setAuthLoaded(true);
-      } else {
-        setUid(null);
-        setAuthLoaded(true);
-      }
-    });
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    if (authLoaded && uid) {
-      fetchData();
-    }
-  }, [uid, authLoaded]);
+  // Data is synced automatically via DataProvider
 
   // ─── Search + Filter ──────────────────────────────────────────────
   useEffect(() => {
@@ -190,10 +155,10 @@ export default function Memories() {
     const evFilter = filterState.chips["eventType"] || [];
     if (evFilter.length > 0) result = result.filter(item => evFilter.some(ev => item.eventType?.toLowerCase().includes(ev.toLowerCase())));
     const tagsFilter = filterState.chips["tags"] || [];
-    if (tagsFilter.length > 0) result = result.filter(item => (item.tags || []).some((t: string) => tagsFilter.includes(t)));
+    if (tagsFilter.length > 0) result = result.filter((item: any) => (item.tags || []).some((t: string) => tagsFilter.includes(t)));
     if (searchQuery.trim()) {
       const lower = searchQuery.toLowerCase();
-      result = result.filter(m => m.title?.toLowerCase().includes(lower) || m.place?.toLowerCase().includes(lower));
+      result = result.filter((m: any) => m.title?.toLowerCase().includes(lower) || m.place?.toLowerCase().includes(lower));
     }
     setFilteredMemories(result);
   }, [searchQuery, memories, filterState]);
@@ -374,7 +339,7 @@ export default function Memories() {
         showToast("Memory saved successfully!", "success");
       }
       closeModal();
-      await fetchData();
+      // Data is synced automatically
     } catch (e: any) {
       console.error("SAVE ERROR:", e);
       if (e.message?.includes("too large")) {
@@ -400,7 +365,6 @@ export default function Memories() {
   };
 
   const executeDelete = async () => {
-    setDeleteModalVisible(false);
     try {
       setLoading(true);
       if (isDeletingSelected) {
@@ -412,9 +376,11 @@ export default function Memories() {
         setItemToDelete(null);
         showToast("Memory deleted successfully!", "success");
       }
-      fetchData();
+      setDeleteModalVisible(false);
+      // Data is synced automatically
     } catch (error) {
       showToast("Failed to delete memories.", "error");
+      setDeleteModalVisible(false);
     } finally {
       setLoading(false);
     }
@@ -446,9 +412,9 @@ export default function Memories() {
   };
 
   const shareSelected = async () => {
-    const selected = memories.filter(m => selectedIds.has(m.id));
+    const selected = memories.filter((m: any) => selectedIds.has(m.id));
     const uris: string[] = [];
-    selected.forEach(m => {
+    selected.forEach((m: any) => {
       if (m.media?.length) uris.push(...m.media.map((mi: MediaItem) => mi.uri));
       else if (m.image) uris.push(m.image);
     });
@@ -820,7 +786,7 @@ export default function Memories() {
             showsVerticalScrollIndicator={false}
             columnWrapperStyle={{ justifyContent: "space-between" }}
             contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} tintColor="#2f5d34" />}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); setTimeout(() => setRefreshing(false), 1000); }} tintColor="#2f5d34" colors={["#2f5d34"]} />}
             ListEmptyComponent={
               <View style={{ flex: 1, alignItems: "center", justifyContent: "center", marginTop: 80 }}>
                 <View style={{ backgroundColor: "#f1f5f9", width: 80, height: 80, borderRadius: 40, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
@@ -855,7 +821,7 @@ export default function Memories() {
           style={{ flex: 1 }}
         >
           <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-            <View style={{ backgroundColor: "white", maxHeight: "92%", borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingTop: 24, paddingHorizontal: 24, paddingBottom: 40 }}>
+            <View style={{ backgroundColor: "white", maxHeight: "92%", borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingTop: 24, paddingHorizontal: 24, paddingBottom: Math.max(24, insets.bottom + 10) }}>
 
               {/* Google Drive Status Wrapper */}
               <View style={{ backgroundColor: "#f8fafc", borderRadius: 20, padding: 16, marginBottom: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#f0f0f0' }}>
@@ -1108,9 +1074,10 @@ export default function Memories() {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={executeDelete}
-                style={{ flex: 1, paddingVertical: 16, borderRadius: 18, backgroundColor: "#ef4444", alignItems: "center" }}
+                disabled={loading}
+                style={{ flex: 1, paddingVertical: 16, borderRadius: 18, backgroundColor: loading ? "#fca5a5" : "#ef4444", alignItems: "center" }}
               >
-                <Text style={{ color: "white", fontWeight: "800", fontSize: 18 }}>Delete</Text>
+                {loading ? <ActivityIndicator color="white" size="small" /> : <Text style={{ color: "white", fontWeight: "800", fontSize: 18 }}>Delete</Text>}
               </TouchableOpacity>
             </View>
           </View>

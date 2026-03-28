@@ -23,10 +23,11 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import FilterSheet, { applyFilters, defaultFilterState, FilterState } from "../../components/FilterSheet";
 
 import { auth, db } from "../../firebase";
+import { useData } from "../../context/DataContext";
 
 import {
   addDoc,
@@ -42,14 +43,17 @@ import {
 } from "firebase/firestore";
 
 export default function ExpenseTrack() {
-
+  const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [uid, setUid] = useState<string | null>(auth.currentUser?.uid || null);
-  const [authLoaded, setAuthLoaded] = useState(false);
+  const { 
+    expenses: expenseList, 
+    transfers: transferList, 
+    isInitialLoadDone 
+  } = useData();
+
+  const [uid] = useState<string | null>(auth.currentUser?.uid || null);
 
   const [showSheet, setShowSheet] = useState(false);
-
-  const [transferList, setTransferList] = useState<any[]>([]);
   const [selectedTransfer, setSelectedTransfer] = useState<any>(null);
 
   const [name, setName] = useState("");
@@ -62,7 +66,6 @@ export default function ExpenseTrack() {
   const [receipt, setReceipt] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [expenseList, setExpenseList] = useState<any[]>([]);
   const [filteredExpenseList, setFilteredExpenseList] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -119,86 +122,7 @@ export default function ExpenseTrack() {
   const expenseRef = collection(db, "expenses");
   const transferRef = collection(db, "transfers");
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setUid(user.uid);
-        setAuthLoaded(true);
-      } else {
-        setUid(null);
-        setAuthLoaded(true);
-      }
-    });
-    return unsubscribe;
-  }, []);
-
-  useEffect(() => {
-    if (authLoaded && uid) {
-      fetchTransfers();
-      fetchExpenses();
-    }
-  }, [uid, authLoaded]);
-
-  // FETCH TRANSFERS
-  const fetchTransfers = async () => {
-    try {
-      setLoading(true);
-      const q = query(
-        transferRef,
-        where("userId", "==", uid)
-      );
-
-      const snap = await getDocs(q);
-
-      const list = snap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
-      list.sort((a: any, b: any) => {
-        if (!a.createdAt) return 1;
-        if (!b.createdAt) return -1;
-        return b.createdAt.toMillis() - a.createdAt.toMillis();
-      });
-
-      setTransferList(list);
-    } catch (e) {
-      showToast("Failed to load sources", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // FETCH EXPENSES
-  const fetchExpenses = async () => {
-    try {
-      setLoading(true);
-      const q = query(
-        expenseRef,
-        where("userId", "==", uid)
-      );
-
-      const snap = await getDocs(q);
-
-      const list = snap.docs.map(d => ({
-        id: d.id,
-        ...d.data()
-      }));
-
-      list.sort((a: any, b: any) => {
-        if (!a.createdAt) return 1;
-        if (!b.createdAt) return -1;
-        return b.createdAt.toMillis() - a.createdAt.toMillis();
-      });
-
-      setExpenseList(list);
-      setFilteredExpenseList(list);
-    } catch (e) {
-      showToast("Failed to load expenses", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Data is now managed globally by DataProvider automatically syncing via useData() hook
 
   useEffect(() => {
     let result = applyFilters(expenseList, filterState, "createdAt");
@@ -342,8 +266,7 @@ export default function ExpenseTrack() {
       setReceipt(null);
       setEditingId(null);
       setShowSheet(false);
-      fetchExpenses();
-      fetchTransfers();
+      // Data is synced automatically
     } catch (e) {
       console.error("ADD EXPENSE ERROR", e);
       Alert.alert("Error", "Failed to save transaction");
@@ -456,7 +379,7 @@ export default function ExpenseTrack() {
     setDocumentType(item.documentType || (item.receipt ? "image" : null));
     setDate(item.expenseDate ? item.expenseDate.toDate() : (item.createdAt ? item.createdAt.toDate() : new Date()));
     // Find the transfer associated
-    const transfer = transferList.find(t => t.id === item.transferId);
+    const transfer = transferList.find((t: any) => t.id === item.transferId);
     setSelectedTransfer(transfer || null);
     setShowSheet(true);
   };
@@ -473,15 +396,16 @@ export default function ExpenseTrack() {
 
   const deleteExpense = async () => {
     if (!itemToDelete) return;
-    setDeleteModalVisible(false);
     try {
       setLoading(true);
       await deleteDoc(doc(db, "expenses", itemToDelete.id));
       setItemToDelete(null);
       showToast("Expense deleted successfully", "success");
-      fetchExpenses();
+      setDeleteModalVisible(false);
+      // Data is synced automatically
     } catch (e) {
       showToast("Failed to delete", "error");
+      setDeleteModalVisible(false);
     } finally {
       setLoading(false);
     }
@@ -595,7 +519,7 @@ export default function ExpenseTrack() {
           activeFilters={filterState}
         />
 
-        {loading && (
+        {(!isInitialLoadDone || loading) && (
           <View style={{ paddingVertical: 10 }}>
             <ActivityIndicator size="large" color="#2f5d34" />
           </View>
@@ -724,7 +648,7 @@ export default function ExpenseTrack() {
           style={{ flex: 1 }}
         >
           <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-            <View style={{ backgroundColor: "white", maxHeight: "92%", borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingTop: 24, paddingHorizontal: 24, paddingBottom: 36 }}>
+            <View style={{ backgroundColor: "white", maxHeight: "92%", borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingTop: 24, paddingHorizontal: 24, paddingBottom: Math.max(24, insets.bottom + 10) }}>
               <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 60 }}>
 
                 {/* Header */}
@@ -784,11 +708,11 @@ export default function ExpenseTrack() {
                     <View style={{ backgroundColor: "#f8fafc", borderRadius: 18, borderWidth: 1.5, borderColor: "#f0f0f0", overflow: "hidden" }}>
                       <Picker
                         selectedValue={selectedTransfer?.id || ""}
-                        onValueChange={(v) => setSelectedTransfer(transferList.find(i => i.id === v) || null)}
+                        onValueChange={(v) => setSelectedTransfer(transferList.find((i: any) => i.id === v) || null)}
                         style={{ color: "#111827", height: 50, width: "100%" }}
                       >
                         <Picker.Item label="Select" value="" color="#9ca3af" />
-                        {transferList.map(t => <Picker.Item key={t.id} label={`${t.name} - ₹${t.remainingAmount ?? t.amount}`} value={t.id} />)}
+                        {transferList.map((t: any) => <Picker.Item key={t.id} label={`${t.name} - ₹${t.remainingAmount ?? t.amount}`} value={t.id} />)}
                       </Picker>
                     </View>
                   </View>
@@ -928,9 +852,13 @@ export default function ExpenseTrack() {
                 <TouchableOpacity
                   onPress={addExpense}
                   disabled={loading}
-                  style={{ backgroundColor: "#2f5d34", borderRadius: 20, paddingVertical: 18, alignItems: "center", shadowColor: "#2f5d34", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5, opacity: loading ? 0.7 : 1 }}
+                  style={{ backgroundColor: loading ? "#9ca3af" : "#2f5d34", borderRadius: 20, paddingVertical: 18, alignItems: "center", shadowColor: loading ? "#9ca3af" : "#2f5d34", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 }}
                 >
-                  <Text style={{ color: "white", fontWeight: "900", textTransform: "uppercase", letterSpacing: 1.5 }}>{editingId ? "Update Detail" : "Confirm Expense"}</Text>
+                  {loading ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text style={{ color: "white", fontWeight: "900", textTransform: "uppercase", letterSpacing: 1.5 }}>{editingId ? "Update Detail" : "Confirm Expense"}</Text>
+                  )}
                 </TouchableOpacity>
 
                 {showDatePicker && (
@@ -1194,9 +1122,10 @@ export default function ExpenseTrack() {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={deleteExpense}
+                disabled={loading}
                 className="flex-1 py-4 rounded-2xl bg-red-500 items-center shadow-lg shadow-red-500/30"
               >
-                <Text className="text-white font-bold text-lg">Delete</Text>
+                {loading ? <ActivityIndicator color="white" size="small" /> : <Text className="text-white font-bold text-lg">Delete</Text>}
               </TouchableOpacity>
             </View>
           </View>
