@@ -34,6 +34,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import FilterSheet, { defaultFilterState, FilterState } from "../../components/FilterSheet";
 import { auth, db } from "../../firebase";
 import { useData } from "../../context/DataContext";
+import { useNavigation } from "@react-navigation/native";
 
 // Configure notifications
 if (Constants.appOwnership !== "expo") {
@@ -73,10 +74,28 @@ const REPEAT_OPTIONS = ["None", "Daily", "Weekly", "Yearly"];
 
 export default function RemindersScreen() {
     const router = useRouter();
+    const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
     const { reminders, isInitialLoadDone } = useData();
     const uid = auth.currentUser?.uid;
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
     const [showModal, setShowModal] = useState(false);
+    
+    // Details Modal stats
+    const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+    const [selectedRemindersList, setSelectedRemindersList] = useState<Reminder[]>([]);
+
+    useEffect(() => {
+        navigation.getParent()?.setOptions({
+            tabBarStyle: (showModal || detailsModalVisible) ? { display: 'none' } : {
+                backgroundColor: "#111827",
+                borderTopWidth: 0,
+                paddingTop: 6,
+                paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+                height: 60 + insets.bottom,
+            }
+        });
+    }, [showModal, detailsModalVisible, navigation, insets.bottom]);
     const [editingId, setEditingId] = useState<string | null>(null);
 
     // Quick View Tabs
@@ -99,10 +118,6 @@ export default function RemindersScreen() {
     const [repeat, setRepeat] = useState("None");
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
-    const [detailsModalVisible, setDetailsModalVisible] = useState(false);
-    const [selectedRemindersList, setSelectedRemindersList] = useState<Reminder[]>([]);
-
-    const insets = useSafeAreaInsets();
     const [loading, setLoading] = useState(false);
 
     // ── Toast ──────────────────────────────────────────────────────────
@@ -412,8 +427,11 @@ export default function RemindersScreen() {
 
                 <FilterSheet visible={filterVisible} onClose={() => setFilterVisible(false)} onApply={setFilterState} chipGroups={REMINDER_FILTER_GROUPS} activeFilters={filterState} />
 
-                <Modal visible={showModal} transparent animationType="slide">
-                    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
+                <Modal visible={showModal} transparent animationType="slide" statusBarTranslucent>
+                    <KeyboardAvoidingView 
+                        behavior={Platform.OS === "ios" ? "padding" : undefined} 
+                        style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}
+                    >
                         <View style={{ backgroundColor: "white", borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: Math.max(24, insets.bottom + 10), maxHeight: "90%" }}>
                             <ScrollView showsVerticalScrollIndicator={false}>
                                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
@@ -518,7 +536,7 @@ export default function RemindersScreen() {
             </View>
 
             {/* ── Details Modal ── */}
-            <Modal visible={detailsModalVisible} transparent animationType="fade">
+            <Modal visible={detailsModalVisible} transparent animationType="fade" statusBarTranslucent>
                 <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center", padding: 20 }}>
                     <View style={{ backgroundColor: "white", width: "100%", borderRadius: 32, padding: 24, maxHeight: "80%" }}>
                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>

@@ -18,6 +18,7 @@ import {
   where
 } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
+import { useNavigation } from "@react-navigation/native";
 import {
   ActivityIndicator,
   Alert,
@@ -49,10 +50,22 @@ const googleDiscovery = {
 
 export default function DiaryMaintenance() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const { diaries: diaryList, isInitialLoadDone } = useData();
   const [uid] = useState<string | null>(auth.currentUser?.uid || null);
 
   const [showSheet, setShowSheet] = useState(false);
+  useEffect(() => {
+    navigation.getParent()?.setOptions({
+      tabBarStyle: (showSheet) ? { display: 'none' } : {
+        backgroundColor: "#111827",
+        borderTopWidth: 0,
+        paddingTop: 6,
+        paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+        height: 60 + insets.bottom,
+      }
+    });
+  }, [showSheet, navigation, insets.bottom]);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -582,7 +595,7 @@ export default function DiaryMaintenance() {
       </TouchableOpacity>
 
       {/* BOTTOM SHEET MODAL */}
-      <Modal visible={showSheet} transparent animationType="slide">
+      <Modal visible={showSheet} transparent animationType="slide" statusBarTranslucent>
         <KeyboardAvoidingView
           behavior="padding"
           className="flex-1"

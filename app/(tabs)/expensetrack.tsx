@@ -6,6 +6,7 @@ import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
+import { useNavigation } from "@react-navigation/native";
 import {
   ActivityIndicator,
   Alert,
@@ -45,6 +46,7 @@ import {
 export default function ExpenseTrack() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const navigation = useNavigation();
   const { 
     expenses: expenseList, 
     transfers: transferList, 
@@ -54,6 +56,18 @@ export default function ExpenseTrack() {
   const [uid] = useState<string | null>(auth.currentUser?.uid || null);
 
   const [showSheet, setShowSheet] = useState(false);
+  useEffect(() => {
+    navigation.getParent()?.setOptions({
+      tabBarStyle: (showSheet) ? { display: 'none' } : {
+        backgroundColor: "#111827",
+        borderTopWidth: 0,
+        paddingTop: 6,
+        paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+        height: 60 + insets.bottom,
+      }
+    });
+  }, [showSheet, navigation, insets.bottom]);
+
   const [selectedTransfer, setSelectedTransfer] = useState<any>(null);
 
   const [name, setName] = useState("");
@@ -642,7 +656,7 @@ export default function ExpenseTrack() {
         <Ionicons name="add" size={32} color="white" />
       </TouchableOpacity>
 
-      <Modal visible={showSheet} transparent animationType="slide">
+      <Modal visible={showSheet} transparent animationType="slide" statusBarTranslucent>
         <KeyboardAvoidingView
           behavior="padding"
           style={{ flex: 1 }}
