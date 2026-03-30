@@ -660,7 +660,7 @@ export default function ExpenseTrack() {
 
       <Modal visible={showSheet} transparent animationType="slide" statusBarTranslucent>
         <KeyboardAvoidingView
-          behavior="padding"
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
           style={{ flex: 1 }}
         >
           <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>

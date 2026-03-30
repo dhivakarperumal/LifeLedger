@@ -10,6 +10,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         header: () => <TopHeader />,
+        tabBarHideOnKeyboard: true,
 
         tabBarStyle: {
           backgroundColor: "#111827",
