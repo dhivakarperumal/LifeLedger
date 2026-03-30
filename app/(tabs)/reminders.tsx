@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import Constants from "expo-constants";
-import * as Notifications from "expo-notifications";
+
 import { useRouter } from "expo-router";
 import {
     addDoc,
@@ -36,8 +36,18 @@ import { auth, db } from "../../firebase";
 import { useData } from "../../context/DataContext";
 import { useNavigation } from "@react-navigation/native";
 
-// Configure notifications
-if (Constants.appOwnership !== "expo") {
+// Conditionally import notifications to avoid Expo Go SDK 53+ push token registration errors
+const isExpoGo = Constants.appOwnership === "expo";
+const Notifications: any = !isExpoGo ? require("expo-notifications") : {
+    setNotificationHandler: () => {},
+    getPermissionsAsync: async () => ({ status: 'undetermined' }),
+    requestPermissionsAsync: async () => ({ status: 'undetermined' }),
+    scheduleNotificationAsync: async () => {},
+    AndroidNotificationPriority: { HIGH: 4 },
+};
+
+// Configure notifications if not in Expo Go
+if (!isExpoGo) {
     Notifications.setNotificationHandler({
         handleNotification: async () => ({
             shouldShowAlert: true,

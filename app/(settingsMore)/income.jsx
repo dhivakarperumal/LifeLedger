@@ -525,7 +525,7 @@ export default function Income() {
                 <Text className="text-gray-700 font-bold text-lg">Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={deleteIncome}
+                onPress={executeDelete}
                 disabled={loading}
                 className="flex-1 py-4 rounded-2xl bg-red-500 items-center shadow-lg shadow-red-500/30"
               >
