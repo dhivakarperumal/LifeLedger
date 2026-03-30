@@ -7,10 +7,11 @@ import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Animated, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../../firebase";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Profile() {
     const router = useRouter();
-    const user = auth.currentUser;
+    const { user } = useAuth() as any;
 
     const [name, setName] = useState(user?.displayName || "");
     const [email, setEmail] = useState(user?.email || "");

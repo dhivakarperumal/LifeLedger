@@ -38,6 +38,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import FilterSheet, { applyFilters, defaultFilterState, FilterState } from "../../components/FilterSheet";
 import { getOrCreateFolder, GOOGLE_DRIVE_FOLDER_NAME, uploadMediaToDrive } from "../../components/GoogleDriveHelper";
 import { auth, db } from "../../firebase";
+import { useAuth } from "../../context/AuthContext";
 import { useData } from "../../context/DataContext";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -52,7 +53,8 @@ export default function DiaryMaintenance() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const { diaries: diaryList, isInitialLoadDone } = useData();
-  const [uid] = useState<string | null>(auth.currentUser?.uid || null);
+  const { user } = useAuth() as any;
+  const uid = user?.uid;
 
   const [showSheet, setShowSheet] = useState(false);
   useEffect(() => {

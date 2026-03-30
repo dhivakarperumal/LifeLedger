@@ -17,6 +17,7 @@ export function DataProvider({ children }) {
   const [memories, setMemories] = useState([]);
   const [reminders, setReminders] = useState([]);
   const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
+  const [loadedCollections, setLoadedCollections] = useState(new Set());
 
   useEffect(() => {
     if (!user) {
@@ -28,29 +29,35 @@ export function DataProvider({ children }) {
       setMemories([]);
       setReminders([]);
       setIsInitialLoadDone(false);
+      setLoadedCollections(new Set());
       return;
     }
 
     setDataLoading(true);
-    let loadsRemaining = 6;
-    const checkDone = () => {
-      loadsRemaining--;
-      if (loadsRemaining === 0) {
-        setIsInitialLoadDone(true);
-        setDataLoading(false);
-      }
+    setLoadedCollections(new Set());
+    
+    const checkCollection = (name) => {
+      setLoadedCollections(prev => {
+        const next = new Set(prev);
+        next.add(name);
+        if (next.size === 6) {
+          setIsInitialLoadDone(true);
+          setDataLoading(false);
+        }
+        return next;
+      });
     };
 
     const userId = user.uid;
 
     const unsubExpenses = onSnapshot(
-      query(collection(db, "expenses"), where("userId", "==", userId)), 
+      query(collection(db, "expenses"), where("userId", "==", userId)),
       (snap) => {
         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setExpenses(list);
-        if (loadsRemaining > 0) checkDone();
+        checkCollection("expenses");
       },
-      (err) => { console.log("Expenses fetch error:", err); if (loadsRemaining > 0) checkDone(); }
+      (err) => { console.log("Expenses fetch error:", err); checkCollection("expenses"); }
     );
 
     const unsubIncome = onSnapshot(
@@ -58,9 +65,9 @@ export function DataProvider({ children }) {
       (snap) => {
         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setIncome(list);
-        if (loadsRemaining > 0) checkDone();
+        checkCollection("income");
       },
-      (err) => { console.log("Income fetch error:", err); if (loadsRemaining > 0) checkDone(); }
+      (err) => { console.log("Income fetch error:", err); checkCollection("income"); }
     );
 
     const unsubTransfers = onSnapshot(
@@ -68,9 +75,9 @@ export function DataProvider({ children }) {
       (snap) => {
         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setTransfers(list);
-        if (loadsRemaining > 0) checkDone();
+        checkCollection("transfers");
       },
-      (err) => { console.log("Transfers fetch error:", err); if (loadsRemaining > 0) checkDone(); }
+      (err) => { console.log("Transfers fetch error:", err); checkCollection("transfers"); }
     );
 
     const unsubDiaries = onSnapshot(
@@ -78,9 +85,9 @@ export function DataProvider({ children }) {
       (snap) => {
         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setDiaries(list);
-        if (loadsRemaining > 0) checkDone();
+        checkCollection("diaries");
       },
-      (err) => { console.log("Diaries fetch error:", err); if (loadsRemaining > 0) checkDone(); }
+      (err) => { console.log("Diaries fetch error:", err); checkCollection("diaries"); }
     );
 
     const unsubMemories = onSnapshot(
@@ -88,9 +95,9 @@ export function DataProvider({ children }) {
       (snap) => {
         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setMemories(list);
-        if (loadsRemaining > 0) checkDone();
+        checkCollection("memories");
       },
-      (err) => { console.log("Memories fetch error:", err); if (loadsRemaining > 0) checkDone(); }
+      (err) => { console.log("Memories fetch error:", err); checkCollection("memories"); }
     );
 
     const unsubReminders = onSnapshot(
@@ -98,9 +105,9 @@ export function DataProvider({ children }) {
       (snap) => {
         const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         setReminders(list);
-        if (loadsRemaining > 0) checkDone();
+        checkCollection("reminders");
       },
-      (err) => { console.log("Reminders fetch error:", err); if (loadsRemaining > 0) checkDone(); }
+      (err) => { console.log("Reminders fetch error:", err); checkCollection("reminders"); }
     );
 
     return () => {

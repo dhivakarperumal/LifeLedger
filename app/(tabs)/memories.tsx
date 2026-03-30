@@ -44,6 +44,7 @@ import FilterSheet, {
 } from "../../components/FilterSheet";
 import { getOrCreateFolder, GOOGLE_DRIVE_FOLDER_NAME, uploadMediaToDrive } from "../../components/GoogleDriveHelper";
 import { auth, db } from "../../firebase";
+import { useAuth } from "../../context/AuthContext";
 import { useData } from "../../context/DataContext";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -61,7 +62,8 @@ type MediaItem = { uri: string; type: "image" | "video" };
 export default function Memories() {
   const insets = useSafeAreaInsets();
   const { memories, isInitialLoadDone } = useData();
-  const [uid] = useState<string | null>(auth.currentUser?.uid || null);
+  const { user } = useAuth() as any;
+  const uid = user?.uid;
 
   // ─── Data states ─────────────────────────────────────────────────
   const [filteredMemories, setFilteredMemories] = useState<any[]>([]);

@@ -57,7 +57,7 @@ function AppRoot() {
                 <Ionicons name="wallet-outline" size={50} color="#2f5d34" />
             </View>
         </Animated.View>
-        <Text style={{ fontSize: 18, fontWeight: "800", color: "#1f2937", letterSpacing: 1 }}> QUICK BILL </Text>
+        <Text style={{ fontSize: 18, fontWeight: "800", color: "#1f2937", letterSpacing: 1 }}> LifeLedger </Text>
         <Text style={{ fontSize: 12, fontWeight: "600", color: "#6b7280", marginTop: 8, letterSpacing: 0.5 }}>
             {user ? "Syncing your workspace..." : "Authenticating..."}
         </Text>

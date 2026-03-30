@@ -33,6 +33,7 @@ import { Calendar } from "react-native-calendars";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import FilterSheet, { defaultFilterState, FilterState } from "../../components/FilterSheet";
 import { auth, db } from "../../firebase";
+import { useAuth } from "../../context/AuthContext";
 import { useData } from "../../context/DataContext";
 import { useNavigation } from "@react-navigation/native";
 
@@ -87,7 +88,8 @@ export default function RemindersScreen() {
     const navigation = useNavigation();
     const insets = useSafeAreaInsets();
     const { reminders, isInitialLoadDone } = useData();
-    const uid = auth.currentUser?.uid;
+    const { user } = useAuth() as any;
+    const uid = user?.uid;
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
     const [showModal, setShowModal] = useState(false);
     

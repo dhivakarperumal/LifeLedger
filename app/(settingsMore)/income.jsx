@@ -32,12 +32,14 @@ import {
   where
 } from "firebase/firestore";
 import FilterSheet, { applyFilters, defaultFilterState } from "../../components/FilterSheet";
-import { auth, db } from "../../firebase";
+import { db } from "../../firebase";
+import { useAuth } from "../../context/AuthContext";
 import { useData } from "../../context/DataContext";
 
 export default function Income() {
   const { income: incomeList, isInitialLoadDone } = useData();
-  const [uid] = useState(auth.currentUser?.uid || null);
+  const { user } = useAuth();
+  const uid = user?.uid;
 
   const router = useRouter();
 
@@ -541,7 +543,7 @@ export default function Income() {
         <Animated.View
           style={{
             position: "absolute",
-            top: 0,
+            top: 60,
             left: 20,
             right: 20,
             zIndex: 9999,

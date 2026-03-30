@@ -27,7 +27,8 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import FilterSheet, { applyFilters, defaultFilterState, FilterState } from "../../components/FilterSheet";
 
-import { auth, db } from "../../firebase";
+import { db } from "../../firebase";
+import { useAuth } from "../../context/AuthContext";
 import { useData } from "../../context/DataContext";
 
 import {
@@ -53,7 +54,8 @@ export default function ExpenseTrack() {
     isInitialLoadDone 
   } = useData();
 
-  const [uid] = useState<string | null>(auth.currentUser?.uid || null);
+  const { user } = useAuth() as any;
+  const uid = user?.uid;
 
   const [showSheet, setShowSheet] = useState(false);
   useEffect(() => {

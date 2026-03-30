@@ -28,7 +28,8 @@ import {
     updateDoc,
     where
 } from "firebase/firestore";
-import { auth, db } from "../../firebase";
+import { db } from "../../firebase";
+import { useAuth } from "../../context/AuthContext";
 import { useData } from "../../context/DataContext";
 
 import FilterSheet, {
@@ -39,7 +40,8 @@ import FilterSheet, {
 export default function TransferScreen() {
     const router = useRouter();
     const { transfers: transferList, income: incomeList, isInitialLoadDone } = useData();
-    const [uid] = useState(auth.currentUser?.uid || null);
+    const { user } = useAuth();
+    const uid = user?.uid;
 
     const [showSheet, setShowSheet] = useState(false);
     const [amount, setAmount] = useState("");

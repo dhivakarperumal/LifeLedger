@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
+    Alert,
     Animated,
     FlatList,
     Image,
@@ -19,7 +20,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { auth, db } from "../../firebase";
+import { db } from "../../firebase";
+import { useAuth } from "../../context/AuthContext";
 
 import {
   addDoc,
@@ -37,7 +39,8 @@ import { useData } from "../../context/DataContext";
 export default function AddExpense() {
   const router = useRouter();
   const { expenses: expenseList, transfers: transferList, isInitialLoadDone } = useData();
-  const uid = auth.currentUser?.uid;
+  const { user } = useAuth();
+  const uid = user?.uid;
 
   const [showSheet, setShowSheet] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState(null);
@@ -369,7 +372,7 @@ export default function AddExpense() {
             right: 20,
             zIndex: 9999,
             transform: [{ translateY: toastAnim }],
-            backgroundColor: toast.type === "success" ? "#2f5d34" : "#ef4444",
+            backgroundColor: toast.type === "success" ? "#2f5d34" : toast.type === "error" ? "#ef4444" : "#3b82f6",
             paddingVertical: 14,
             paddingHorizontal: 20,
             borderRadius: 20,
@@ -383,11 +386,13 @@ export default function AddExpense() {
             elevation: 10,
           }}
         >
-          <Ionicons
-            name={toast.type === "success" ? "checkmark-circle" : "alert-circle"}
-            size={24}
-            color="white"
-          />
+          <View style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 10, padding: 4 }}>
+            <Ionicons
+              name={toast.type === "success" ? "checkmark-circle" : toast.type === "error" ? "alert-circle" : "information-circle"}
+              size={22}
+              color="white"
+            />
+          </View>
           <Text style={{ color: "white", fontWeight: "800", fontSize: 13, flex: 1 }}>{toast.message}</Text>
         </Animated.View>
       )}
