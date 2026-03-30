@@ -18,10 +18,14 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    if (!loginInput?.trim() || !password) {
+      Alert.alert("Error", "Please enter valid credentials");
+      return;
+    }
     setLoading(true);
     try {
-      let emailToLogin = loginInput;
-      if (!loginInput.includes("@")) {
+      let emailToLogin = loginInput.trim();
+      if (!emailToLogin.includes("@")) {
         const usersRef = collection(db, "users");
         const q1 = query(usersRef, where("username", "==", loginInput));
         const q2 = query(usersRef, where("phone", "==", loginInput));

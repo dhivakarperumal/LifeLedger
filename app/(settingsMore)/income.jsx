@@ -133,7 +133,7 @@ export default function Income() {
   };
 
   const addIncome = async () => {
-    if (!workName || !amount) {
+    if (!workName?.trim() || !amount) {
       showToast("Please fill in all required fields", "error");
       return;
     }
@@ -142,7 +142,7 @@ export default function Income() {
       setLoading(true);
       const incomeAmount = Number(amount);
       if (isNaN(incomeAmount) || incomeAmount <= 0) {
-        showToast("Enter a valid amount", "error");
+        showToast("Enter a valid positive amount", "error");
         setLoading(false);
         return;
       }

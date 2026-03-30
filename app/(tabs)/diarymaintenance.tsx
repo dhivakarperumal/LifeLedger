@@ -452,7 +452,7 @@ export default function DiaryMaintenance() {
               placeholder="Search diary entries..."
               value={searchQuery}
               onChangeText={setSearchQuery}
-              style={{ flex: 1, fontSize: 14, fontWeight: "600", color: "#111827", paddingVertical: 0 }}
+              style={{ flex: 1, fontSize: 14, fontWeight: "600", color: "#4b5563", paddingVertical: 0 }}
               placeholderTextColor="#9ca3af"
             />
             {searchQuery.length > 0 && (
@@ -657,17 +657,17 @@ export default function DiaryMaintenance() {
                   placeholder="E.g. A beautiful day at the beach, My first paycheck"
                   value={title}
                   onChangeText={setTitle}
-                  style={{ width: "100%", backgroundColor: "#f9fafb", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20, fontSize: 16, fontWeight: "700", color: "#111827" }}
+                  style={{ width: "100%", backgroundColor: "white", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20, fontSize: 16, fontWeight: "600", color: "#4b5563", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
                   placeholderTextColor="#9ca3af"
                 />
 
                 <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Date</Text>
                 <TouchableOpacity
                   onPress={() => setShowDatePicker(true)}
-                  style={{ flexDirection: "row", alignItems: "center", width: "100%", backgroundColor: "#f9fafb", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20 }}
+                  style={{ flexDirection: "row", alignItems: "center", width: "100%", backgroundColor: "white", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
                 >
                   <Ionicons name="calendar-outline" size={20} color="#2f5d34" />
-                  <Text style={{ fontSize: 16, color: "#111827", fontWeight: "700", marginLeft: 12 }}>
+                  <Text style={{ fontSize: 16, color: "#4b5563", fontWeight: "600", marginLeft: 12 }}>
                     {date.toLocaleDateString("en-IN", { year: 'numeric', month: 'short', day: 'numeric' })}
                   </Text>
                 </TouchableOpacity>
@@ -683,20 +683,21 @@ export default function DiaryMaintenance() {
                 )}
 
                 <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Status / Mood</Text>
-                <View style={{ width: "100%", backgroundColor: "#f9fafb", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, marginBottom: 20, overflow: "hidden" }}>
+                <View style={{ width: "100%", backgroundColor: "white", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, marginBottom: 20, overflow: "hidden", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}>
                   <Picker
                     selectedValue={mood}
                     onValueChange={(itemValue) => setMood(itemValue)}
-                    dropdownIconColor="#111827"
-                    style={{ color: "#75777cff" }}
+                    dropdownIconColor="#9ca3af"
+                    style={{ color: "#4b5563", height: 58 }}
+                    itemStyle={{ fontSize: 16, fontWeight: "600", color: "#4b5563" }}
                   >
                     <Picker.Item label="How are you feeling?" value="" color="#9ca3af" />
-                    <Picker.Item label="😊 Happy" value="Happy" color="#111827" />
-                    <Picker.Item label="😌 Relaxed" value="Relaxed" color="#111827" />
-                    <Picker.Item label="😢 Sad" value="Sad" color="#111827" />
-                    <Picker.Item label="😡 Angry" value="Angry" color="#111827" />
-                    <Picker.Item label="🤩 Excited" value="Excited" color="#111827" />
-                    <Picker.Item label="🤔 Thoughtful" value="Thoughtful" color="#111827" />
+                    <Picker.Item label="😊 Happy" value="Happy" color="#4b5563" />
+                    <Picker.Item label="😌 Relaxed" value="Relaxed" color="#4b5563" />
+                    <Picker.Item label="😢 Sad" value="Sad" color="#4b5563" />
+                    <Picker.Item label="😡 Angry" value="Angry" color="#4b5563" />
+                    <Picker.Item label="🤩 Excited" value="Excited" color="#4b5563" />
+                    <Picker.Item label="🤔 Thoughtful" value="Thoughtful" color="#4b5563" />
                   </Picker>
                 </View>
 
@@ -722,7 +723,7 @@ export default function DiaryMaintenance() {
                   onChangeText={setDescription}
                   multiline
                   textAlignVertical="top"
-                  style={{ width: "100%", backgroundColor: "#f9fafb", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20, fontSize: 16, color: "#111827", minHeight: 160, fontWeight: "500" }}
+                  style={{ width: "100%", backgroundColor: "white", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20, fontSize: 16, color: "#4b5563", minHeight: 160, fontWeight: "500", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
                   placeholderTextColor="#9ca3af"
                 />
 

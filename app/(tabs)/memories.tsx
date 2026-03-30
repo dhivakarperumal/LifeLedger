@@ -286,8 +286,14 @@ export default function Memories() {
 
   // ─── Save ─────────────────────────────────────────────────────────
   const handleSave = async () => {
-    if (!title) { Alert.alert("Error", "Please enter a title."); return; }
-    if (mediaItems.length === 0 && !editingId) { Alert.alert("Error", "Add at least one photo or video."); return; }
+    if (!title?.trim()) { 
+      showToast("Please enter a valid title", "error"); 
+      return; 
+    }
+    if (mediaItems.length === 0 && !editingId) { 
+      showToast("Add at least one photo or video", "error"); 
+      return; 
+    }
 
     setLoading(true);
     try {

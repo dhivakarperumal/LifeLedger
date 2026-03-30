@@ -96,8 +96,12 @@ export default function TransferScreen() {
 
     const handleSave = async () => {
         const transferAmount = Number(amount);
-        if (!name || !transferAmount) {
-            showToast("Please fill in all required fields", "error");
+        if (!name?.trim()) {
+            showToast("Please enter a valid transfer name", "error");
+            return;
+        }
+        if (isNaN(transferAmount) || transferAmount <= 0) {
+            showToast("Please enter a valid positive amount", "error");
             return;
         }
 

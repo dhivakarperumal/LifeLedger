@@ -193,19 +193,19 @@ export default function FilterSheet({
                                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 20, gap: 10 }}>
                                     <TouchableOpacity
                                         onPress={() => setShowFromPicker(true)}
-                                        style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: "#e5e7eb", flexDirection: "row", alignItems: "center" }}
+                                        style={{ flex: 1, backgroundColor: "white", borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: "#e5e7eb", flexDirection: "row", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
                                     >
                                         <Ionicons name="calendar-outline" size={16} color="#2f5d34" style={{ marginRight: 6 }} />
-                                        <Text style={{ fontSize: 12, fontWeight: "700", color: local.customFrom ? "#1f2937" : "#9ca3af" }}>
+                                        <Text style={{ fontSize: 12, fontWeight: "700", color: local.customFrom ? "#4b5563" : "#9ca3af" }}>
                                             {local.customFrom ? local.customFrom.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "From"}
                                         </Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         onPress={() => setShowToPicker(true)}
-                                        style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: "#e5e7eb", flexDirection: "row", alignItems: "center" }}
+                                        style={{ flex: 1, backgroundColor: "white", borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: "#e5e7eb", flexDirection: "row", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
                                     >
                                         <Ionicons name="calendar-outline" size={16} color="#2f5d34" style={{ marginRight: 6 }} />
-                                        <Text style={{ fontSize: 12, fontWeight: "700", color: local.customTo ? "#1f2937" : "#9ca3af" }}>
+                                        <Text style={{ fontSize: 12, fontWeight: "700", color: local.customTo ? "#4b5563" : "#9ca3af" }}>
                                             {local.customTo ? local.customTo.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "To"}
                                         </Text>
                                     </TouchableOpacity>

@@ -221,21 +221,27 @@ export default function ExpenseTrack() {
   // ADD EXPENSE
   const addExpense = async () => {
     if (!selectedTransfer) {
-      Alert.alert("Wait", "Select transfer source");
+      showToast("Select transfer source", "error");
       return;
     }
-    if (!amount || !category) {
-      Alert.alert("Error", "Enter required details");
+    if (!category?.trim()) {
+      showToast("Please enter a valid category", "error");
       return;
     }
 
     setLoading(true);
     try {
       const expenseAmount = Number(amount);
-      const remaining = selectedTransfer.remainingAmount ?? selectedTransfer.amount ?? 0;
+      if (isNaN(expenseAmount) || expenseAmount <= 0) {
+        setLoading(false);
+        showToast("Enter a valid positive amount", "error");
+        return;
+      }
 
+      const remaining = selectedTransfer.remainingAmount ?? selectedTransfer.amount ?? 0;
       if (expenseAmount > remaining) {
-        Alert.alert("Alert", "Not enough balance");
+        setLoading(false);
+        showToast(`Not enough balance (₹${remaining} left)`, "error");
         return;
       }
 

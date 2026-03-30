@@ -21,9 +21,8 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-
-    if (!username || !email || !phone || !password || !confirmPassword) {
-      Alert.alert("Error", "Please fill all fields");
+    if (!username?.trim() || !email?.trim() || !phone?.trim() || !password || !confirmPassword) {
+      Alert.alert("Error", "Please fill all fields with valid information");
       return;
     }
 

@@ -92,14 +92,19 @@ export default function AddExpense() {
       showToast("Select transfer source", "error");
       return;
     }
-    if (!amount || !category) {
-      showToast("Enter required details", "error");
+    if (!category?.trim()) {
+      showToast("Please enter a valid category", "error");
       return;
     }
     const expenseAmount = Number(amount);
+    if (isNaN(expenseAmount) || expenseAmount <= 0) {
+      showToast("Enter a valid positive amount", "error");
+      return;
+    }
+
     const remaining = selectedTransfer.remainingAmount ?? selectedTransfer.amount ?? 0;
     if (expenseAmount > remaining) {
-      showToast("Not enough balance", "error");
+      showToast(`Not enough balance (₹${remaining} left)`, "error");
       return;
     }
 
