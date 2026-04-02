@@ -666,12 +666,12 @@ export default function ExpenseTrack() {
 
       <Modal visible={showSheet} transparent animationType="slide" statusBarTranslucent>
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
         >
           <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
             <View style={{ backgroundColor: "white", maxHeight: "92%", borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingTop: 24, paddingHorizontal: 24, paddingBottom: Math.max(24, insets.bottom + 10) }}>
-              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 60 }}>
+              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 120 }}>
 
                 {/* Header */}
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
@@ -953,49 +953,54 @@ export default function ExpenseTrack() {
       </Modal>
 
       <Modal visible={showUPIDetails} transparent animationType="slide">
-        <View className="flex-1 justify-end bg-black/40">
-          <View className="bg-white p-6 rounded-t-[40px] border-t border-gray-200 shadow-2xl">
-            <View className="flex-row justify-between items-center mb-6">
-              <Text className="text-2xl font-black text-gray-800">Payment Details</Text>
-              <TouchableOpacity onPress={() => setShowUPIDetails(false)} className="bg-gray-100 p-2 rounded-full">
-                <Ionicons name="close" size={24} color="gray" />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <View className="flex-1 justify-end bg-black/40">
+            <View className="bg-white p-6 rounded-t-[40px] border-t border-gray-200 shadow-2xl">
+              <View className="flex-row justify-between items-center mb-6">
+                <Text className="text-2xl font-black text-gray-800">Payment Details</Text>
+                <TouchableOpacity onPress={() => setShowUPIDetails(false)} className="bg-gray-100 p-2 rounded-full">
+                  <Ionicons name="close" size={24} color="gray" />
+                </TouchableOpacity>
+              </View>
+
+              <View className="items-center mb-8 bg-blue-50/50 p-6 rounded-[32px]">
+                <View className="bg-blue-600 p-5 rounded-full mb-4 shadow-lg">
+                  <Ionicons name="person" size={40} color="white" />
+                </View>
+                <Text className="text-xl font-black text-gray-800 mb-1">{scannedName}</Text>
+                <View className="bg-blue-100 px-3 py-1 rounded-full">
+                  <Text className="text-blue-700 font-bold text-xs">{scannedUPI}</Text>
+                </View>
+              </View>
+
+              <Text className="text-gray-500 font-bold uppercase tracking-widest text-[10px] mb-3 ml-2">Enter Amount to Pay</Text>
+              <View className="flex-row items-center bg-gray-50 rounded-3xl px-6 py-2 mb-8 border-2 border-blue-100 shadow-inner">
+                <Text className="text-3xl font-black text-blue-600 mr-3">₹</Text>
+                <TextInput
+                  className="flex-1 text-3xl font-black text-gray-800 py-4"
+                  keyboardType="numeric"
+                  placeholder="0.00"
+                  value={amount}
+                  onChangeText={setAmount}
+                  placeholderTextColor="#9ca3af"
+                  autoFocus
+                />
+              </View>
+
+              <TouchableOpacity
+                onPress={confirmAndPay}
+                activeOpacity={0.8}
+                className="bg-blue-700 p-6 rounded-[28px] flex-row justify-center items-center shadow-xl mb-4"
+              >
+                <Ionicons name="paper-plane" size={24} color="white" className="mr-3" />
+                <Text className="text-white text-center font-black text-xl ml-3 uppercase tracking-widest">Confirm & Pay</Text>
               </TouchableOpacity>
             </View>
-
-            <View className="items-center mb-8 bg-blue-50/50 p-6 rounded-[32px]">
-              <View className="bg-blue-600 p-5 rounded-full mb-4 shadow-lg">
-                <Ionicons name="person" size={40} color="white" />
-              </View>
-              <Text className="text-xl font-black text-gray-800 mb-1">{scannedName}</Text>
-              <View className="bg-blue-100 px-3 py-1 rounded-full">
-                <Text className="text-blue-700 font-bold text-xs">{scannedUPI}</Text>
-              </View>
-            </View>
-
-            <Text className="text-gray-500 font-bold uppercase tracking-widest text-[10px] mb-3 ml-2">Enter Amount to Pay</Text>
-            <View className="flex-row items-center bg-gray-50 rounded-3xl px-6 py-2 mb-8 border-2 border-blue-100 shadow-inner">
-              <Text className="text-3xl font-black text-blue-600 mr-3">₹</Text>
-              <TextInput
-                className="flex-1 text-3xl font-black text-gray-800 py-4"
-                keyboardType="numeric"
-                placeholder="0.00"
-                value={amount}
-                onChangeText={setAmount}
-                placeholderTextColor="#9ca3af"
-                autoFocus
-              />
-            </View>
-
-            <TouchableOpacity
-              onPress={confirmAndPay}
-              activeOpacity={0.8}
-              className="bg-blue-700 p-6 rounded-[28px] flex-row justify-center items-center shadow-xl mb-4"
-            >
-              <Ionicons name="paper-plane" size={24} color="white" className="mr-3" />
-              <Text className="text-white text-center font-black text-xl ml-3 uppercase tracking-widest">Confirm & Pay</Text>
-            </TouchableOpacity>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* ── Premium Expense View Modal ── */}

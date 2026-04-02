@@ -245,10 +245,10 @@ export default function AddExpense() {
 
       {/* BOTTOM SHEET */}
       <Modal visible={showSheet} transparent animationType="slide">
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
           <View className="flex-1 justify-end bg-black/40">
             <View className="bg-white p-6 rounded-t-3xl max-h-[90%]">
-              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 60 }}>
+              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 120 }}>
                 <View className="flex-row justify-between items-center mb-4">
                   <Text className="text-xl font-bold">Add Expense</Text>
                   <TouchableOpacity onPress={() => setShowSheet(false)}>

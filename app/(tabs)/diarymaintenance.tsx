@@ -599,11 +599,11 @@ export default function DiaryMaintenance() {
       {/* BOTTOM SHEET MODAL */}
       <Modal visible={showSheet} transparent animationType="slide">
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           className="flex-1"
         >
           <View className="flex-1 justify-end bg-black/50">
-            <View style={{ backgroundColor: "white", borderTopLeftRadius: 24, borderTopRightRadius: 24, flex: 1, maxHeight: '90%', padding: 24, paddingBottom: Math.max(24, insets.bottom + 10), shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20 }}>
+            <View style={{ backgroundColor: "white", borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%', padding: 24, paddingBottom: Math.max(24, insets.bottom + 10), shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20 }}>
               <View className="flex-row justify-between items-center mb-6">
                 <Text className="text-2xl font-black text-gray-800">
                   {editingId ? "Edit Diary Entry" : "New Diary Entry"}
@@ -648,9 +648,10 @@ export default function DiaryMaintenance() {
 
               <ScrollView
                 className="flex-1"
+                style={{ flexGrow: 1 }}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
-                contentContainerStyle={{ paddingBottom: 100 }}
+                contentContainerStyle={{ paddingBottom: 120 }}
               >
                 <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Memory Title</Text>
                 <TextInput

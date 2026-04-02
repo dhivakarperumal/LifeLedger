@@ -441,11 +441,11 @@ export default function RemindersScreen() {
 
                 <Modal visible={showModal} transparent animationType="slide" statusBarTranslucent>
                     <KeyboardAvoidingView 
-                        behavior={Platform.OS === "ios" ? "padding" : undefined} 
+                        behavior={Platform.OS === "ios" ? "padding" : "height"} 
                         style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}
                     >
                         <View style={{ backgroundColor: "white", borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: Math.max(24, insets.bottom + 10), maxHeight: "90%" }}>
-                            <ScrollView showsVerticalScrollIndicator={false}>
+                            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
                                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
                                     <View>
                                         <Text style={{ fontSize: 22, fontWeight: "900", color: "#1f2937" }}>{editingId ? "Edit Reminder" : "New Reminder"}</Text>
@@ -549,7 +549,10 @@ export default function RemindersScreen() {
 
             {/* ── Details Modal ── */}
             <Modal visible={detailsModalVisible} transparent animationType="fade" statusBarTranslucent>
-                <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center", padding: 20 }}>
+                <KeyboardAvoidingView 
+                    behavior={Platform.OS === "ios" ? "padding" : "height"} 
+                    style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center", padding: 20 }}
+                >
                     <View style={{ backgroundColor: "white", width: "100%", borderRadius: 32, padding: 24, maxHeight: "80%" }}>
                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>
                             <View>
@@ -563,7 +566,7 @@ export default function RemindersScreen() {
                             </TouchableOpacity>
                         </View>
 
-                        <ScrollView showsVerticalScrollIndicator={false}>
+                        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
                             {selectedRemindersList.map((item) => {
                                 const typeInfo = EVENT_TYPES.find(t => t.label === item.type) || EVENT_TYPES[5];
                                 return (
@@ -618,7 +621,7 @@ export default function RemindersScreen() {
                             <Text style={{ color: "white", fontWeight: "900", fontSize: 14, textTransform: "uppercase", letterSpacing: 1.5 }}>Add One More</Text>
                         </TouchableOpacity>
                     </View>
-                </View>
+                </KeyboardAvoidingView>
             </Modal>
 
             {/* ── Toast Notification ── */}

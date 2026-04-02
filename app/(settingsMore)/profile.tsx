@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { deleteUser, sendPasswordResetEmail, signOut, updateProfile } from "firebase/auth";
 import { collection, deleteDoc, doc, getDocs, onSnapshot, query, setDoc, where } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Animated, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Animated, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../../firebase";
 import { useAuth } from "../../context/AuthContext";
@@ -318,7 +318,11 @@ export default function Profile() {
 
             {/* ── Delete Confirmation Modal ── */}
             <Modal visible={isDeleteModalVisible} transparent animationType="fade">
-                <View className="flex-1 bg-black/60 justify-center items-center px-6">
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center" }}
+                    className="flex-1 px-6 justify-center"
+                >
                     <View className="bg-white w-full rounded-[40px] p-8 items-center shadow-2xl">
                         <View className="w-20 h-20 rounded-full bg-red-50 items-center justify-center mb-6 border-4 border-white shadow-sm">
                             <Ionicons name="alert-circle" size={48} color="#ef4444" />
@@ -368,7 +372,7 @@ export default function Profile() {
                             </TouchableOpacity>
                         </View>
                     </View>
-                </View>
+                </KeyboardAvoidingView>
             </Modal>
 
             {/* ── Toast Notification ── */}
