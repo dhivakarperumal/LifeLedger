@@ -597,13 +597,13 @@ export default function DiaryMaintenance() {
       </TouchableOpacity>
 
       {/* BOTTOM SHEET MODAL */}
-      <Modal visible={showSheet} transparent animationType="slide" statusBarTranslucent>
+      <Modal visible={showSheet} transparent animationType="slide">
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           className="flex-1"
         >
           <View className="flex-1 justify-end bg-black/50">
-            <View style={{ backgroundColor: "white", borderTopLeftRadius: 24, borderTopRightRadius: 24, height: '85%', padding: 24, paddingBottom: Math.max(24, insets.bottom + 10), shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20 }}>
+            <View style={{ backgroundColor: "white", borderTopLeftRadius: 24, borderTopRightRadius: 24, flex: 1, maxHeight: '90%', padding: 24, paddingBottom: Math.max(24, insets.bottom + 10), shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20 }}>
               <View className="flex-row justify-between items-center mb-6">
                 <Text className="text-2xl font-black text-gray-800">
                   {editingId ? "Edit Diary Entry" : "New Diary Entry"}
@@ -683,23 +683,34 @@ export default function DiaryMaintenance() {
                 )}
 
                 <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Status / Mood</Text>
-                <View style={{ width: "100%", backgroundColor: "white", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, marginBottom: 20, overflow: "hidden", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}>
-                  <Picker
-                    selectedValue={mood}
-                    onValueChange={(itemValue) => setMood(itemValue)}
-                    dropdownIconColor="#9ca3af"
-                    style={{ color: "#4b5563", height: 58 }}
-                    itemStyle={{ fontSize: 16, fontWeight: "600", color: "#4b5563" }}
-                  >
-                    <Picker.Item label="How are you feeling?" value="" color="#9ca3af" />
-                    <Picker.Item label="😊 Happy" value="Happy" color="#4b5563" />
-                    <Picker.Item label="😌 Relaxed" value="Relaxed" color="#4b5563" />
-                    <Picker.Item label="😢 Sad" value="Sad" color="#4b5563" />
-                    <Picker.Item label="😡 Angry" value="Angry" color="#4b5563" />
-                    <Picker.Item label="🤩 Excited" value="Excited" color="#4b5563" />
-                    <Picker.Item label="🤔 Thoughtful" value="Thoughtful" color="#4b5563" />
-                  </Picker>
-                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
+                  {[
+                    { label: "😊 Happy", value: "Happy" },
+                    { label: "😌 Relaxed", value: "Relaxed" },
+                    { label: "😢 Sad", value: "Sad" },
+                    { label: "😡 Angry", value: "Angry" },
+                    { label: "🤩 Excited", value: "Excited" },
+                    { label: "🤔 Thoughtful", value: "Thoughtful" }
+                  ].map((item, idx) => (
+                    <TouchableOpacity
+                      key={`mood-${idx}`}
+                      onPress={() => setMood(item.value)}
+                      style={{ 
+                        marginRight: 8, 
+                        paddingHorizontal: 16, 
+                        paddingVertical: 10, 
+                        borderRadius: 20, 
+                        borderWidth: 1, 
+                        backgroundColor: mood === item.value ? "#2f5d34" : "white", 
+                        borderColor: mood === item.value ? "#2f5d34" : "#e5e7eb" 
+                      }}
+                    >
+                      <Text style={{ fontSize: 13, fontWeight: "700", color: mood === item.value ? "white" : "#4b5563" }}>
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
 
                 <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Tags</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
