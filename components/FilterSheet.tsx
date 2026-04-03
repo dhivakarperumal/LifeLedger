@@ -177,8 +177,8 @@ export default function FilterSheet({
                                                 flexDirection: "row", alignItems: "center",
                                                 paddingHorizontal: 14, paddingVertical: 9,
                                                 borderRadius: 20, borderWidth: 1.5,
-                                                backgroundColor: active ? "#2f5d34" : "white",
-                                                borderColor: active ? "#2f5d34" : "#e5e7eb",
+                                                backgroundColor: active ? "#2f5d34" : "#f8fafc",
+                                                borderColor: active ? "#2f5d34" : "#f0f0f0",
                                             }}
                                         >
                                             <Ionicons name={p.icon as any} size={13} color={active ? "white" : "#6b7280"} style={{ marginRight: 5 }} />
@@ -193,7 +193,7 @@ export default function FilterSheet({
                                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 20, gap: 10 }}>
                                     <TouchableOpacity
                                         onPress={() => setShowFromPicker(true)}
-                                        style={{ flex: 1, backgroundColor: "white", borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: "#e5e7eb", flexDirection: "row", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
+                                        style={{ flex: 1, backgroundColor: "#f8fafc", borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 1.5, borderColor: "#f0f0f0", flexDirection: "row", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
                                     >
                                         <Ionicons name="calendar-outline" size={16} color="#2f5d34" style={{ marginRight: 6 }} />
                                         <Text style={{ fontSize: 12, fontWeight: "700", color: local.customFrom ? "#4b5563" : "#9ca3af" }}>
@@ -202,7 +202,7 @@ export default function FilterSheet({
                                     </TouchableOpacity>
                                     <TouchableOpacity
                                         onPress={() => setShowToPicker(true)}
-                                        style={{ flex: 1, backgroundColor: "white", borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: "#e5e7eb", flexDirection: "row", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
+                                        style={{ flex: 1, backgroundColor: "#f8fafc", borderRadius: 16, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 1.5, borderColor: "#f0f0f0", flexDirection: "row", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
                                     >
                                         <Ionicons name="calendar-outline" size={16} color="#2f5d34" style={{ marginRight: 6 }} />
                                         <Text style={{ fontSize: 12, fontWeight: "700", color: local.customTo ? "#4b5563" : "#9ca3af" }}>
@@ -246,8 +246,8 @@ export default function FilterSheet({
                                                     style={{
                                                         paddingHorizontal: 14, paddingVertical: 9,
                                                         borderRadius: 20, borderWidth: 1.5,
-                                                        backgroundColor: selected ? "#2f5d34" : "white",
-                                                        borderColor: selected ? "#2f5d34" : "#e5e7eb",
+                                                        backgroundColor: selected ? "#2f5d34" : "#f8fafc",
+                                                        borderColor: selected ? "#2f5d34" : "#f0f0f0",
                                                     }}
                                                 >
                                                     <Text style={{ fontSize: 12, fontWeight: "700", color: selected ? "white" : "#374151" }}>{opt}</Text>

@@ -451,7 +451,7 @@ export default function DiaryMaintenance() {
         <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10, gap: 10 }}>
           <View style={{
             flex: 1, flexDirection: "row", alignItems: "center",
-            backgroundColor: "white",
+            backgroundColor: "#f8fafc",
             borderRadius: 18,
             paddingHorizontal: 16, paddingVertical: 14,
             borderWidth: 1.5, borderColor: "#f0f0f0",
@@ -465,7 +465,7 @@ export default function DiaryMaintenance() {
               placeholder="Search diary entries..."
               value={searchQuery}
               onChangeText={setSearchQuery}
-              style={{ flex: 1, fontSize: 14, fontWeight: "600", color: "#4b5563", paddingVertical: 0 }}
+              style={{ flex: 1, fontSize: 14, fontWeight: "600", color: "#111827", paddingVertical: 0 }}
               placeholderTextColor="#9ca3af"
             />
             {searchQuery.length > 0 && (
@@ -672,29 +672,29 @@ export default function DiaryMaintenance() {
                 </View>
                 <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Diary Title</Text>
                 <TextInput
-                  placeholder="E.g. A beautiful day at the beach, My first paycheck"
+                  placeholder="E.g. Weekend Trip, Special Dinner"
                   value={title}
                   onChangeText={setTitle}
-                  style={{ width: "100%", backgroundColor: "white", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20, fontSize: 16, fontWeight: "600", color: "#4b5563", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
+                  style={{ width: "100%", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 14, marginBottom: 20, fontSize: 13, fontWeight: "600", color: "#111827", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
                   placeholderTextColor="#9ca3af"
                 />
 
                 <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Location / Place</Text>
                 <TextInput
-                  placeholder="Where did this happen?"
+                  placeholder="Location name?"
                   value={place}
                   onChangeText={setPlace}
-                  style={{ width: "100%", backgroundColor: "white", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20, fontSize: 16, fontWeight: "600", color: "#4b5563", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
+                  style={{ width: "100%", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 14, marginBottom: 20, fontSize: 13, fontWeight: "600", color: "#111827", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
                   placeholderTextColor="#9ca3af"
                 />
 
                 <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Date</Text>
                 <TouchableOpacity
                   onPress={() => setShowDatePicker(true)}
-                  style={{ flexDirection: "row", alignItems: "center", width: "100%", backgroundColor: "white", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
+                  style={{ flexDirection: "row", alignItems: "center", width: "100%", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 14, marginBottom: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
                 >
                   <Ionicons name="calendar-outline" size={20} color="#2f5d34" />
-                  <Text style={{ fontSize: 16, color: "#4b5563", fontWeight: "600", marginLeft: 12 }}>
+                  <Text style={{ fontSize: 14, color: "#111827", fontWeight: "600", marginLeft: 12 }}>
                     {date.toLocaleDateString("en-IN", { year: 'numeric', month: 'short', day: 'numeric' })}
                   </Text>
                 </TouchableOpacity>
@@ -727,9 +727,9 @@ export default function DiaryMaintenance() {
                         paddingHorizontal: 16, 
                         paddingVertical: 10, 
                         borderRadius: 20, 
-                        borderWidth: 1, 
-                        backgroundColor: mood === item.value ? "#2f5d34" : "white", 
-                        borderColor: mood === item.value ? "#2f5d34" : "#e5e7eb" 
+                        borderWidth: 1.5, 
+                        backgroundColor: mood === item.value ? "#2f5d34" : "#f8fafc", 
+                        borderColor: mood === item.value ? "#2f5d34" : "#f0f0f0" 
                       }}
                     >
                       <Text style={{ fontSize: 13, fontWeight: "700", color: mood === item.value ? "white" : "#4b5563" }}>
@@ -750,9 +750,9 @@ export default function DiaryMaintenance() {
                         paddingHorizontal: 16, 
                         paddingVertical: 10, 
                         borderRadius: 20, 
-                        borderWidth: 1, 
-                        backgroundColor: eventType === type ? "#2f5d34" : "white", 
-                        borderColor: eventType === type ? "#2f5d34" : "#e5e7eb" 
+                        borderWidth: 1.5, 
+                        backgroundColor: eventType === type ? "#2f5d34" : "#f8fafc", 
+                        borderColor: eventType === type ? "#2f5d34" : "#f0f0f0" 
                       }}
                     >
                       <Text style={{ fontSize: 13, fontWeight: "700", color: eventType === type ? "white" : "#4b5563" }}>
@@ -768,7 +768,7 @@ export default function DiaryMaintenance() {
                     <TouchableOpacity
                       key={`tag-opt-${idx}`}
                       onPress={() => toggleTag(tag)}
-                      style={{ marginRight: 8, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, backgroundColor: tags.includes(tag) ? "#2f5d34" : "white", borderColor: tags.includes(tag) ? "#2f5d34" : "#e5e7eb" }}
+                      style={{ marginRight: 8, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, backgroundColor: tags.includes(tag) ? "#2f5d34" : "#f8fafc", borderColor: tags.includes(tag) ? "#2f5d34" : "#f0f0f0" }}
                     >
                       <Text style={{ fontSize: 12, fontWeight: "700", color: tags.includes(tag) ? "white" : "#4b5563" }}>
                         {tag}
@@ -779,12 +779,12 @@ export default function DiaryMaintenance() {
 
                 <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Write your heart out</Text>
                 <TextInput
-                  placeholder="How was your day? What made it special?"
+                  placeholder="Share your story here..."
                   value={description}
                   onChangeText={setDescription}
                   multiline
                   textAlignVertical="top"
-                  style={{ width: "100%", backgroundColor: "white", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20, fontSize: 16, color: "#4b5563", minHeight: 160, fontWeight: "500", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
+                  style={{ width: "100%", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20, fontSize: 14, color: "#111827", minHeight: 160, fontWeight: "500", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
                   placeholderTextColor="#9ca3af"
                 />
 
@@ -829,7 +829,7 @@ export default function DiaryMaintenance() {
                 <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Photos</Text>
                 <TouchableOpacity
                   onPress={pickImages}
-                  style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", width: "100%", backgroundColor: "#f9fafb", paddingVertical: 20, borderRadius: 16, marginBottom: 20, borderWidth: 1, borderStyle: "dashed", borderColor: "#d1d5db" }}
+                  style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", width: "100%", backgroundColor: "#f8fafc", paddingVertical: 20, borderRadius: 16, marginBottom: 20, borderWidth: 1.5, borderStyle: "dashed", borderColor: "#f0f0f0" }}
                 >
                   <Ionicons name="images-outline" size={24} color="#6b7280" style={{ marginRight: 8 }} />
                   <Text style={{ color: "#6b7280", fontWeight: "700" }}>Attach Photos</Text>
