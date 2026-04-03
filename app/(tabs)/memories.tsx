@@ -334,6 +334,7 @@ export default function Memories() {
         image: finalMedia.find(m => m.type === "image")?.uri || finalMedia[0]?.uri || null,
         media: finalMedia,
         mediaCount: finalMedia.length,
+        tags: filterState.chips["tags"] || [], // Added missing tags field
         voiceNotes: voiceNotes,
         voiceNote: voiceNotes[0] || null,
         driveSynced: !!googleAccessToken && useDriveSync,
@@ -823,18 +824,18 @@ export default function Memories() {
       <LightboxModal />
 
       {/* Capture/Edit Modal */}
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
-          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-            <View style={{ backgroundColor: "white", maxHeight: "92%", borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingTop: 24, paddingHorizontal: 24, paddingBottom: Math.max(24, insets.bottom + 10) }}>
+      <Modal visible={modalVisible} transparent animationType="slide" statusBarTranslucent>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: 'flex-end' }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={{ width: '100%', maxHeight: '92%' }}
+          >
+            <View style={{ backgroundColor: "white", borderTopLeftRadius: 40, borderTopRightRadius: 40, height: '100%', paddingTop: 24, paddingHorizontal: 24, paddingBottom: Math.max(24, insets.bottom + 10), shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20, overflow: 'hidden' }}>
 
               {/* Google Drive Status Wrapper */}
               <View style={{ backgroundColor: "#f8fafc", borderRadius: 20, padding: 16, marginBottom: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#f0f0f0' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  <View style={{ backgroundColor: googleAccessToken ? '#f0fdf4' : '#fef2f2', padding: 8, borderRadius: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <View style={{ backgroundColor: googleAccessToken ? '#f0fdf4' : '#fef2f2', padding: 8, borderRadius: 12, marginRight: 12 }}>
                     <Ionicons name="logo-google" size={20} color={googleAccessToken ? '#2f5d34' : '#ef4444'} />
                   </View>
                   <View>
@@ -1056,8 +1057,8 @@ export default function Memories() {
                 </View>
               </ScrollView>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </View>
       </Modal>
 
       {/* DELETE CONFIRMATION MODAL */}
@@ -1073,10 +1074,10 @@ export default function Memories() {
                 ? `Are you sure you want to delete ${selectedIds.size} memories? This action cannot be undone.`
                 : "Are you sure you want to delete this memory? This action cannot be undone."}
             </Text>
-            <View style={{ flexDirection: "row", width: "100%", gap: 12 }}>
+            <View style={{ flexDirection: "row", width: "100%" }}>
               <TouchableOpacity
                 onPress={() => setDeleteModalVisible(false)}
-                style={{ flex: 1, paddingVertical: 16, borderRadius: 18, backgroundColor: "#f3f4f6", alignItems: "center" }}
+                style={{ flex: 1, paddingVertical: 16, borderRadius: 18, backgroundColor: "#f3f4f6", alignItems: "center", marginRight: 12 }}
               >
                 <Text style={{ color: "#374151", fontWeight: "800", fontSize: 18 }}>Cancel</Text>
               </TouchableOpacity>
@@ -1108,7 +1109,6 @@ export default function Memories() {
             borderRadius: 20,
             flexDirection: "row",
             alignItems: "center",
-            gap: 12,
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 8 },
             shadowOpacity: 0.2,

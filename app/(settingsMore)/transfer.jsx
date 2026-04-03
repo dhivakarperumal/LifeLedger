@@ -406,12 +406,13 @@ export default function TransferScreen() {
 
             {/* ── BOTTOM SHEET ───────────────────────────────────────── */}
             <Modal visible={showSheet} transparent animationType="slide">
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                    style={{ flex: 1 }}
-                >
-                    <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)", justifyContent: "flex-end" }}>
-                        <View style={{
+                <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.55)" }}>
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === "ios" ? "padding" : "height"}
+                        style={{ flex: 1 }}
+                    >
+                        <View style={{ flex: 1, justifyContent: "flex-end" }}>
+                            <View style={{
                             backgroundColor: "white",
                             maxHeight: "90%",
                             borderTopLeftRadius: 40,
@@ -562,10 +563,11 @@ export default function TransferScreen() {
                                     )}
                                 </TouchableOpacity>
                             </ScrollView>
-                        </View>
+                                </View>
+                            </View>
+                        </KeyboardAvoidingView>
                     </View>
-                </KeyboardAvoidingView>
-            </Modal>
+                </Modal>
 
             {/* ── DELETE MODAL ─────────────────────────────────────── */}
             <Modal visible={deleteModalVisible} transparent animationType="fade">

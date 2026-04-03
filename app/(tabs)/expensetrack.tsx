@@ -138,12 +138,9 @@ export default function ExpenseTrack() {
   const expenseRef = collection(db, "expenses");
   const transferRef = collection(db, "transfers");
 
-  // Data is now managed globally by DataProvider automatically syncing via useData() hook
-
   useEffect(() => {
     let result = applyFilters(expenseList, filterState, "createdAt");
 
-    // Category chip filter
     const catFilter = filterState.chips["category"] || [];
     if (catFilter.length > 0) {
       result = result.filter(item =>
@@ -151,7 +148,6 @@ export default function ExpenseTrack() {
       );
     }
 
-    // Payment chip filter
     const payFilter = filterState.chips["payment"] || [];
     if (payFilter.length > 0) {
       result = result.filter(item =>
@@ -159,7 +155,6 @@ export default function ExpenseTrack() {
       );
     }
 
-    // Search query
     if (searchQuery.trim() !== "") {
       const lowerQuery = searchQuery.toLowerCase();
       result = result.filter(
@@ -172,7 +167,6 @@ export default function ExpenseTrack() {
     setFilteredExpenseList(result);
   }, [searchQuery, expenseList, filterState]);
 
-  // DOCUMENT / IMAGE PICKER
   const pickDocument = async () => {
     try {
       Alert.alert(
@@ -202,8 +196,6 @@ export default function ExpenseTrack() {
                 copyToCacheDirectory: true
               });
               if (!result.canceled) {
-                // In a real app, you'd upload this file to Firebase Storage. 
-                // For this demo, we store the name.
                 setReceipt(result.assets[0].uri);
                 setDocumentName(result.assets[0].name);
                 setDocumentType("document");
@@ -218,7 +210,6 @@ export default function ExpenseTrack() {
     }
   };
 
-  // ADD EXPENSE
   const addExpense = async () => {
     if (!selectedTransfer) {
       showToast("Select transfer source", "error");
@@ -288,7 +279,6 @@ export default function ExpenseTrack() {
       setReceipt(null);
       setEditingId(null);
       setShowSheet(false);
-      // Data is synced automatically
     } catch (e) {
       console.error("ADD EXPENSE ERROR", e);
       Alert.alert("Error", "Failed to save transaction");
@@ -297,7 +287,6 @@ export default function ExpenseTrack() {
     }
   };
 
-  // UPI Logic
   const handleBarCodeScanned = ({ data }: { data: string }) => {
     if (scanned) return;
 
@@ -306,9 +295,9 @@ export default function ExpenseTrack() {
         setScanned(true);
         const url = new URL(data);
         const params = url.searchParams;
-        const pa = params.get("pa") || ""; // UPI ID
-        const pn = params.get("pn") || ""; // Payee Name
-        const am = params.get("am") || ""; // Amount
+        const pa = params.get("pa") || "";
+        const pn = params.get("pn") || "";
+        const am = params.get("am") || "";
 
         setScannedUPI(pa);
         setScannedName(pn || pa);
@@ -335,22 +324,17 @@ export default function ExpenseTrack() {
 
     if (!scannedUPI) return;
 
-    // Construct the UPI URL with the potentially updated amount
     const upiUrl = `upi://pay?pa=${scannedUPI}&pn=${encodeURIComponent(scannedName)}&am=${amount}&cu=INR`;
 
     try {
       const supported = await Linking.canOpenURL(upiUrl);
       if (supported) {
         await Linking.openURL(upiUrl);
-
-        // Setup the expense form
         setName(scannedName);
         setPaymentMethod("UPI");
         setCategory("UPI Payment");
-
         setShowUPIDetails(false);
         setShowSheet(true);
-
         Alert.alert("Payment Initiated", "Check your UPI app to complete payment. Don't forget to 'Save Expense' here!");
       } else {
         Alert.alert("Error", "No UPI apps found on this device.");
@@ -400,7 +384,6 @@ export default function ExpenseTrack() {
     setDocumentName(item.documentName || null);
     setDocumentType(item.documentType || (item.receipt ? "image" : null));
     setDate(item.expenseDate ? item.expenseDate.toDate() : (item.createdAt ? item.createdAt.toDate() : new Date()));
-    // Find the transfer associated
     const transfer = transferList.find((t: any) => t.id === item.transferId);
     setSelectedTransfer(transfer || null);
     setShowSheet(true);
@@ -424,7 +407,6 @@ export default function ExpenseTrack() {
       setItemToDelete(null);
       showToast("Expense deleted successfully", "success");
       setDeleteModalVisible(false);
-      // Data is synced automatically
     } catch (e) {
       showToast("Failed to delete", "error");
       setDeleteModalVisible(false);
@@ -440,7 +422,7 @@ export default function ExpenseTrack() {
       if (isNaN(d.getTime())) return "Recently";
       return (
         d.toLocaleDateString("en-IN", { day: 'numeric', month: 'short' }) +
-        " • " +
+        " \u2022 " +
         d.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' })
       );
     } catch (e) {
@@ -469,32 +451,29 @@ export default function ExpenseTrack() {
   };
 
   const getCategoryStyles = (cat: string) => {
-    const category = cat?.toLowerCase() || "";
-    if (category.includes("food") || category.includes("eat") || category.includes("drink"))
+    const categoryName = cat?.toLowerCase() || "";
+    if (categoryName.includes("food") || categoryName.includes("eat") || categoryName.includes("drink"))
       return { icon: "fast-food", bg: "bg-orange-100", color: "#f97316" };
-    if (category.includes("travel") || category.includes("cab") || category.includes("petrol") || category.includes("fuel"))
+    if (categoryName.includes("travel") || categoryName.includes("cab") || categoryName.includes("petrol") || categoryName.includes("fuel"))
       return { icon: "car", bg: "bg-blue-100", color: "#3b82f6" };
-    if (category.includes("shop") || category.includes("buy") || category.includes("cloth"))
+    if (categoryName.includes("shop") || categoryName.includes("buy") || categoryName.includes("cloth"))
       return { icon: "cart", bg: "bg-purple-100", color: "#a855f7" };
-    if (category.includes("bill") || category.includes("rent") || category.includes("emi"))
+    if (categoryName.includes("bill") || categoryName.includes("rent") || categoryName.includes("emi"))
       return { icon: "receipt", bg: "bg-red-100", color: "#ef4444" };
-    if (category.includes("health") || category.includes("med") || category.includes("doctor"))
+    if (categoryName.includes("health") || categoryName.includes("med") || categoryName.includes("doctor"))
       return { icon: "heart", bg: "bg-pink-100", color: "#ec4899" };
-    if (category.includes("play") || category.includes("movie") || category.includes("game") || category.includes("fun"))
+    if (categoryName.includes("play") || categoryName.includes("movie") || categoryName.includes("game") || categoryName.includes("fun"))
       return { icon: "game-controller", bg: "bg-indigo-100", color: "#6366f1" };
-    if (category.includes("upi"))
+    if (categoryName.includes("upi"))
       return { icon: "qr-code", bg: "bg-emerald-100", color: "#10b981" };
 
     return { icon: "wallet", bg: "bg-gray-100", color: "#6b7280" };
   };
 
   return (
-
     <SafeAreaView edges={[]} className="flex-1 ">
-
       <View className="flex-1 bg-gray-100 p-0 mt-5 px-4">
-
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16, gap: 10 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 16 }}>
           <View style={{
             flex: 1, flexDirection: "row", alignItems: "center",
             backgroundColor: "white",
@@ -502,7 +481,7 @@ export default function ExpenseTrack() {
             paddingHorizontal: 16, paddingVertical: 14,
             borderWidth: 1.5, borderColor: "#f0f0f0",
             shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3,
-            minHeight: 56,
+            minHeight: 56, marginRight: 10,
           }}>
             <View style={{ backgroundColor: "#f0fdf4", borderRadius: 10, padding: 6, marginRight: 10 }}>
               <Ionicons name="search" size={18} color="#2f5d34" />
@@ -585,7 +564,6 @@ export default function ExpenseTrack() {
                   justifyContent: "space-between",
                 }}
               >
-                {/* Top Row: Icon + Delete */}
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                   <View style={{ backgroundColor: catStyle.bg, padding: 8, borderRadius: 12 }}>
                     <Ionicons name={catStyle.icon as any} size={18} color={catStyle.color} />
@@ -598,7 +576,6 @@ export default function ExpenseTrack() {
                   </TouchableOpacity>
                 </View>
 
-                {/* Category + Name */}
                 <View style={{ flex: 1, marginBottom: 8 }}>
                   <Text style={{ color: "#9ca3af", fontSize: 9, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 3 }} numberOfLines={1}>
                     {item.category || "General"}
@@ -608,10 +585,9 @@ export default function ExpenseTrack() {
                   </Text>
                 </View>
 
-                {/* Amount + Payment Badge */}
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                   <Text style={{ color: "#ef4444", fontWeight: "900", fontSize: 17 }}>
-                    ₹{Number(item.amount).toLocaleString("en-IN")}
+                    \u20B9{Number(item.amount).toLocaleString("en-IN")}
                   </Text>
                   {item.paymentMethod ? (
                     <View style={{ backgroundColor: "#f0fdf4", paddingHorizontal: 6, paddingVertical: 3, borderRadius: 8 }}>
@@ -620,7 +596,6 @@ export default function ExpenseTrack() {
                   ) : null}
                 </View>
 
-                {/* Date Footer */}
                 <View style={{ paddingTop: 8, borderTopWidth: 1, borderTopColor: "#f3f4f6", flexDirection: "row", alignItems: "center" }}>
                   <Ionicons name="time-outline" size={10} color="#9ca3af" style={{ marginRight: 4 }} />
                   <Text style={{ color: "#9ca3af", fontSize: 9, fontWeight: "600", flex: 1 }} numberOfLines={1}>
@@ -631,7 +606,6 @@ export default function ExpenseTrack() {
             );
           }}
         />
-
       </View>
 
       <TouchableOpacity
@@ -665,15 +639,13 @@ export default function ExpenseTrack() {
       </TouchableOpacity>
 
       <Modal visible={showSheet} transparent animationType="slide" statusBarTranslucent>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
-          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-            <View style={{ backgroundColor: "white", maxHeight: "92%", borderTopLeftRadius: 40, borderTopRightRadius: 40, paddingTop: 24, paddingHorizontal: 24, paddingBottom: Math.max(24, insets.bottom + 10) }}>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: 'flex-end' }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={{ width: '100%', maxHeight: '92%' }}
+          >
+            <View style={{ backgroundColor: "white", borderTopLeftRadius: 40, borderTopRightRadius: 40, height: '100%', paddingTop: 24, paddingHorizontal: 24, paddingBottom: Math.max(24, insets.bottom + 10), shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20, overflow: 'hidden' }}>
               <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 120 }}>
-
-                {/* Header */}
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
                   <Text style={{ fontSize: 22, fontWeight: "900", color: "#111827" }}>{editingId ? "Edit Transaction" : "New Expense"}</Text>
                   <TouchableOpacity onPress={() => setShowSheet(false)} style={{ backgroundColor: "#f1f5f9", padding: 9, borderRadius: 14 }}>
@@ -681,7 +653,6 @@ export default function ExpenseTrack() {
                   </TouchableOpacity>
                 </View>
 
-                {/* Receipt Picker + Preview (Top Priority like Memories) */}
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" }}>
                   <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "500", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 10 }}>
                     Receipt Attachment
@@ -721,11 +692,8 @@ export default function ExpenseTrack() {
                   )}
                 </TouchableOpacity>
 
-                {/* Amount Pad */}
-
-
-                <View style={{ flexDirection: "row", gap: 12, marginBottom: 24 }}>
-                  <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: "row", marginBottom: 24 }}>
+                  <View style={{ flex: 1, marginRight: 12 }}>
                     <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>Source</Text>
                     <View style={{ backgroundColor: "#f8fafc", borderRadius: 18, borderWidth: 1.5, borderColor: "#f0f0f0", overflow: "hidden" }}>
                       <Picker
@@ -734,7 +702,7 @@ export default function ExpenseTrack() {
                         style={{ color: "#111827", height: 50, width: "100%" }}
                       >
                         <Picker.Item label="Select" value="" color="#9ca3af" />
-                        {transferList.map((t: any) => <Picker.Item key={t.id} label={`${t.name} - ₹${t.remainingAmount ?? t.amount}`} value={t.id} />)}
+                        {transferList.map((t: any) => <Picker.Item key={t.id} label={`${t.name} - \u20B9${t.remainingAmount ?? t.amount}`} value={t.id} />)}
                       </Picker>
                     </View>
                   </View>
@@ -755,58 +723,23 @@ export default function ExpenseTrack() {
                   </View>
                 </View>
 
-
-                <Text
-                  style={{
-                    color: "#9ca3af",
-                    fontSize: 11,
-                    fontWeight: "800",
-                    textTransform: "uppercase",
-                    marginBottom: 8
-                  }}
-                >
-                  Total Amount
-                </Text>
-
+                <Text style={{ color: "#9ca3af", fontSize: 11, fontWeight: "800", textTransform: "uppercase", marginBottom: 8 }}>Total Amount</Text>
                 <TextInput
-                  placeholder="Enter Amount (₹)"
+                  placeholder="Enter Amount (\u20B9)"
                   keyboardType="numeric"
                   value={amount}
                   onChangeText={setAmount}
-                  style={{
-                    backgroundColor: "#f8fafc",
-                    borderRadius: 18,
-                    padding: 16,
-                    fontSize: 15,
-                    fontWeight: "700",
-                    color: "#111827",
-                    borderWidth: 1.5,
-                    borderColor: "#f0f0f0",
-                    marginBottom: 20
-                  }}
+                  style={{ backgroundColor: "#f8fafc", borderRadius: 18, padding: 16, fontSize: 15, fontWeight: "700", color: "#111827", borderWidth: 1.5, borderColor: "#f0f0f0", marginBottom: 20 }}
                   placeholderTextColor="#9ca3af"
                 />
-                {/* Unified Picker style for Source & Mode */}
 
-
-                {/* Categorization chips */}
                 <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12, marginTop: 11 }}>Categorization</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 24 }}>
                   {PRESET_CATEGORIES.map((cat) => (
                     <TouchableOpacity
                       key={cat.name}
                       onPress={() => setCategory(cat.name)}
-                      style={{
-                        marginRight: 10,
-                        paddingHorizontal: 18,
-                        paddingVertical: 12,
-                        borderRadius: 16,
-                        backgroundColor: category === cat.name ? "#2f5d34" : "#f8fafc",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        borderWidth: 1.5,
-                        borderColor: category === cat.name ? "#2f5d34" : "#f0f0f0"
-                      }}
+                      style={{ marginRight: 10, paddingHorizontal: 18, paddingVertical: 12, borderRadius: 16, backgroundColor: category === cat.name ? "#2f5d34" : "#f8fafc", flexDirection: "row", alignItems: "center", borderWidth: 1.5, borderColor: category === cat.name ? "#2f5d34" : "#f0f0f0" }}
                     >
                       <View style={{ padding: 6, borderRadius: 10, backgroundColor: category === cat.name ? "rgba(255,255,255,0.2)" : cat.bg, marginRight: 8 }}>
                         <Ionicons name={cat.icon as any} size={14} color={category === cat.name ? "white" : cat.color} />
@@ -816,9 +749,6 @@ export default function ExpenseTrack() {
                   ))}
                 </ScrollView>
 
-
-
-                {/* Expense Basics */}
                 <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>What was this for?</Text>
                 <TextInput
                   placeholder="E.g. Dinner, Fuel, Grocery"
@@ -828,12 +758,11 @@ export default function ExpenseTrack() {
                   placeholderTextColor="#9ca3af"
                 />
 
-                {/* TIME LABEL ADDED HERE */}
                 <Text style={{ color: "#9ca3af", fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 8 }}>Transaction Time</Text>
-                <View style={{ flexDirection: "row", gap: 10, marginBottom: 20 }}>
+                <View style={{ flexDirection: "row", marginBottom: 20 }}>
                   <TouchableOpacity
                     onPress={() => setShowDatePicker(true)}
-                    style={{ flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, padding: 16 }}
+                    style={{ flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, padding: 16, marginRight: 10 }}
                   >
                     <Ionicons name="calendar-outline" size={16} color="#2f5d34" style={{ marginRight: 8 }} />
                     <Text style={{ color: "#374151", fontWeight: "700", fontSize: 13 }}>{formatDateShort(date)}</Text>
@@ -844,9 +773,7 @@ export default function ExpenseTrack() {
                     style={{ flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 18, padding: 16 }}
                   >
                     <Ionicons name="time-outline" size={16} color="#2f5d34" style={{ marginRight: 8 }} />
-                    <Text style={{ color: "#374151", fontWeight: "700", fontSize: 13 }}>
-                      {formatTimeShort(date)}
-                    </Text>
+                    <Text style={{ color: "#374151", fontWeight: "700", fontSize: 13 }}>{formatTimeShort(date)}</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -870,17 +797,12 @@ export default function ExpenseTrack() {
                   placeholderTextColor="#9ca3af"
                 />
 
-                {/* Action */}
                 <TouchableOpacity
                   onPress={addExpense}
                   disabled={loading}
                   style={{ backgroundColor: loading ? "#9ca3af" : "#2f5d34", borderRadius: 20, paddingVertical: 18, alignItems: "center", shadowColor: loading ? "#9ca3af" : "#2f5d34", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 }}
                 >
-                  {loading ? (
-                    <ActivityIndicator color="white" />
-                  ) : (
-                    <Text style={{ color: "white", fontWeight: "900", textTransform: "uppercase", letterSpacing: 1.5 }}>{editingId ? "Update Detail" : "Confirm Expense"}</Text>
-                  )}
+                  {loading ? <ActivityIndicator color="white" /> : <Text style={{ color: "white", fontWeight: "900", textTransform: "uppercase", letterSpacing: 1.5 }}>{editingId ? "Update Detail" : "Confirm Expense"}</Text>}
                 </TouchableOpacity>
 
                 {showDatePicker && (
@@ -901,11 +823,10 @@ export default function ExpenseTrack() {
                     onChange={(_, d) => { setShowTimePicker(false); if (d) { const newDate = new Date(date); newDate.setHours(d.getHours(), d.getMinutes()); setDate(newDate); } }}
                   />
                 )}
-
               </ScrollView>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </View>
       </Modal>
 
       <Modal visible={showScanner} animationType="fade">
@@ -914,18 +835,13 @@ export default function ExpenseTrack() {
             <CameraView
               style={StyleSheet.absoluteFillObject}
               onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-              barcodeScannerSettings={{
-                barcodeTypes: ["qr"],
-              }}
+              barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
             />
-
-            {/* Scanner Overlay */}
             <View style={styles.overlay}>
               <View style={styles.unfocusedContainer}></View>
               <View style={styles.middleContainer}>
                 <View style={styles.unfocusedContainer}></View>
                 <View style={styles.focusedContainer}>
-                  {/* Scanner corner markers */}
                   <View style={[styles.corner, styles.topLeft]} />
                   <View style={[styles.corner, styles.topRight]} />
                   <View style={[styles.corner, styles.bottomLeft]} />
@@ -935,191 +851,128 @@ export default function ExpenseTrack() {
               </View>
               <View style={styles.unfocusedContainer}></View>
             </View>
-
-            <TouchableOpacity
-              onPress={() => setShowScanner(false)}
-              className="absolute top-10 right-6 bg-white/20 p-2 rounded-full"
-            >
+            <TouchableOpacity onPress={() => setShowScanner(false)} className="absolute top-10 right-6 bg-white/20 p-2 rounded-full">
               <Ionicons name="close" size={30} color="white" />
             </TouchableOpacity>
-
             <View className="absolute bottom-20 left-0 right-0 items-center">
-              <Text className="text-white text-lg font-bold bg-black/60 px-4 py-2 rounded-full">
-                Scan UPI QR Code to Pay
-              </Text>
+              <Text className="text-white text-lg font-bold bg-black/60 px-4 py-2 rounded-full">Scan UPI QR Code to Pay</Text>
             </View>
           </View>
         </SafeAreaView>
       </Modal>
 
-      <Modal visible={showUPIDetails} transparent animationType="slide">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
-          <View className="flex-1 justify-end bg-black/40">
-            <View className="bg-white p-6 rounded-t-[40px] border-t border-gray-200 shadow-2xl">
-              <View className="flex-row justify-between items-center mb-6">
-                <Text className="text-2xl font-black text-gray-800">Payment Details</Text>
-                <TouchableOpacity onPress={() => setShowUPIDetails(false)} className="bg-gray-100 p-2 rounded-full">
-                  <Ionicons name="close" size={24} color="gray" />
+      <Modal visible={showUPIDetails} transparent animationType="slide" statusBarTranslucent>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: 'flex-end' }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={{ width: '100%', maxHeight: '92%' }}
+          >
+            <View style={{ backgroundColor: "white", borderTopLeftRadius: 40, borderTopRightRadius: 40, height: '100%', padding: 24, shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20, overflow: 'hidden' }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <Text style={{ fontSize: 24, fontWeight: '900', color: '#1f2937' }}>Payment Details</Text>
+                <TouchableOpacity onPress={() => setShowUPIDetails(false)} style={{ backgroundColor: '#f3f4f6', padding: 8, borderRadius: 20 }}>
+                  <Ionicons name="close" size={24} color="#6b7280" />
                 </TouchableOpacity>
               </View>
-
-              <View className="items-center mb-8 bg-blue-50/50 p-6 rounded-[32px]">
-                <View className="bg-blue-600 p-5 rounded-full mb-4 shadow-lg">
+              <View style={{ alignItems: 'center', marginBottom: 32, backgroundColor: '#eff6ff', padding: 24, borderRadius: 32 }}>
+                <View style={{ backgroundColor: '#2563eb', padding: 20, borderRadius: 30, marginBottom: 16 }}>
                   <Ionicons name="person" size={40} color="white" />
                 </View>
-                <Text className="text-xl font-black text-gray-800 mb-1">{scannedName}</Text>
-                <View className="bg-blue-100 px-3 py-1 rounded-full">
-                  <Text className="text-blue-700 font-bold text-xs">{scannedUPI}</Text>
+                <Text style={{ fontSize: 20, fontWeight: '900', color: '#1f2937', marginBottom: 4 }}>{scannedName}</Text>
+                <View style={{ backgroundColor: '#dbeafe', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20 }}>
+                  <Text style={{ color: '#1d4ed8', fontWeight: '800', fontSize: 12 }}>{scannedUPI}</Text>
                 </View>
               </View>
-
-              <Text className="text-gray-500 font-bold uppercase tracking-widest text-[10px] mb-3 ml-2">Enter Amount to Pay</Text>
-              <View className="flex-row items-center bg-gray-50 rounded-3xl px-6 py-2 mb-8 border-2 border-blue-100 shadow-inner">
-                <Text className="text-3xl font-black text-blue-600 mr-3">₹</Text>
+              <Text style={{ color: '#9ca3af', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 2, fontSize: 10, marginBottom: 12, marginLeft: 8 }}>Enter Amount</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f9fafb', borderRadius: 24, paddingHorizontal: 24, paddingVertical: 8, marginBottom: 32, borderWidth: 2, borderColor: '#dbeafe' }}>
+                <Text style={{ fontSize: 32, fontWeight: '900', color: '#2563eb', marginRight: 12 }}>\u20B9</Text>
                 <TextInput
-                  className="flex-1 text-3xl font-black text-gray-800 py-4"
+                  style={{ flex: 1, fontSize: 32, fontWeight: '900', color: '#1f2937' }}
                   keyboardType="numeric"
-                  placeholder="0.00"
+                  placeholder="0"
                   value={amount}
                   onChangeText={setAmount}
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor="#d1d5db"
                   autoFocus
                 />
               </View>
-
               <TouchableOpacity
                 onPress={confirmAndPay}
                 activeOpacity={0.8}
-                className="bg-blue-700 p-6 rounded-[28px] flex-row justify-center items-center shadow-xl mb-4"
+                style={{ backgroundColor: '#1d4ed8', padding: 24, borderRadius: 28, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', elevation: 8, shadowColor: '#1d4ed8', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10 }}
               >
-                <Ionicons name="paper-plane" size={24} color="white" className="mr-3" />
-                <Text className="text-white text-center font-black text-xl ml-3 uppercase tracking-widest">Confirm & Pay</Text>
+                <Ionicons name="paper-plane" size={24} color="white" />
+                <Text style={{ color: 'white', fontWeight: '900', fontSize: 18, marginLeft: 12, textTransform: 'uppercase', letterSpacing: 2 }}>Confirm & Pay</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </View>
       </Modal>
 
-      {/* ── Premium Expense View Modal ── */}
-      <Modal
-        visible={showViewModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowViewModal(false)}
-      >
-        <View className="flex-1 justify-end bg-black/60">
-          <View className="bg-white rounded-t-[50px] overflow-hidden" style={{ height: '80%' }}>
-            {/* Dynamic Header Case based on Category */}
-            <View
-              style={{ backgroundColor: getCategoryStyles(viewingItem?.category).color }}
-              className="px-8 pt-10 pb-20 items-center"
-            >
-              <View className="bg-white/20 p-6 rounded-[35px] mb-4">
+      <Modal visible={showViewModal} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setShowViewModal(false)}>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: 'white', borderTopLeftRadius: 50, borderTopRightRadius: 50, height: '90%', overflow: 'hidden', shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20 }}>
+            <View style={{ backgroundColor: getCategoryStyles(viewingItem?.category).color, paddingHorizontal: 32, paddingTop: 40, paddingBottom: 80, alignItems: 'center' }}>
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.2)', padding: 24, borderRadius: 35, marginBottom: 16 }}>
                 <Ionicons name={getCategoryStyles(viewingItem?.category).icon as any} size={48} color="white" />
               </View>
-              <Text className="text-white/70 font-black uppercase tracking-[4px] text-xs mb-1">
-                {viewingItem?.category || "General Expense"}
-              </Text>
-              <Text className="text-white text-3xl font-black text-center" numberOfLines={1}>
-                {viewingItem?.name || "Payment"}
-              </Text>
-
-              <TouchableOpacity
-                onPress={() => setShowViewModal(false)}
-                className="absolute top-8 right-8 bg-black/10 p-2 rounded-full"
-              >
+              <Text style={{ color: 'rgba(255,255,255,0.7)', fontWeight: '900', textTransform: 'uppercase', letterSpacing: 4, fontSize: 10, marginBottom: 4 }}>{viewingItem?.category || "General Expense"}</Text>
+              <Text style={{ color: 'white', fontSize: 28, fontWeight: '900', textAlign: 'center' }} numberOfLines={1}>{viewingItem?.name || "Payment"}</Text>
+              <TouchableOpacity onPress={() => setShowViewModal(false)} style={{ position: 'absolute', top: 32, right: 32, backgroundColor: 'rgba(0,0,0,0.1)', padding: 8, borderRadius: 20 }}>
                 <Ionicons name="close" size={24} color="white" />
               </TouchableOpacity>
             </View>
-
-            {/* Main Content */}
-            <View className="flex-1 bg-white -mt-12 rounded-t-[50px] px-8 pt-10">
+            <View style={{ flex: 1, backgroundColor: 'white', marginTop: -48, borderTopLeftRadius: 50, borderTopRightRadius: 50, paddingHorizontal: 32, paddingTop: 40 }}>
               <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Amount Section */}
-                <View className="items-center mb-10">
-                  <Text className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mb-2">Total Amount</Text>
-                  <View className="flex-row items-baseline">
-                    <Text className="text-gray-400 text-2xl font-black mr-1">₹</Text>
-                    <Text className="text-gray-900 text-6xl font-black tracking-tight">{viewingItem?.amount}</Text>
+                <View style={{ alignItems: 'center', marginBottom: 40 }}>
+                  <Text style={{ color: '#9ca3af', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2, fontSize: 10, marginBottom: 8 }}>Total Amount</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                    <Text style={{ color: '#9ca3af', fontSize: 24, fontWeight: '900', marginRight: 4 }}>\u20B9</Text>
+                    <Text style={{ color: '#111827', fontSize: 60, fontWeight: '900', letterSpacing: -1 }}>{viewingItem?.amount}</Text>
                   </View>
                 </View>
-
-                {/* Details Grid */}
-                <View className="flex-row flex-wrap justify-between gap-y-6 mb-10">
-                  <View className="w-[48%] bg-gray-50 p-5 rounded-[30px] border border-gray-100">
-                    <Ionicons name="wallet-outline" size={20} color="#2f5d34" className="mb-2" />
-                    <Text className="text-gray-400 font-black uppercase text-[8px] tracking-widest mb-1">Method</Text>
-                    <Text className="text-gray-800 font-black text-sm">{viewingItem?.paymentMethod || "Cash"}</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 40 }}>
+                  <View style={{ width: '48%', backgroundColor: '#f9fafb', padding: 20, borderRadius: 30, borderWidth: 1, borderColor: '#f3f4f6', marginBottom: 16 }}>
+                    <Ionicons name="wallet-outline" size={20} color="#2f5d34" style={{ marginBottom: 8 }} />
+                    <Text style={{ color: '#9ca3af', fontWeight: '900', textTransform: 'uppercase', fontSize: 8, letterSpacing: 2, marginBottom: 4 }}>Method</Text>
+                    <Text style={{ color: '#1f2937', fontWeight: '900', fontSize: 14 }}>{viewingItem?.paymentMethod || "Cash"}</Text>
                   </View>
-
-                  <View className="w-[48%] bg-gray-50 p-5 rounded-[30px] border border-gray-100">
-                    <Ionicons name="location-outline" size={20} color="#2f5d34" className="mb-2" />
-                    <Text className="text-gray-400 font-black uppercase text-[8px] tracking-widest mb-1">Location</Text>
-                    <Text className="text-gray-800 font-black text-sm" numberOfLines={1}>{viewingItem?.location || "Not set"}</Text>
+                  <View style={{ width: '48%', backgroundColor: '#f9fafb', padding: 20, borderRadius: 30, borderWidth: 1, borderColor: '#f3f4f6', marginBottom: 16 }}>
+                    <Ionicons name="location-outline" size={20} color="#2f5d34" style={{ marginBottom: 8 }} />
+                    <Text style={{ color: '#9ca3af', fontWeight: '900', textTransform: 'uppercase', fontSize: 8, letterSpacing: 2, marginBottom: 4 }}>Location</Text>
+                    <Text style={{ color: '#1f2937', fontWeight: '900', fontSize: 14 }} numberOfLines={1}>{viewingItem?.location || "Not set"}</Text>
                   </View>
-
-                  <View className="w-[48%] bg-gray-50 p-5 rounded-[30px] border border-gray-100">
-                    <Ionicons name="calendar-outline" size={20} color="#2f5d34" className="mb-2" />
-                    <Text className="text-gray-400 font-black uppercase text-[8px] tracking-widest mb-1">Date</Text>
-                    <Text className="text-gray-800 font-black text-sm">
-                      {viewingItem?.expenseDate ? formatDateShort(viewingItem.expenseDate) : (viewingItem?.createdAt ? formatDateShort(viewingItem.createdAt) : "Today")}
-                    </Text>
+                  <View style={{ width: '48%', backgroundColor: '#f9fafb', padding: 20, borderRadius: 30, borderWidth: 1, borderColor: '#f3f4f6', marginBottom: 16 }}>
+                    <Ionicons name="calendar-outline" size={20} color="#2f5d34" style={{ marginBottom: 8 }} />
+                    <Text style={{ color: '#9ca3af', fontWeight: '900', textTransform: 'uppercase', fontSize: 8, letterSpacing: 2, marginBottom: 4 }}>Date</Text>
+                    <Text style={{ color: '#1f2937', fontWeight: '900', fontSize: 14 }}>{viewingItem?.expenseDate ? formatDateShort(viewingItem.expenseDate) : "Today"}</Text>
                   </View>
-
-                  <View className="w-[48%] bg-gray-50 p-5 rounded-[30px] border border-gray-100">
-                    <Ionicons name="time-outline" size={20} color="#2f5d34" className="mb-2" />
-                    <Text className="text-gray-400 font-black uppercase text-[8px] tracking-widest mb-1">Time</Text>
-                    <Text className="text-gray-800 font-black text-sm">
-                      {viewingItem?.expenseDate ? formatTimeShort(viewingItem.expenseDate.toDate()) : (viewingItem?.createdAt ? formatTimeShort(viewingItem.createdAt.toDate()) : "--:--")}
-                    </Text>
+                  <View style={{ width: '48%', backgroundColor: '#f9fafb', padding: 20, borderRadius: 30, borderWidth: 1, borderColor: '#f3f4f6', marginBottom: 16 }}>
+                    <Ionicons name="time-outline" size={20} color="#2f5d34" style={{ marginBottom: 8 }} />
+                    <Text style={{ color: '#9ca3af', fontWeight: '900', textTransform: 'uppercase', fontSize: 8, letterSpacing: 2, marginBottom: 4 }}>Time</Text>
+                    <Text style={{ color: '#1f2937', fontWeight: '900', fontSize: 14 }}>{viewingItem?.expenseDate ? formatTimeShort(viewingItem.expenseDate.toDate()) : "--:--"}</Text>
                   </View>
                 </View>
-
-                {/* Notes Section */}
                 {viewingItem?.notes && (
-                  <View className="mb-10">
-                    <Text className="text-gray-900 font-black text-lg mb-4">Notes</Text>
-                    <View className="bg-gray-50 p-6 rounded-[35px] border border-dashed border-gray-200">
-                      <Text className="text-gray-600 font-medium leading-6">{viewingItem.notes}</Text>
+                  <View style={{ marginBottom: 40 }}>
+                    <Text style={{ color: '#111827', fontWeight: '900', fontSize: 18, marginBottom: 16 }}>Notes</Text>
+                    <View style={{ backgroundColor: '#f9fafb', padding: 24, borderRadius: 35, borderWidth: 1, borderStyle: 'dashed', borderColor: '#e5e7eb' }}>
+                      <Text style={{ color: '#4b5563', fontWeight: '500', lineHeight: 24 }}>{viewingItem.notes}</Text>
                     </View>
                   </View>
                 )}
-
-                {/* Receipt Preview */}
                 {viewingItem?.receipt && (
-                  <View className="mb-10">
-                    <Text className="text-gray-900 font-black text-lg mb-4">Receipt Attachment</Text>
-                    <Image
-                      source={{ uri: viewingItem.receipt }}
-                      className="w-full h-80 rounded-[40px] border-4 border-gray-50"
-                      resizeMode="cover"
-                    />
+                  <View style={{ marginBottom: 40 }}>
+                    <Text style={{ color: '#111827', fontWeight: '900', fontSize: 18, marginBottom: 16 }}>Receipt Attachment</Text>
+                    <Image source={{ uri: viewingItem.receipt }} style={{ width: '100%', height: 320, borderRadius: 40, borderWidth: 4, borderColor: '#f9fafb' }} resizeMode="cover" />
                   </View>
                 )}
-
-                {/* Actions */}
-                <View className="flex-row gap-4 mb-20">
-                  <TouchableOpacity
-                    onPress={() => {
-                      setShowViewModal(false);
-                      openEditModal(viewingItem);
-                    }}
-                    className="flex-1 bg-gray-900 h-20 rounded-[30px] flex-row items-center justify-center shadow-xl shadow-black/20"
-                  >
+                <View style={{ flexDirection: 'row', marginBottom: 60 }}>
+                  <TouchableOpacity onPress={() => { setShowViewModal(false); openEditModal(viewingItem); }} style={{ flex: 1, backgroundColor: '#111827', height: 80, borderRadius: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginRight: 16, elevation: 8 }}>
                     <Ionicons name="create-outline" size={20} color="white" />
-                    <Text className="text-white font-black uppercase tracking-widest text-sm ml-3">Edit Detail</Text>
+                    <Text style={{ color: 'white', fontWeight: '900', textTransform: 'uppercase', letterSpacing: 2, fontSize: 14, marginLeft: 12 }}>Edit Detail</Text>
                   </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => {
-                      setShowViewModal(false);
-                      confirmDelete(viewingItem);
-                    }}
-                    className="bg-red-50 w-20 h-20 rounded-[30px] items-center justify-center border border-red-100"
-                  >
+                  <TouchableOpacity onPress={() => { setShowViewModal(false); confirmDelete(viewingItem); }} style={{ backgroundColor: '#fef2f2', width: 80, height: 80, borderRadius: 30, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#fee2e2' }}>
                     <Ionicons name="trash-outline" size={24} color="#ef4444" />
                   </TouchableOpacity>
                 </View>
@@ -1129,66 +982,30 @@ export default function ExpenseTrack() {
         </View>
       </Modal>
 
-      {/* DELETE CONFIRMATION MODAL */}
       <Modal visible={deleteModalVisible} transparent animationType="fade">
-        <View className="flex-1 bg-black/60 justify-center items-center px-6">
-          <View className="bg-white w-full rounded-[32px] p-6 items-center shadow-2xl">
-            <View className="w-16 h-16 rounded-full bg-red-50 items-center justify-center mb-4">
-              <Ionicons name="trash" size={28} color="#ef4444" />
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: 24 }}>
+          <View style={{ backgroundColor: "white", width: "100%", borderRadius: 32, padding: 24, alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20 }}>
+            <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "#fef2f2", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+              <Ionicons name="trash" size={32} color="#ef4444" />
             </View>
-            <Text className="text-2xl font-black text-gray-900 mb-2">Delete Expense?</Text>
-            <Text className="text-gray-500 text-center mb-8 px-4 font-medium leading-5">
-              Are you sure you want to delete this expense? This action cannot be undone.
-            </Text>
-            <View className="flex-row w-full gap-3">
-              <TouchableOpacity
-                onPress={() => setDeleteModalVisible(false)}
-                className="flex-1 py-4 rounded-2xl bg-gray-100 items-center"
-              >
-                <Text className="text-gray-700 font-bold text-lg">Cancel</Text>
+            <Text style={{ fontSize: 24, fontWeight: '900', color: '#111827', marginBottom: 8 }}>Delete Expense?</Text>
+            <Text style={{ color: "#6b7280", textAlign: "center", marginBottom: 32, paddingHorizontal: 16, fontWeight: "500", lineHeight: 20 }}>Are you sure you want to delete this expense? This action cannot be undone.</Text>
+            <View style={{ flexDirection: "row", width: "100%" }}>
+              <TouchableOpacity onPress={() => setDeleteModalVisible(false)} style={{ flex: 1, paddingVertical: 16, borderRadius: 18, backgroundColor: "#f3f4f6", alignItems: "center", marginRight: 12 }}>
+                <Text style={{ color: "#4b5563", fontWeight: "800", fontSize: 18 }}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={deleteExpense}
-                disabled={loading}
-                className="flex-1 py-4 rounded-2xl bg-red-500 items-center shadow-lg shadow-red-500/30"
-              >
-                {loading ? <ActivityIndicator color="white" size="small" /> : <Text className="text-white font-bold text-lg">Delete</Text>}
+              <TouchableOpacity onPress={deleteExpense} disabled={loading} style={{ flex: 1, paddingVertical: 16, borderRadius: 18, backgroundColor: "#ef4444", alignItems: "center" }}>
+                {loading ? <ActivityIndicator color="white" size="small" /> : <Text style={{ color: "white", fontWeight: "800", fontSize: 18 }}>Delete</Text>}
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
-      {/* ── Toast Notification ── */}
       {toast && (
-        <Animated.View
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 20,
-            right: 20,
-            zIndex: 9999,
-            transform: [{ translateY: toastAnim }],
-            backgroundColor: toast.type === "success" ? "#2f5d34" : (toast.type === "error" ? "#ef4444" : "#3b82f6"),
-            paddingVertical: 14,
-            paddingHorizontal: 20,
-            borderRadius: 20,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 12,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: 0.2,
-            shadowRadius: 12,
-            elevation: 10,
-          }}
-        >
-          <View style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 10, padding: 4 }}>
-            <Ionicons
-              name={toast.type === "success" ? "checkmark-circle" : (toast.type === "error" ? "alert-circle" : "information-circle")}
-              size={20}
-              color="white"
-            />
+        <Animated.View style={{ position: "absolute", top: 0, left: 20, right: 20, zIndex: 9999, transform: [{ translateY: toastAnim }], backgroundColor: toast.type === "success" ? "#2f5d34" : (toast.type === "error" ? "#ef4444" : "#3b82f6"), paddingVertical: 14, paddingHorizontal: 20, borderRadius: 20, flexDirection: "row", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 12, elevation: 10 }}>
+          <View style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 10, padding: 4, marginRight: 12 }}>
+            <Ionicons name={toast.type === "success" ? "checkmark-circle" : (toast.type === "error" ? "alert-circle" : "information-circle")} size={20} color="white" />
           </View>
           <Text style={{ color: "white", fontWeight: "800", fontSize: 14, flex: 1 }}>{toast.message}</Text>
         </Animated.View>

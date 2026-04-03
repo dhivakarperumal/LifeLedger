@@ -617,13 +617,13 @@ export default function DiaryMaintenance() {
       </TouchableOpacity>
 
       {/* BOTTOM SHEET MODAL */}
-      <Modal visible={showSheet} transparent animationType="slide">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={{ flex: 1 }}
-        >
-          <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: 'rgba(0,0,0,0.5)' }}>
-            <View style={{ backgroundColor: "white", borderTopLeftRadius: 32, borderTopRightRadius: 32, maxHeight: '90%', shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20 }}>
+      <Modal visible={showSheet} transparent animationType="slide" statusBarTranslucent>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={{ width: '100%', maxHeight: '92%' }}
+          >
+            <View style={{ backgroundColor: "white", borderTopLeftRadius: 32, borderTopRightRadius: 32, height: '100%', shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20, overflow: 'hidden' }}>
               <ScrollView
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
@@ -869,14 +869,14 @@ export default function DiaryMaintenance() {
                 </TouchableOpacity>
               </ScrollView>
             </View>
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </View>
       </Modal>
 
       {/* VIEW MODAL */}
-      <Modal visible={showViewModal} transparent animationType="slide">
-        <View className="flex-1 bg-black/70 justify-end">
-          <View className="bg-white rounded-t-[50px] h-[92%] shadow-2xl relative overflow-hidden">
+      <Modal visible={showViewModal} transparent animationType="slide" statusBarTranslucent>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: 'white', borderTopLeftRadius: 32, borderTopRightRadius: 32, height: '92%', shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20, overflow: 'hidden' }}>
 
             {/* Header / Top Background */}
             <View className="absolute top-0 left-0 right-0 h-48 bg-[#2f5d34]" />

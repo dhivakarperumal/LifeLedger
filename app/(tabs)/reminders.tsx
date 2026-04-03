@@ -440,11 +440,13 @@ export default function RemindersScreen() {
                 <FilterSheet visible={filterVisible} onClose={() => setFilterVisible(false)} onApply={setFilterState} chipGroups={REMINDER_FILTER_GROUPS} activeFilters={filterState} />
 
                 <Modal visible={showModal} transparent animationType="slide" statusBarTranslucent>
-                    <KeyboardAvoidingView 
-                        behavior={Platform.OS === "ios" ? "padding" : "height"} 
-                        style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}
-                    >
-                        <View style={{ backgroundColor: "white", borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: Math.max(24, insets.bottom + 10), maxHeight: "90%" }}>
+                    <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}>
+                        <KeyboardAvoidingView
+                            behavior={Platform.OS === "ios" ? "padding" : "height"}
+                            style={{ flex: 1 }}
+                        >
+                            <View style={{ flex: 1, justifyContent: "flex-end" }}>
+                                <View style={{ backgroundColor: "white", borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: Math.max(24, insets.bottom + 10), maxHeight: "90%" }}>
                             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
                                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
                                     <View>
@@ -543,17 +545,20 @@ export default function RemindersScreen() {
                                 </TouchableOpacity>
                             </ScrollView>
                         </View>
-                    </KeyboardAvoidingView>
-                </Modal>
+                    </View>
+                </KeyboardAvoidingView>
+                </View>
+            </Modal>
             </View>
 
             {/* ── Details Modal ── */}
             <Modal visible={detailsModalVisible} transparent animationType="fade" statusBarTranslucent>
-                <KeyboardAvoidingView 
-                    behavior={Platform.OS === "ios" ? "padding" : "height"} 
-                    style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center", padding: 20 }}
-                >
-                    <View style={{ backgroundColor: "white", width: "100%", borderRadius: 32, padding: 24, maxHeight: "80%" }}>
+                <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)" }}>
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === "ios" ? "padding" : "height"}
+                        style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: 20 }}
+                    >
+                        <View style={{ backgroundColor: "white", width: "100%", borderRadius: 32, padding: 24, maxHeight: "80%" }}>
                         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>
                             <View>
                                 <Text style={{ fontSize: 22, fontWeight: "900", color: "#111827" }}>
@@ -622,6 +627,7 @@ export default function RemindersScreen() {
                         </TouchableOpacity>
                     </View>
                 </KeyboardAvoidingView>
+                </View>
             </Modal>
 
             {/* ── Toast Notification ── */}
