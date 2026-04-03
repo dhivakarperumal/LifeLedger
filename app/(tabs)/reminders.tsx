@@ -15,11 +15,12 @@ import {
     updateDoc,
     where
 } from "firebase/firestore";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
     Animated,
+    Keyboard,
     KeyboardAvoidingView,
     Modal,
     Platform,
@@ -97,7 +98,8 @@ export default function RemindersScreen() {
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
     const [selectedRemindersList, setSelectedRemindersList] = useState<Reminder[]>([]);
 
-    useEffect(() => {
+    // Use useLayoutEffect for synchronous tab bar hiding to prevent flash
+    useLayoutEffect(() => {
         navigation.getParent()?.setOptions({
             tabBarStyle: (showModal || detailsModalVisible) ? { display: 'none' } : {
                 backgroundColor: "#111827",
@@ -439,116 +441,121 @@ export default function RemindersScreen() {
 
                 <FilterSheet visible={filterVisible} onClose={() => setFilterVisible(false)} onApply={setFilterState} chipGroups={REMINDER_FILTER_GROUPS} activeFilters={filterState} />
 
-                <Modal visible={showModal} transparent animationType="slide" statusBarTranslucent>
-                    <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}>
+                <Modal
+                    visible={showModal}
+                    transparent
+                    animationType="slide"
+                    statusBarTranslucent
+                    onRequestClose={() => { Keyboard.dismiss(); setShowModal(false); }}
+                >
+                    <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
                         <KeyboardAvoidingView
-                            behavior={Platform.OS === "ios" ? "padding" : "height"}
-                            style={{ flex: 1 }}
+                            behavior={Platform.OS === "ios" ? "padding" : undefined}
+                            style={{ width: '100%', maxHeight: '92%' }}
                         >
-                            <View style={{ flex: 1, justifyContent: "flex-end" }}>
-                                <View style={{ backgroundColor: "white", borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 24, paddingBottom: Math.max(24, insets.bottom + 10), maxHeight: "90%" }}>
-                            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-                                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-                                    <View>
-                                        <Text style={{ fontSize: 22, fontWeight: "900", color: "#1f2937" }}>{editingId ? "Edit Reminder" : "New Reminder"}</Text>
-                                        <Text style={{ fontSize: 10, fontWeight: "700", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5 }}>Fill in the details</Text>
-                                    </View>
-                                    <TouchableOpacity onPress={() => setShowModal(false)} style={{ backgroundColor: "#f3f4f6", padding: 8, borderRadius: 12 }}>
-                                        <Ionicons name="close" size={24} color="#374151" />
-                                    </TouchableOpacity>
-                                </View>
-
-                                <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>What's the event?</Text>
-                                <TextInput
-                                    placeholder="Reminder Title"
-                                    value={title}
-                                    onChangeText={setTitle}
-                                    style={{ backgroundColor: "#f9fafb", borderRadius: 16, padding: 16, fontSize: 16, fontWeight: "700", color: "#1f2937", borderWidth: 1, borderColor: "#e5e7eb", marginBottom: 20 }}
-                                    placeholderTextColor="#9ca3af"
-                                />
-
-                                <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>Type</Text>
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
-                                    {EVENT_TYPES.map((t) => (
-                                        <TouchableOpacity
-                                            key={t.label}
-                                            onPress={() => setType(t.label)}
-                                            style={{
-                                                paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, marginRight: 10,
-                                                backgroundColor: type === t.label ? t.color : "#f3f4f6",
-                                                flexDirection: "row", alignItems: "center",
-                                                borderWidth: 1.5, borderColor: type === t.label ? t.color : "transparent"
-                                            }}
-                                        >
-                                            <Ionicons name={t.icon as any} size={16} color={type === t.label ? "white" : t.color} style={{ marginRight: 6 }} />
-                                            <Text style={{ fontSize: 12, fontWeight: "800", color: type === t.label ? "white" : "#374151" }}>{t.label}</Text>
+                            <View style={{ backgroundColor: "white", borderTopLeftRadius: 40, borderTopRightRadius: 40, height: '100%', paddingTop: 24, paddingHorizontal: 24, paddingBottom: Math.max(24, insets.bottom + 10), shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20, overflow: 'hidden' }}>
+                                <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 120 }}>
+                                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                                        <View>
+                                            <Text style={{ fontSize: 22, fontWeight: "900", color: "#1f2937" }}>{editingId ? "Edit Reminder" : "New Reminder"}</Text>
+                                            <Text style={{ fontSize: 10, fontWeight: "700", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5 }}>Fill in the details</Text>
+                                        </View>
+                                        <TouchableOpacity onPress={() => { Keyboard.dismiss(); setShowModal(false); }} style={{ backgroundColor: "#f1f5f9", padding: 9, borderRadius: 14 }}>
+                                            <Ionicons name="close" size={22} color="#374151" />
                                         </TouchableOpacity>
-                                    ))}
-                                </ScrollView>
+                                    </View>
 
-                                <View style={{ flexDirection: "row", gap: 15, marginBottom: 20 }}>
-                                    <TouchableOpacity onPress={() => setShowDatePicker(true)} style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 16, padding: 16, borderWidth: 1, borderColor: "#e5e7eb" }}>
-                                        <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>Date</Text>
-                                        <Text style={{ fontSize: 14, fontWeight: "700", color: "#1f2937" }}>{date.toLocaleDateString()}</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => setShowTimePicker(true)} style={{ flex: 1, backgroundColor: "#f9fafb", borderRadius: 16, padding: 16, borderWidth: 1, borderColor: "#e5e7eb" }}>
-                                        <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>Time</Text>
-                                        <Text style={{ fontSize: 14, fontWeight: "700", color: "#1f2937" }}>{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
-                                    </TouchableOpacity>
-                                </View>
-
-                                {showDatePicker && (
-                                    <DateTimePicker
-                                        value={date}
-                                        mode="date"
-                                        display="default"
-                                        onChange={(_, d) => { setShowDatePicker(false); if (d) setDate(d); }}
+                                    <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>What's the event?</Text>
+                                    <TextInput
+                                        placeholder="Reminder Title"
+                                        value={title}
+                                        onChangeText={setTitle}
+                                        style={{ backgroundColor: "#f8fafc", borderRadius: 18, padding: 16, fontSize: 15, fontWeight: "700", color: "#111827", borderWidth: 1.5, borderColor: "#f0f0f0", marginBottom: 20 }}
+                                        placeholderTextColor="#9ca3af"
+                                        returnKeyType="done"
                                     />
-                                )}
-                                {showTimePicker && (
-                                    <DateTimePicker
-                                        value={time}
-                                        mode="time"
-                                        display="default"
-                                        onChange={(_, d) => { setShowTimePicker(false); if (d) setTime(d); }}
-                                    />
-                                )}
 
-                                <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>Repeat</Text>
-                                <View style={{ backgroundColor: "#f9fafb", borderRadius: 16, borderWidth: 1, borderColor: "#e5e7eb", marginBottom: 20 }}>
-                                    <Picker
-                                        selectedValue={repeat}
-                                        onValueChange={setRepeat}
-                                        style={{ height: 50 }}
+                                    <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>Type</Text>
+                                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }} keyboardShouldPersistTaps="handled">
+                                        {EVENT_TYPES.map((t) => (
+                                            <TouchableOpacity
+                                                key={t.label}
+                                                onPress={() => setType(t.label)}
+                                                style={{
+                                                    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, marginRight: 10,
+                                                    backgroundColor: type === t.label ? t.color : "#f8fafc",
+                                                    flexDirection: "row", alignItems: "center",
+                                                    borderWidth: 1.5, borderColor: type === t.label ? t.color : "#f0f0f0"
+                                                }}
+                                            >
+                                                <Ionicons name={t.icon as any} size={16} color={type === t.label ? "white" : t.color} style={{ marginRight: 6 }} />
+                                                <Text style={{ fontSize: 12, fontWeight: "800", color: type === t.label ? "white" : "#374151" }}>{t.label}</Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+
+                                    <View style={{ flexDirection: "row", gap: 15, marginBottom: 20 }}>
+                                        <TouchableOpacity onPress={() => setShowDatePicker(true)} style={{ flex: 1, backgroundColor: "#f8fafc", borderRadius: 18, padding: 16, borderWidth: 1.5, borderColor: "#f0f0f0" }}>
+                                            <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>Date</Text>
+                                            <Text style={{ fontSize: 14, fontWeight: "700", color: "#111827" }}>{date.toLocaleDateString()}</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => setShowTimePicker(true)} style={{ flex: 1, backgroundColor: "#f8fafc", borderRadius: 18, padding: 16, borderWidth: 1.5, borderColor: "#f0f0f0" }}>
+                                            <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>Time</Text>
+                                            <Text style={{ fontSize: 14, fontWeight: "700", color: "#111827" }}>{time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    {showDatePicker && (
+                                        <DateTimePicker
+                                            value={date}
+                                            mode="date"
+                                            display="default"
+                                            onChange={(_, d) => { setShowDatePicker(false); if (d) setDate(d); }}
+                                        />
+                                    )}
+                                    {showTimePicker && (
+                                        <DateTimePicker
+                                            value={time}
+                                            mode="time"
+                                            display="default"
+                                            onChange={(_, d) => { setShowTimePicker(false); if (d) setTime(d); }}
+                                        />
+                                    )}
+
+                                    <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>Repeat</Text>
+                                    <View style={{ backgroundColor: "#f8fafc", borderRadius: 18, borderWidth: 1.5, borderColor: "#f0f0f0", marginBottom: 20 }}>
+                                        <Picker
+                                            selectedValue={repeat}
+                                            onValueChange={setRepeat}
+                                            style={{ height: 50 }}
+                                        >
+                                            {REPEAT_OPTIONS.map(opt => <Picker.Item key={opt} label={opt} value={opt} />)}
+                                        </Picker>
+                                    </View>
+
+                                    <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>Extra Notes</Text>
+                                    <TextInput
+                                        placeholder="Add description..."
+                                        value={description}
+                                        onChangeText={setDescription}
+                                        multiline
+                                        style={{ backgroundColor: "#f8fafc", borderRadius: 18, padding: 16, fontSize: 14, fontWeight: "600", color: "#111827", borderWidth: 1.5, borderColor: "#f0f0f0", minHeight: 100, marginBottom: 24 }}
+                                        textAlignVertical="top"
+                                        placeholderTextColor="#9ca3af"
+                                    />
+
+                                    <TouchableOpacity
+                                        onPress={handleSave}
+                                        style={{ backgroundColor: loading ? "#9ca3af" : "#2f5d34", borderRadius: 20, paddingVertical: 18, alignItems: "center" }}
+                                        disabled={loading}
                                     >
-                                        {REPEAT_OPTIONS.map(opt => <Picker.Item key={opt} label={opt} value={opt} />)}
-                                    </Picker>
-                                </View>
-
-                                <Text style={{ fontSize: 10, fontWeight: "800", color: "#9ca3af", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 12 }}>Extra Notes</Text>
-                                <TextInput
-                                    placeholder="Add description..."
-                                    value={description}
-                                    onChangeText={setDescription}
-                                    multiline
-                                    style={{ backgroundColor: "#f9fafb", borderRadius: 16, padding: 16, fontSize: 14, fontWeight: "600", color: "#1f2937", borderWidth: 1, borderColor: "#e5e7eb", minHeight: 100, marginBottom: 24 }}
-                                    textAlignVertical="top"
-                                    placeholderTextColor="#9ca3af"
-                                />
-
-                                <TouchableOpacity
-                                    onPress={handleSave}
-                                    style={{ backgroundColor: loading ? "#9ca3af" : "#2f5d34", borderRadius: 20, paddingVertical: 18, alignItems: "center" }}
-                                    disabled={loading}
-                                >
-                                    {loading ? <ActivityIndicator color="white" /> : <Text style={{ color: "white", fontWeight: "900", fontSize: 16, textTransform: "uppercase", letterSpacing: 2 }}>{editingId ? "Update Reminder" : "Set Reminder"}</Text>}
-                                </TouchableOpacity>
-                            </ScrollView>
-                        </View>
+                                        {loading ? <ActivityIndicator color="white" /> : <Text style={{ color: "white", fontWeight: "900", fontSize: 16, textTransform: "uppercase", letterSpacing: 2 }}>{editingId ? "Update Reminder" : "Set Reminder"}</Text>}
+                                    </TouchableOpacity>
+                                </ScrollView>
+                            </View>
+                        </KeyboardAvoidingView>
                     </View>
-                </KeyboardAvoidingView>
-                </View>
-            </Modal>
+                </Modal>
             </View>
 
             {/* ── Details Modal ── */}

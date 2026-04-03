@@ -32,7 +32,7 @@
         "WRITE_EXTERNAL_STORAGE"
       ],
       "package": "com.anonymous.LifeLedger",
-      "softwareSoftInputMode": "adjustResize"
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "output": "static",
