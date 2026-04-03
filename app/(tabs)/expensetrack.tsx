@@ -885,7 +885,7 @@ export default function ExpenseTrack() {
               </View>
               <Text style={{ color: '#9ca3af', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 2, fontSize: 10, marginBottom: 12, marginLeft: 8 }}>Enter Amount</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#f9fafb', borderRadius: 24, paddingHorizontal: 24, paddingVertical: 8, marginBottom: 32, borderWidth: 2, borderColor: '#dbeafe' }}>
-                <Text style={{ fontSize: 32, fontWeight: '900', color: '#2563eb', marginRight: 12 }}>\u20B9</Text>
+                <Text style={{ fontSize: 32, fontWeight: '900', color: '#2563eb', marginRight: 12 }}></Text>
                 <TextInput
                   style={{ flex: 1, fontSize: 32, fontWeight: '900', color: '#1f2937' }}
                   keyboardType="numeric"
