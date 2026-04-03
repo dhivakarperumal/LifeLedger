@@ -4,6 +4,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { signOut } from "firebase/auth";
 import { auth, db } from "../../firebase";
 
 export default function More() {
@@ -156,8 +157,7 @@ export default function More() {
           {/* Quick Logout */}
           <TouchableOpacity
             onPress={async () => {
-              await auth.signOut();
-              router.replace("/login");
+              await signOut(auth);
             }}
             className="mt-10 items-center justify-center"
           >

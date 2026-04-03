@@ -1,8 +1,8 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { BiometricGuard } from "../components/BiometricGuard";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { DataProvider, useData } from "../context/DataContext";
-import { ActivityIndicator, View, Animated, Text } from "react-native";
+import { ActivityIndicator, Animated, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
 import './global.css';
@@ -21,28 +21,46 @@ function AppRoot() {
   const { user, loading: authLoading } = useAuth() as any;
   const { isInitialLoadDone } = useData() as any;
   const pulseAnim = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    const isGlobalLoading = authLoading || (user && !isInitialLoadDone);
-    if (isGlobalLoading) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.2,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1.0,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    }
-  }, [authLoading, user, isInitialLoadDone]);
+  const segments = useSegments();
+  const router = useRouter();
 
   const isGlobalLoading = authLoading || (user && !isInitialLoadDone);
+
+  // Splash animation logic
+  useEffect(() => {
+    let animation: Animated.CompositeAnimation | null = null;
+    
+    if (isGlobalLoading) {
+      animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.2, duration: 1000, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1.0, duration: 1000, useNativeDriver: true }),
+        ])
+      );
+      animation.start();
+    } else {
+      pulseAnim.setValue(1); 
+    }
+
+    return () => {
+      if (animation) animation.stop();
+    };
+  }, [isGlobalLoading]);
+
+  // Routing Auth Guard (useEffect based)
+  useEffect(() => {
+    if (isGlobalLoading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!user && !inAuthGroup) {
+      // Not logged in -> kick to login
+      router.replace('/(auth)/login');
+    } else if (user && inAuthGroup) {
+      // Logged in but somehow in auth screen -> kick to home
+      router.replace('/(tabs)');
+    }
+  }, [user, isGlobalLoading, segments]);
 
   if (isGlobalLoading) {
     return (
@@ -69,7 +87,7 @@ function AppRoot() {
   return (
     <>
       <Stack screenOptions={{ headerShown: false }} />
-      <BiometricGuard />
+      {user && <BiometricGuard />}
     </>
   );
 }

@@ -130,7 +130,6 @@ export default function Settings() {
                     style: "destructive",
                     onPress: async () => {
                         await signOut(auth);
-                        router.replace("/login");
                     }
                 }
             ]
