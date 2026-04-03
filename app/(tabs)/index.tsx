@@ -79,27 +79,54 @@ export default function Home() {
   const reminderCount = reminders.length;
 
   const [showDetailSheet, setShowDetailSheet] = useState(false);
+  const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
 
   const quotes = [
-    "A penny saved is a penny earned.",
-    "Do not save what is left after spending, but spend what is left after saving.",
-    "The art is not in making money, but in keeping it.",
-    "Wealth consists not in having great possessions, but in having few wants.",
-    "Beware of little expenses. A small leak will sink a great ship.",
-    "The secret to wealth is simple: Find a way to do more for others than any one else does. Become more valuable.",
-    "Too many people spend money they haven't earned, to buy things they don't want, to impress people they don't like.",
-    "An investment in knowledge pays the best interest.",
-    "I will tell you the secret to getting rich on Wall Street. You try to be greedy when others are fearful. And you try to be fearful when others are greedy.",
-    "Annual income twenty pounds, annual expenditure nineteen six, result happiness. Annual income twenty pounds, annual expenditure twenty pounds ought and six, result misery.",
-    "Opportunities don't happen. You create them.",
-    "Don't wait to buy real estate. Buy real estate and wait.",
-    "Formal education will make you a living; self-education will make you a fortune.",
-    "If you want to be rich, you need to develop your vision. You must be standing on the edge of time gazing into the future.",
-    "Money is a great servant but a bad master.",
-    "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-    "Your work is going to fill a large part of your life, and the only way to be truly satisfied is to do what you believe is great work."
-  ];
+  "A penny saved is a penny earned.",
+  "Do not save what is left after spending, but spend what is left after saving.",
+  "The art is not in making money, but in keeping it.",
+  "Wealth consists not in having great possessions, but in having few wants.",
+  "Beware of little expenses. A small leak will sink a great ship.",
+  "The secret to wealth is simple: Find a way to do more for others than anyone else does. Become more valuable.",
+  "Too many people spend money they haven't earned, to buy things they don't want, to impress people they don't like.",
+  "An investment in knowledge pays the best interest.",
+  "Be greedy when others are fearful, and fearful when others are greedy.",
+  "Opportunities don't happen. You create them.",
+  "Don't wait to buy real estate. Buy real estate and wait.",
+  "Formal education will make you a living; self-education will make you a fortune.",
+  "Money is a great servant but a bad master.",
+  "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+  "Your work is going to fill a large part of your life, and the only way to be truly satisfied is to do what you believe is great work.",
+
+  // 🔥 NEW ADDED QUOTES
+  "Do something today that your future self will thank you for.",
+  "Small daily improvements are the key to staggering long-term results.",
+  "It's not your salary that makes you rich, it's your spending habits.",
+  "Never depend on a single income. Make an investment to create a second source.",
+  "The more you learn, the more you earn.",
+  "Discipline is choosing between what you want now and what you want most.",
+  "Rich people plan for three generations. Poor people plan for Saturday night.",
+  "Financial freedom is available to those who learn about it and work for it.",
+  "Don’t work for money. Make money work for you.",
+  "If you don’t find a way to make money while you sleep, you will work until you die.",
+  "Saving money is good, but investing it wisely is better.",
+  "You must gain control over your money or the lack of it will forever control you.",
+  "The habit of saving is itself an education.",
+  "Success usually comes to those who are too busy to be looking for it.",
+  "Dream big. Start small. Act now.",
+  "The best investment you can make is in yourself.",
+  "Focus on being productive instead of busy.",
+  "Don’t be afraid to give up the good to go for the great.",
+  "Great things never come from comfort zones.",
+  "Consistency is what transforms average into excellence.",
+  "Your income can grow only to the extent you do.",
+  "Build assets before buying liabilities.",
+  "Money grows where attention goes.",
+  "The goal is not to look rich, but to be rich.",
+  "Every master was once a beginner.",
+  "Success doesn’t come from what you do occasionally, it comes from what you do consistently."
+];
 
   const [quote, setQuote] = useState(quotes[Math.floor(Math.random() * quotes.length)]);
 
@@ -236,7 +263,7 @@ export default function Home() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => router.push("/(tabs)/reminders")}
+              onPress={() => setShowNotificationPopup(true)}
               className="w-12 h-12 bg-white/20 rounded-full items-center justify-center border border-white/20 shadow-sm"
             >
               <Ionicons name="notifications" size={24} color="#fff" />
@@ -740,6 +767,58 @@ export default function Home() {
                 </TouchableOpacity>
               </ScrollView>
             </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ── NOTIFICATION POPUP ── */}
+      <Modal visible={showNotificationPopup} transparent animationType="fade" statusBarTranslucent>
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "flex-start", alignItems: "flex-end", paddingHorizontal: 20, paddingTop: 100 }}
+          onPress={() => setShowNotificationPopup(false)}
+          activeOpacity={1}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={{ backgroundColor: "white", width: 300, borderRadius: 24, padding: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.2, shadowRadius: 20, elevation: 10 }}
+          >
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <Text style={{ fontSize: 18, fontWeight: "900", color: "#111827" }}>Notifications</Text>
+              {upcomingReminders.length > 0 && (
+                <View style={{ backgroundColor: "#fef2f2", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 }}>
+                  <Text style={{ fontSize: 10, fontWeight: "900", color: "#ef4444" }}>{reminders.length} UPCOMING</Text>
+                </View>
+              )}
+            </View>
+
+            {upcomingReminders.length > 0 ? (
+              <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+                {upcomingReminders.map((r: any) => (
+                  <View key={r.id} style={{ marginBottom: 12, borderBottomWidth: 1, borderBottomColor: "#f3f4f6", paddingBottom: 12 }}>
+                    <Text style={{ fontSize: 14, fontWeight: "800", color: "#374151" }} numberOfLines={1}>{r.title}</Text>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 4 }}>
+                      <Text style={{ fontSize: 10, fontWeight: "700", color: "#2f5d34", textTransform: "uppercase" }}>{r.type || "Event"}</Text>
+                      <Text style={{ fontSize: 10, fontWeight: "700", color: "#9ca3af" }}>{r.date} • {r.time}</Text>
+                    </View>
+                  </View>
+                ))}
+                {reminders.length > upcomingReminders.length && (
+                  <Text style={{ textAlign: "center", fontSize: 11, color: "#6b7280", fontWeight: "700", marginTop: 8 }}>+{reminders.length - upcomingReminders.length} more reminders</Text>
+                )}
+              </ScrollView>
+            ) : (
+              <View style={{ paddingVertical: 20, alignItems: "center" }}>
+                <Ionicons name="checkmark-done-circle" size={40} color="#e5e7eb" />
+                <Text style={{ fontSize: 12, color: "#9ca3af", fontWeight: "700", marginTop: 8, textAlign: "center" }}>You're all caught up!</Text>
+              </View>
+            )}
+
+            <TouchableOpacity
+              onPress={() => { setShowNotificationPopup(false); router.push("/(tabs)/reminders"); }}
+              style={{ backgroundColor: "#2f5d34", paddingVertical: 12, borderRadius: 16, alignItems: "center", marginTop: 16 }}
+            >
+              <Text style={{ color: "white", fontSize: 11, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 }}>Manage Reminders</Text>
+            </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
