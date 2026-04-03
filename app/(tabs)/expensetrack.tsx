@@ -587,7 +587,7 @@ export default function ExpenseTrack() {
 
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                   <Text style={{ color: "#ef4444", fontWeight: "900", fontSize: 17 }}>
-                    \u20B9{Number(item.amount).toLocaleString("en-IN")}
+                    ₹{Number(item.amount).toLocaleString("en-IN")}
                   </Text>
                   {item.paymentMethod ? (
                     <View style={{ backgroundColor: "#f0fdf4", paddingHorizontal: 6, paddingVertical: 3, borderRadius: 8 }}>
@@ -702,7 +702,7 @@ export default function ExpenseTrack() {
                         style={{ color: "#111827", height: 50, width: "100%" }}
                       >
                         <Picker.Item label="Select" value="" color="#9ca3af" />
-                        {transferList.map((t: any) => <Picker.Item key={t.id} label={`${t.name} - \u20B9${t.remainingAmount ?? t.amount}`} value={t.id} />)}
+                        {transferList.map((t: any) => <Picker.Item key={t.id} label={`${t.name} - ₹${t.remainingAmount ?? t.amount}`} value={t.id} />)}
                       </Picker>
                     </View>
                   </View>
@@ -725,7 +725,7 @@ export default function ExpenseTrack() {
 
                 <Text style={{ color: "#9ca3af", fontSize: 11, fontWeight: "800", textTransform: "uppercase", marginBottom: 8 }}>Total Amount</Text>
                 <TextInput
-                  placeholder="Enter Amount (\u20B9)"
+                  placeholder="Enter Amount (₹)"
                   keyboardType="numeric"
                   value={amount}
                   onChangeText={setAmount}
@@ -927,7 +927,7 @@ export default function ExpenseTrack() {
                 <View style={{ alignItems: 'center', marginBottom: 40 }}>
                   <Text style={{ color: '#9ca3af', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2, fontSize: 10, marginBottom: 8 }}>Total Amount</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                    <Text style={{ color: '#9ca3af', fontSize: 24, fontWeight: '900', marginRight: 4 }}>\u20B9</Text>
+                    <Text style={{ color: '#9ca3af', fontSize: 24, fontWeight: '900', marginRight: 4 }}>₹</Text>
                     <Text style={{ color: '#111827', fontSize: 60, fontWeight: '900', letterSpacing: -1 }}>{viewingItem?.amount}</Text>
                   </View>
                 </View>
