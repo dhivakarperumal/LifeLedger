@@ -72,6 +72,8 @@ export default function DiaryMaintenance() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [mood, setMood] = useState("");
+  const [place, setPlace] = useState("");
+  const [eventType, setEventType] = useState("");
   const [images, setImages] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [voiceNotes, setVoiceNotes] = useState<string[]>([]);
@@ -97,6 +99,7 @@ export default function DiaryMaintenance() {
 
   const DIARY_FILTER_GROUPS = [
     { key: "mood", label: "Mood", options: ["Happy", "Relaxed", "Sad", "Angry", "Excited", "Thoughtful"], multi: true },
+    { key: "eventType", label: "Event Type", options: ["Travel", "Family", "Work", "Personal", "Health", "Important", "Celebration", "Meeting"], multi: true },
     { key: "tags", label: "Tags", options: ["Travel", "Family", "Work", "Personal", "Health", "Important"], multi: true },
   ];
   const [filterVisible, setFilterVisible] = useState(false);
@@ -167,9 +170,11 @@ export default function DiaryMaintenance() {
       const lowerQuery = searchQuery.toLowerCase();
       result = result.filter(
         item =>
-          item.title?.toLowerCase().includes(lowerQuery) ||
-          item.description?.toLowerCase().includes(lowerQuery) ||
-          item.mood?.toLowerCase().includes(lowerQuery)
+        item.title?.toLowerCase().includes(lowerQuery) ||
+        item.description?.toLowerCase().includes(lowerQuery) ||
+        item.place?.toLowerCase().includes(lowerQuery) ||
+        item.eventType?.toLowerCase().includes(lowerQuery) ||
+        item.mood?.toLowerCase().includes(lowerQuery)
       );
     }
 
@@ -333,18 +338,22 @@ export default function DiaryMaintenance() {
           title,
           description,
           mood,
+          place,
+          eventType,
           images: finalImages,
           tags,
           voiceNotes,
           createdAt: Timestamp.fromDate(date),
           driveSynced: !!googleAccessToken && useDriveSync,
         });
-        showToast("Diary updated successfully!", "success");
+        showToast("Diary entry updated successfully!", "success");
       } else {
         await addDoc(diaryRef, {
           title,
           description,
           mood,
+          place,
+          eventType,
           images: finalImages,
           tags,
           voiceNotes,
@@ -352,7 +361,7 @@ export default function DiaryMaintenance() {
           createdAt: Timestamp.fromDate(date),
           driveSynced: !!googleAccessToken && useDriveSync,
         });
-        showToast("Memory saved successfully!", "success");
+        showToast("Diary entry saved successfully!", "success");
       }
 
       setTitle("");
@@ -377,6 +386,8 @@ export default function DiaryMaintenance() {
     setTitle("");
     setDescription("");
     setMood("");
+    setPlace("");
+    setEventType("");
     setImages([]);
     setTags([]);
     setVoiceNotes([]);
@@ -389,6 +400,8 @@ export default function DiaryMaintenance() {
     setTitle(item.title);
     setDescription(item.description);
     setMood(item.mood || "");
+    setPlace(item.place || "");
+    setEventType(item.eventType || "");
     setImages(item.images || (item.image ? [item.image] : []));
     setTags(item.tags || []);
     setVoiceNotes(item.voiceNotes || (item.voiceNote ? [item.voiceNote] : []));
@@ -538,8 +551,15 @@ export default function DiaryMaintenance() {
                 </View>
 
                 {item.mood ? (
-                  <View className="bg-emerald-50 self-start px-2 py-0.5 rounded-full mb-2">
+                  <View className="bg-emerald-50 self-start px-2 py-0.5 rounded-full mb-1">
                     <Text className="text-[8px] font-bold text-emerald-700 uppercase">{item.mood}</Text>
+                  </View>
+                ) : null}
+
+                {item.place ? (
+                  <View className="flex-row items-center mb-1">
+                    <Ionicons name="location" size={10} color="#6b7280" />
+                    <Text className="text-[10px] text-gray-500 font-semibold ml-1" numberOfLines={1}>{item.place}</Text>
                   </View>
                 ) : null}
 
@@ -599,65 +619,71 @@ export default function DiaryMaintenance() {
       {/* BOTTOM SHEET MODAL */}
       <Modal visible={showSheet} transparent animationType="slide">
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1"
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1 }}
         >
-          <View className="flex-1 justify-end bg-black/50">
-            <View style={{ backgroundColor: "white", borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%', padding: 24, paddingBottom: Math.max(24, insets.bottom + 10), shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20 }}>
-              <View className="flex-row justify-between items-center mb-6">
-                <Text className="text-2xl font-black text-gray-800">
-                  {editingId ? "Edit Diary Entry" : "New Diary Entry"}
-                </Text>
-                <TouchableOpacity onPress={() => setShowSheet(false)} className="bg-gray-100 p-2 rounded-full">
-                  <Ionicons name="close" size={24} color="#374151" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Google Drive Status */}
-              <View style={{ backgroundColor: "#f8fafc", borderRadius: 24, padding: 18, marginBottom: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#f0f0f0' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  <View style={{ backgroundColor: googleAccessToken ? '#f0fdf4' : '#fef2f2', padding: 10, borderRadius: 14 }}>
-                    <Ionicons name="logo-google" size={24} color={googleAccessToken ? '#2f5d34' : '#ef4444'} />
-                  </View>
-                  <View>
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#1f2937' }}>Cloud Media Sync</Text>
-                    <Text style={{ fontSize: 12, color: '#9ca3af', fontWeight: '600' }}>
-                      {googleAccessToken ? "Vault Connected" : "Local Storage Only"}
-                    </Text>
-                  </View>
-                </View>
-
-                {googleAccessToken ? (
-                  <TouchableOpacity
-                    onPress={() => setUseDriveSync(!useDriveSync)}
-                    style={{ backgroundColor: useDriveSync ? '#2f5d34' : '#e5e7eb', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 16 }}
-                  >
-                    <Text style={{ color: useDriveSync ? 'white' : '#6b7280', fontSize: 12, fontWeight: '800' }}>
-                      {useDriveSync ? "ON" : "OFF"}
-                    </Text>
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => drivePromptAsync()}
-                    style={{ backgroundColor: '#2f5d34', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 16 }}
-                  >
-                    <Text style={{ color: 'white', fontSize: 12, fontWeight: '800' }}>CONNECT</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-
+          <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <View style={{ backgroundColor: "white", borderTopLeftRadius: 32, borderTopRightRadius: 32, maxHeight: '90%', shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20 }}>
               <ScrollView
-                className="flex-1"
-                style={{ flexGrow: 1 }}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
-                contentContainerStyle={{ paddingBottom: 120 }}
+                contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: Math.max(120, insets.bottom + 20) }}
               >
-                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Memory Title</Text>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingTop: 24, paddingBottom: 16 }}>
+                  <Text style={{ fontSize: 24, fontWeight: "900", color: "#1f2937" }}>
+                    {editingId ? "Edit Diary Entry" : "New Diary Entry"}
+                  </Text>
+                  <TouchableOpacity onPress={() => setShowSheet(false)} style={{ backgroundColor: "#f3f4f6", padding: 8, borderRadius: 20 }}>
+                    <Ionicons name="close" size={24} color="#374151" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Google Drive Status inside ScrollView */}
+                <View style={{ backgroundColor: "#f8fafc", borderRadius: 24, padding: 18, marginBottom: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#f0f0f0' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ backgroundColor: googleAccessToken ? '#f0fdf4' : '#fef2f2', padding: 10, borderRadius: 14, marginRight: 12 }}>
+                      <Ionicons name="logo-google" size={24} color={googleAccessToken ? '#2f5d34' : '#ef4444'} />
+                    </View>
+                    <View>
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#1f2937' }}>Cloud Media Sync</Text>
+                      <Text style={{ fontSize: 12, color: '#9ca3af', fontWeight: '600' }}>
+                        {googleAccessToken ? "Vault Connected" : "Local Storage Only"}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {googleAccessToken ? (
+                    <TouchableOpacity
+                      onPress={() => setUseDriveSync(!useDriveSync)}
+                      style={{ backgroundColor: useDriveSync ? '#2f5d34' : '#e5e7eb', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 16 }}
+                    >
+                      <Text style={{ color: useDriveSync ? 'white' : '#6b7280', fontSize: 12, fontWeight: '800' }}>
+                        {useDriveSync ? "ON" : "OFF"}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() => drivePromptAsync()}
+                      style={{ backgroundColor: '#2f5d34', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 16 }}
+                    >
+                      <Text style={{ color: 'white', fontSize: 12, fontWeight: '800' }}>CONNECT</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Diary Title</Text>
                 <TextInput
                   placeholder="E.g. A beautiful day at the beach, My first paycheck"
                   value={title}
                   onChangeText={setTitle}
+                  style={{ width: "100%", backgroundColor: "white", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20, fontSize: 16, fontWeight: "600", color: "#4b5563", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
+                  placeholderTextColor="#9ca3af"
+                />
+
+                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Location / Place</Text>
+                <TextInput
+                  placeholder="Where did this happen?"
+                  value={place}
+                  onChangeText={setPlace}
                   style={{ width: "100%", backgroundColor: "white", borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20, fontSize: 16, fontWeight: "600", color: "#4b5563", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
                   placeholderTextColor="#9ca3af"
                 />
@@ -708,6 +734,29 @@ export default function DiaryMaintenance() {
                     >
                       <Text style={{ fontSize: 13, fontWeight: "700", color: mood === item.value ? "white" : "#4b5563" }}>
                         {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Event Type</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
+                  {["Travel", "Family", "Work", "Personal", "Health", "Important", "Celebration", "Meeting"].map((type, idx) => (
+                    <TouchableOpacity
+                      key={`type-${idx}`}
+                      onPress={() => setEventType(type)}
+                      style={{ 
+                        marginRight: 8, 
+                        paddingHorizontal: 16, 
+                        paddingVertical: 10, 
+                        borderRadius: 20, 
+                        borderWidth: 1, 
+                        backgroundColor: eventType === type ? "#2f5d34" : "white", 
+                        borderColor: eventType === type ? "#2f5d34" : "#e5e7eb" 
+                      }}
+                    >
+                      <Text style={{ fontSize: 13, fontWeight: "700", color: eventType === type ? "white" : "#4b5563" }}>
+                        {type}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -814,7 +863,7 @@ export default function DiaryMaintenance() {
                     <ActivityIndicator color="white" size="small" />
                   ) : (
                     <Text style={{ color: "white", fontSize: 18, fontWeight: "900", textTransform: "uppercase", letterSpacing: 2 }}>
-                      {editingId ? "Update Entry" : "Save Memory"}
+                      {editingId ? "Update Entry" : "Save Diary"}
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -870,7 +919,28 @@ export default function DiaryMaintenance() {
                       </View>
                     )}
                   </View>
-                </View>
+                    {(viewingItem?.place || viewingItem?.eventType || (viewingItem?.tags && viewingItem.tags.length > 0)) && (
+                      <View className="mt-4 pt-4 border-t border-gray-100 flex-row flex-wrap gap-2">
+                        {viewingItem.place && (
+                          <View className="flex-row items-center bg-gray-50 px-3 py-1.5 rounded-full">
+                            <Ionicons name="location" size={14} color="#6b7280" />
+                            <Text className="text-gray-600 text-xs font-bold ml-1">{viewingItem.place}</Text>
+                          </View>
+                        )}
+                        {viewingItem.eventType && (
+                          <View className="flex-row items-center bg-blue-50 px-3 py-1.5 rounded-full">
+                            <Ionicons name="bookmark" size={14} color="#2563eb" />
+                            <Text className="text-blue-600 text-xs font-bold ml-1">{viewingItem.eventType}</Text>
+                          </View>
+                        )}
+                        {viewingItem.tags?.map((t: string, i: number) => (
+                          <View key={i} className="bg-emerald-50 px-3 py-1.5 rounded-full">
+                            <Text className="text-emerald-600 text-[10px] font-black uppercase">#{t}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
 
                 {/* Images Section */}
                 {viewingItem?.images && viewingItem.images.length > 0 && (
@@ -938,9 +1008,9 @@ export default function DiaryMaintenance() {
                           <Text className="text-white font-black text-base">Voice Note #{vIdx + 1}</Text>
                           <Text className="text-white/50 text-[10px] uppercase font-bold tracking-widest">Recorded Memory</Text>
                         </View>
-                        <View className="flex-row gap-0.5">
+                        <View className="flex-row">
                           {[1, 2, 3].map(v => (
-                            <View key={v} className="bg-white/20 w-1 h-6 rounded-full" />
+                            <View key={v} className="bg-white/20 w-1 h-6 rounded-full mx-0.5" />
                           ))}
                         </View>
                       </TouchableOpacity>
@@ -949,13 +1019,13 @@ export default function DiaryMaintenance() {
                 )}
 
                 {/* Actions Section */}
-                <View className="flex-row gap-4 mt-4">
+                <View className="flex-row mt-4">
                   <TouchableOpacity
                     onPress={() => {
                       setShowViewModal(false);
                       openEditModal(viewingItem);
                     }}
-                    className="flex-1 bg-gray-900 h-20 rounded-[30px] items-center flex-row justify-center shadow-xl shadow-black/20"
+                    className="flex-1 bg-gray-900 h-20 rounded-[30px] items-center flex-row justify-center shadow-xl shadow-black/20 mr-4"
                   >
                     <Ionicons name="create" size={20} color="white" />
                     <Text className="text-white font-black uppercase tracking-widest text-sm ml-3">Edit Entry</Text>
@@ -988,10 +1058,10 @@ export default function DiaryMaintenance() {
             <Text className="text-gray-500 text-center mb-8 px-4 font-medium leading-5">
               Are you sure you want to delete this diary entry? This action cannot be undone.
             </Text>
-            <View className="flex-row w-full gap-3">
+            <View className="flex-row w-full mt-4">
               <TouchableOpacity
                 onPress={() => setDeleteModalVisible(false)}
-                className="flex-1 py-4 rounded-2xl bg-gray-100 items-center"
+                className="flex-1 py-4 rounded-2xl bg-gray-100 items-center mr-3"
               >
                 <Text className="text-gray-700 font-bold text-lg">Cancel</Text>
               </TouchableOpacity>
@@ -1023,7 +1093,6 @@ export default function DiaryMaintenance() {
             borderRadius: 20,
             flexDirection: "row",
             alignItems: "center",
-            gap: 12,
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 8 },
             shadowOpacity: 0.2,
