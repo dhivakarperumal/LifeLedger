@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { deleteUser, sendPasswordResetEmail, signOut, updateProfile } from "firebase/auth";
@@ -21,6 +22,7 @@ export default function Profile() {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [confirmEmail, setConfirmEmail] = useState("");
+    const appVersion = Constants.manifest?.version || Constants.expoConfig?.version || "1.0.0";
 
     // ── Toast ──────────────────────────────────────────────────────────
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
@@ -190,6 +192,21 @@ export default function Profile() {
                         <View className="items-center flex-1">
                             <Text className="text-gray-400 text-xs font-bold uppercase mb-1">Rank</Text>
                             <Text className="text-[#2f5d34] font-black text-lg">Pro</Text>
+                        </View>
+                    </View>
+
+                    {/* App Version */}
+                    <View className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-6">
+                        <Text className="text-gray-800 text-lg font-bold mb-4">App Version</Text>
+                        <View className="flex-row items-center justify-between">
+                            <View>
+                                <Text className="text-gray-400 text-xs uppercase mb-1">Current Build</Text>
+                                <Text className="text-[#2f5d34] font-black text-lg">{appVersion}</Text>
+                            </View>
+                            <View className="items-end">
+                                <Text className="text-gray-400 text-xs uppercase mb-1">Edition</Text>
+                                <Text className="text-[#2f5d34] font-black text-lg">Pro</Text>
+                            </View>
                         </View>
                     </View>
 
