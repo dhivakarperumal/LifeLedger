@@ -32,6 +32,8 @@ yarn-error.*
 
 # local env files
 .env*.local
+android/key.properties
+android/release-key.jks
 
 # typescript
 *.tsbuildinfo
