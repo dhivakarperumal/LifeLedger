@@ -243,7 +243,7 @@ export default function Settings() {
                     <SettingItem
                         icon="information-circle-outline"
                         label="App Information"
-                        subLabel="Version 1.0.0"
+                        subLabel="Version 1.0.1"
                         type="button"
                     />
 
