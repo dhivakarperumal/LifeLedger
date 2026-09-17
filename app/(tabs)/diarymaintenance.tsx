@@ -986,7 +986,7 @@ export default function DiaryMaintenance() {
                   placeholder="E.g. Weekend Trip, Special Dinner"
                   value={title}
                   onChangeText={setTitle}
-                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-5"
+                  className="w-full bg-[#f8fafc] rounded-lg px-3 py-4 mb-5"
                   placeholderTextColor="#9ca3af"
                   style={{ fontSize: 14, fontWeight: "600", color: "#111827" }}
                 />
@@ -998,7 +998,7 @@ export default function DiaryMaintenance() {
                   placeholder="Location name?"
                   value={place}
                   onChangeText={setPlace}
-                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-5"
+                  className="w-full bg-[#f8fafc] rounded-lg px-3 py-4 mb-5"
                   placeholderTextColor="#9ca3af"
                   style={{ fontSize: 14, fontWeight: "600", color: "#111827" }}
                 />
@@ -1008,7 +1008,7 @@ export default function DiaryMaintenance() {
                 </Text>
                 <TouchableOpacity
                   onPress={() => setShowDatePicker(true)}
-                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-5 flex-row items-center"
+                  className="w-full bg-[#f8fafc] rounded-lg px-3 py-4 mb-5 flex-row items-center"
                 >
                   <Ionicons name="calendar-outline" size={20} color="#2f5d34" />
                   <Text
@@ -1172,21 +1172,9 @@ export default function DiaryMaintenance() {
                   onChangeText={setDescription}
                   multiline
                   textAlignVertical="top"
-                  style={{
-                    width: "100%",
-                    backgroundColor: "#dfe7c7",
-                    borderWidth: 0,
-                    borderRadius: 18,
-                    paddingHorizontal: 20,
-                    paddingVertical: 18,
-                    marginBottom: 20,
-                    fontSize: 14,
-                    color: "#111827",
-                    minHeight: 180,
-                    fontWeight: "500",
-                    elevation: 0,
-                  }}
-                  placeholderTextColor="#7a9a7a"
+                  className="w-full bg-[#f8fafc] rounded-lg px-3 py-4 mb-5"
+                  placeholderTextColor="#9ca3af"
+                  style={{ fontSize: 14, color: "#111827", minHeight: 180, fontWeight: "500" }}
                 />
 
                 {/* VOICE NOTES LIST */}

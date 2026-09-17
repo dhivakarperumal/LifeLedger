@@ -249,7 +249,7 @@ export default function Home() {
           className="rounded-b-[32px] shadow-xl"
           style={{ 
             paddingTop: insets.top + 40, 
-            paddingHorizontal: 28, 
+            paddingHorizontal: 18, 
             paddingBottom: 72 
           }}
         >
@@ -261,15 +261,15 @@ export default function Home() {
 
 
               <View>
-                <Text className="text-emerald-100 text-[10px] font-black uppercase tracking-[2px] mb-0.5">{formattedDate}</Text>
-                <Text className="text-white text-2xl font-black tracking-tighter">👋 {getGreeting()},</Text>
+                <Text className="text-emerald-100 text-[10px] font-black uppercase tracking-[2px] mb-2">{formattedDate}</Text>
+                <Text className="text-white text-2xl font-black mb-2 tracking-tighter">{getGreeting()} 👋 ,</Text>
                 <Text className="text-yellow-400 text-xl font-black -mt-1">{userName}</Text>
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => setShowNotificationPopup(true)}
-              className="w-12 h-12 bg-white/20 rounded-full items-center justify-center border border-white/20 shadow-sm"
+              className="w-12 h-12 bg-white/20 rounded-full mb-5 items-center justify-center border border-white/20 shadow-sm"
             >
               <Ionicons name="notifications" size={24} color="#fff" />
               {reminderCount > 0 && (
@@ -288,7 +288,7 @@ export default function Home() {
           </View>
         </LinearGradient>
 
-        <View className="px-7 -mt-10">
+        <View className="px-4 -mt-10">
 
           {/* QUICK ACTIONS */}
           <View className="flex-row justify-between mb-8">
