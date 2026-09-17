@@ -1,53 +1,56 @@
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as AuthSession from "expo-auth-session";
-let Audio: any = null;
+// expo-av requires a native dev build (not supported in Expo Go for SDK 50+)
+// Safely import to prevent crash when running in Expo Go
+let Audio: typeof import("expo-av").Audio | null = null;
 try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   Audio = require("expo-av").Audio;
-} catch (e) {
-  console.warn("expo-av not available");
+} catch {
+  Audio = null;
 }
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import {
-    addDoc,
-    collection,
-    deleteDoc,
-    doc,
-    Timestamp,
-    updateDoc,
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  Timestamp,
+  updateDoc,
 } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import {
-    SafeAreaView,
-    useSafeAreaInsets,
+  SafeAreaView,
+  useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import FilterSheet, {
-    applyFilters,
-    defaultFilterState,
-    FilterState,
+  applyFilters,
+  defaultFilterState,
+  FilterState,
 } from "../../components/FilterSheet";
 import {
-    getOrCreateFolder,
-    GOOGLE_DRIVE_FOLDER_NAME,
-    uploadMediaToDrive,
+  getOrCreateFolder,
+  GOOGLE_DRIVE_FOLDER_NAME,
+  uploadMediaToDrive,
 } from "../../components/GoogleDriveHelper";
 import { useAuth } from "../../context/AuthContext";
 import { useData } from "../../context/DataContext";
@@ -92,8 +95,8 @@ export default function DiaryMaintenance() {
   const [tags, setTags] = useState<string[]>([]);
   const [voiceNotes, setVoiceNotes] = useState<string[]>([]);
 
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [recording, setRecording] = useState<any | null>(null);
+  const [sound, setSound] = useState<any | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
 
@@ -284,8 +287,9 @@ export default function DiaryMaintenance() {
 
   // AUDIO RECORDING
   async function startRecording() {
+    if (recording || isProcessingVoice) return;
     if (!Audio) {
-      showToast("Voice recording is not available on this build.", "info");
+      showToast("Voice recording requires a dev build (not Expo Go).", "error");
       return;
     }
     try {
@@ -294,6 +298,8 @@ export default function DiaryMaintenance() {
         await Audio.setAudioModeAsync({
           allowsRecordingIOS: true,
           playsInSilentModeIOS: true,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
         });
 
         const { recording } = await Audio.Recording.createAsync(
@@ -312,11 +318,13 @@ export default function DiaryMaintenance() {
 
   async function stopRecording() {
     if (recording) {
+      const activeRecording = recording;
+      setRecording(null);
       try {
         setIsRecording(false);
         setIsProcessingVoice(true);
-        await recording.stopAndUnloadAsync();
-        const uri = recording.getURI();
+        await activeRecording.stopAndUnloadAsync();
+        const uri = activeRecording.getURI();
         if (uri) {
           const info = await FileSystem.readAsStringAsync(uri, {
             encoding: FileSystem.EncodingType.Base64,
@@ -324,10 +332,20 @@ export default function DiaryMaintenance() {
           const newNote = `data:audio/m4a;base64,${info}`;
           setVoiceNotes((prev) => [...prev, newNote]);
         }
-        setRecording(null);
       } catch (e) {
         console.error("Stop recording error", e);
+        showToast("Could not save the voice recording.", "error");
       } finally {
+        if (Audio) {
+          await Audio.setAudioModeAsync({
+            allowsRecordingIOS: false,
+            playsInSilentModeIOS: true,
+            shouldDuckAndroid: true,
+            staysActiveInBackground: false,
+          }).catch((error: unknown) => {
+            console.warn("Failed to restore audio mode", error);
+          });
+        }
         setIsProcessingVoice(false);
       }
     }
@@ -336,6 +354,10 @@ export default function DiaryMaintenance() {
   async function playSound(uri?: string | null) {
     const noteToPlay = uri;
     if (noteToPlay) {
+      if (!Audio) {
+        showToast("Playback requires a dev build (not Expo Go).", "error");
+        return;
+      }
       try {
         if (sound) {
           await sound.unloadAsync();
@@ -1167,7 +1189,12 @@ export default function DiaryMaintenance() {
                   textAlignVertical="top"
                   className="w-full bg-[#f8fafc] rounded-lg px-3 py-4 mb-5"
                   placeholderTextColor="#9ca3af"
-                  style={{ fontSize: 14, color: "#111827", minHeight: 180, fontWeight: "500" }}
+                  style={{
+                    fontSize: 14,
+                    color: "#111827",
+                    minHeight: 180,
+                    fontWeight: "500",
+                  }}
                 />
 
                 {/* VOICE NOTES LIST */}

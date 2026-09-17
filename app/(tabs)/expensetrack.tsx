@@ -1504,7 +1504,7 @@ export default function ExpenseTrack() {
         <SafeAreaView className="flex-1 bg-black">
           <View className="flex-1">
             <CameraView
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
               onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
               barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
             />

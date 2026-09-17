@@ -181,7 +181,7 @@ export default function BackupExport() {
                 Alert.alert("Auth Error", "No access token received from Google.");
             }
         } else if (response?.type === "error") {
-            Alert.alert("Auth Error", response.error?.message || "Something went wrong during Google Auth.");
+            Alert.alert("Auth Error", (response.error as any)?.message || "Something went wrong during Google Auth.");
         }
     }, [response]);
 
@@ -254,9 +254,15 @@ export default function BackupExport() {
       `;
 
             const { uri } = await Print.printToFileAsync({ html });
-            await Sharing.shareAsync(uri);
-        } catch (e) {
-            Alert.alert("Export Failed", "Could not generate PDF.");
+            const fileUri = FileSystem.documentDirectory + "LifeLedger_Financial_Report.pdf";
+            await FileSystem.copyAsync({ from: uri, to: fileUri });
+            if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(fileUri, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: 'Share PDF Report' });
+            } else {
+                Alert.alert("Error", "Sharing is not available on this device.");
+            }
+        } catch (e: any) {
+            Alert.alert("Export Failed", "Could not generate PDF: " + e.message);
         } finally {
             setLoading(false);
         }
