@@ -589,17 +589,11 @@ export default function ExpenseTrack() {
               flexDirection: "row",
               alignItems: "center",
               backgroundColor: "white",
-              borderRadius: 18,
+              borderRadius: 14,
               paddingHorizontal: 16,
-              paddingVertical: 14,
-              borderWidth: 1.5,
-              borderColor: "#f0f0f0",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.06,
-              shadowRadius: 8,
-              elevation: 3,
-              minHeight: 56,
+              height: 54,
+              borderWidth: 1,
+              borderColor: "#e5e7eb",
               marginRight: 10,
             }}
           >
@@ -638,9 +632,9 @@ export default function ExpenseTrack() {
           <TouchableOpacity
             onPress={() => setFilterVisible(true)}
             style={{
-              width: 56,
-              height: 56,
-              borderRadius: 18,
+              width: 54,
+              height: 54,
+              borderRadius: 14,
               alignItems: "center",
               justifyContent: "center",
               backgroundColor:
@@ -648,17 +642,12 @@ export default function ExpenseTrack() {
                 Object.values(filterState.chips).some((a) => a.length > 0)
                   ? "#2f5d34"
                   : "white",
-              borderWidth: 1.5,
+              borderWidth: 1,
               borderColor:
                 filterState.datePreset !== "all" ||
                 Object.values(filterState.chips).some((a) => a.length > 0)
                   ? "#2f5d34"
-                  : "#f0f0f0",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.06,
-              shadowRadius: 8,
-              elevation: 3,
+                  : "#e5e7eb",
             }}
           >
             <Ionicons

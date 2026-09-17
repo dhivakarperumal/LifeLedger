@@ -22,6 +22,7 @@ export default function Profile() {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [confirmEmail, setConfirmEmail] = useState("");
+    const [joinedYear, setJoinedYear] = useState(new Date().getFullYear().toString());
     const appVersion = Constants.manifest?.version || Constants.expoConfig?.version || "1.0.0";
 
     // ── Toast ──────────────────────────────────────────────────────────
@@ -45,6 +46,14 @@ export default function Profile() {
                 const data = snap.data();
                 setPhone(data.phone || "");
                 if (data.username) setName(data.username);
+                if (data.createdDate) {
+                    try {
+                        const date = data.createdDate.toDate();
+                        setJoinedYear(date.getFullYear().toString());
+                    } catch (e) {
+                        console.log("Error parsing createdDate", e);
+                    }
+                }
             }
         });
         return () => unsub();
@@ -186,7 +195,7 @@ export default function Profile() {
                         <View className="w-[1px] bg-gray-100 mx-2" />
                         <View className="items-center flex-1">
                             <Text className="text-gray-400 text-xs font-bold uppercase mb-1">Joined</Text>
-                            <Text className="text-[#2f5d34] font-black text-lg">2024</Text>
+                            <Text className="text-[#2f5d34] font-black text-lg">{joinedYear}</Text>
                         </View>
                         <View className="w-[1px] bg-gray-100 mx-2" />
                         <View className="items-center flex-1">
