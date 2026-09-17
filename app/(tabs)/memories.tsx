@@ -218,10 +218,14 @@ export default function Memories() {
 
   // ─── Audio Recording ──────────────────────────────────────────────
   const startRecording = async () => {
+    if (!Audio) {
+      showToast("Voice recording is not available on this build.", "info");
+      return;
+    }
     try {
       const permission = await Audio.requestPermissionsAsync();
       if (permission.status !== "granted") {
-        Alert.alert("Permission", "Microphone access required.");
+        showToast("Microphone access required.", "error");
         return;
       }
       await Audio.setAudioModeAsync({
@@ -235,7 +239,7 @@ export default function Memories() {
       setIsRecording(true);
     } catch (err) {
       console.error("Failed to start recording", err);
-      Alert.alert("Error", "Could not start audio recording.");
+      showToast("Could not start audio recording.", "error");
     }
   };
 

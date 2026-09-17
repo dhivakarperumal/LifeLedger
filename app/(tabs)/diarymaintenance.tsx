@@ -284,6 +284,10 @@ export default function DiaryMaintenance() {
 
   // AUDIO RECORDING
   async function startRecording() {
+    if (!Audio) {
+      showToast("Voice recording is not available on this build.", "info");
+      return;
+    }
     try {
       const permission = await Audio.requestPermissionsAsync();
       if (permission.status === "granted") {
@@ -298,11 +302,11 @@ export default function DiaryMaintenance() {
         setRecording(recording);
         setIsRecording(true);
       } else {
-        Alert.alert("Permission", "Microphone access required.");
+        showToast("Microphone access required.", "error");
       }
     } catch (err) {
       console.error("Failed to start recording", err);
-      Alert.alert("Error", "Could not start audio recording.");
+      showToast("Could not start audio recording.", "error");
     }
   }
 

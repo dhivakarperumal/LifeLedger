@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import { signOut } from "firebase/auth";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Image, Text, TouchableOpacity, View } from "react-native";
+import { Animated, Image, Modal, Text, TouchableOpacity, View } from "react-native";
 import { auth, db } from "../firebase";
 
 export default function TopHeader() {
@@ -61,12 +61,23 @@ export default function TopHeader() {
     return () => unsubscribe();
   }, []);
 
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
+
   // 🔥 Firebase Logout
   const handleLogout = async () => {
     try {
-      await signOut(auth);
       setOpen(false);
-      router.replace("/login"); // redirect after logout
+      setLogoutModalVisible(true);
+    } catch (error) {
+      console.log("Logout Error:", error);
+    }
+  };
+
+  const confirmLogout = async () => {
+    try {
+      setLogoutModalVisible(false);
+      await signOut(auth);
+      router.replace("/login");
     } catch (error) {
       console.log("Logout Error:", error);
     }
@@ -335,6 +346,41 @@ export default function TopHeader() {
           </Animated.View>
         </View>
       )}
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={logoutModalVisible}
+        onRequestClose={() => setLogoutModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: 32 }}>
+          <View style={{ backgroundColor: "white", borderRadius: 28, padding: 28, width: "100%", alignItems: "center" }}>
+            <View style={{ backgroundColor: "#fef2f2", width: 72, height: 72, borderRadius: 36, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+              <Ionicons name="log-out-outline" size={36} color="#ef4444" />
+            </View>
+            <Text style={{ fontSize: 20, fontWeight: "900", color: "#111827", marginBottom: 8 }}>Sign Out?</Text>
+            <Text style={{ fontSize: 13, color: "#6b7280", fontWeight: "600", textAlign: "center", marginBottom: 28, lineHeight: 20 }}>
+              Are you sure you want to sign out of your LifeLedger account?
+            </Text>
+            <View style={{ flexDirection: "row", gap: 12, width: "100%" }}>
+              <TouchableOpacity
+                onPress={() => setLogoutModalVisible(false)}
+                style={{ flex: 1, backgroundColor: "#f3f4f6", paddingVertical: 14, borderRadius: 18, alignItems: "center" }}
+              >
+                <Text style={{ color: "#374151", fontWeight: "800", fontSize: 14 }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={confirmLogout}
+                style={{ flex: 1, backgroundColor: "#ef4444", paddingVertical: 14, borderRadius: 18, alignItems: "center" }}
+              >
+                <Text style={{ color: "white", fontWeight: "800", fontSize: 14 }}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
