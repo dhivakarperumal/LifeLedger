@@ -326,15 +326,26 @@ export default function Home() {
                   ₹{todayExpense.toLocaleString()}
                 </Text>
               </View>
-              <LinearGradient
-                colors={['#f4f7f5', '#e8f1ec']}
-                className="p-4 rounded-3xl border border-gray-100 items-end"
-              >
-                <Text className="text-gray-400 text-[10px] font-bold tracking-widest uppercase mb-1.5">THIS WEEK</Text>
-                <Text className="font-black text-gray-700 mb-3 text-sm">₹{weekExpense.toLocaleString()}</Text>
-                <Text className="text-gray-400 text-[10px] font-bold tracking-widest uppercase mb-1.5">THIS MONTH</Text>
-                <Text className="font-black text-gray-700 text-sm">₹{monthExpense.toLocaleString()}</Text>
-              </LinearGradient>
+              <View className="gap-2.5">
+                <View className="bg-[#f8fafc] px-4 py-2 rounded-[18px] border border-gray-100 flex-row items-center gap-3">
+                  <View className="bg-[#e8f1ec] w-8 h-8 rounded-full items-center justify-center">
+                    <Ionicons name="calendar" size={14} color="#2f5d34" />
+                  </View>
+                  <View>
+                    <Text className="text-gray-400 text-[9px] font-black tracking-widest uppercase mb-0.5">This Week</Text>
+                    <Text className="font-black text-gray-800 text-sm">₹{weekExpense.toLocaleString()}</Text>
+                  </View>
+                </View>
+                <View className="bg-[#f8fafc] px-4 py-2 rounded-[18px] border border-gray-100 flex-row items-center gap-3">
+                  <View className="bg-[#e8f1ec] w-8 h-8 rounded-full items-center justify-center">
+                    <Ionicons name="stats-chart" size={14} color="#2f5d34" />
+                  </View>
+                  <View>
+                    <Text className="text-gray-400 text-[9px] font-black tracking-widest uppercase mb-0.5">This Month</Text>
+                    <Text className="font-black text-gray-800 text-sm">₹{monthExpense.toLocaleString()}</Text>
+                  </View>
+                </View>
+              </View>
             </View>
 
             <View className="h-[1px] bg-gray-50 mb-5" />
