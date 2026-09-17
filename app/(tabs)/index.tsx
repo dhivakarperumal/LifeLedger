@@ -246,7 +246,12 @@ export default function Home() {
           colors={['#1a361d', '#2f5d34', '#418249']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          className="px-5 pt-20 pb-12 rounded-b-[4px] shadow-xl"
+          className="rounded-b-[32px] shadow-xl"
+          style={{ 
+            paddingTop: insets.top + 40, 
+            paddingHorizontal: 28, 
+            paddingBottom: 72 
+          }}
         >
           <View className="flex-row justify-between items-center mb-6">
             <TouchableOpacity
@@ -283,7 +288,7 @@ export default function Home() {
           </View>
         </LinearGradient>
 
-        <View className="px-5 -mt-6">
+        <View className="px-7 -mt-10">
 
           {/* QUICK ACTIONS */}
           <View className="flex-row justify-between mb-8">

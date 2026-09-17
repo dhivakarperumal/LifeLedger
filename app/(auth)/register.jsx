@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useState } from "react";
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../../firebase";
 
@@ -19,6 +19,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
 
   const handleRegister = async () => {
     if (!username?.trim() || !email?.trim() || !phone?.trim() || !password || !confirmPassword) {
@@ -50,8 +51,7 @@ export default function Register() {
         createdDate: serverTimestamp(),
       });
 
-      Alert.alert("Success", "User Registered Successfully");
-      router.replace("/login");
+      setSuccessModalVisible(true);
 
     } catch (error) {
       Alert.alert("Register Error", error.message);
@@ -196,6 +196,38 @@ export default function Register() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={successModalVisible}
+        onRequestClose={() => {
+          setSuccessModalVisible(false);
+          router.replace("/login");
+        }}
+      >
+        <View className="flex-1 justify-center items-center bg-black/50 px-6">
+          <View className="bg-white rounded-[32px] w-full p-8 items-center shadow-lg">
+            <View className="bg-[#e8efd9] w-24 h-24 rounded-full items-center justify-center mb-6">
+              <Ionicons name="checkmark-done" size={50} color="#2f5d34" />
+            </View>
+            <Text className="text-3xl font-black text-gray-800 mb-2">Awesome!</Text>
+            <Text className="text-gray-500 text-center font-bold text-sm mb-8 px-4 leading-relaxed">
+              You have been registered successfully. Welcome to LifeLedger!
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                setSuccessModalVisible(false);
+                router.replace("/login");
+              }}
+              activeOpacity={0.8}
+              className="bg-[#2f5d34] w-full py-5 rounded-[24px] shadow-lg shadow-green-100 items-center justify-center"
+            >
+              <Text className="text-white font-black text-sm uppercase tracking-[2px]">Log In Now</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

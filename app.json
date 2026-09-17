@@ -2,12 +2,12 @@
   "expo": {
     "name": "LifeLedger",
     "slug": "LifeLedger",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/l1.jpeg",
     "scheme": "myexpensiveapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -54,12 +54,15 @@
         }
       ],
       "@react-native-community/datetimepicker",
+      "expo-av",
       [
         "expo-local-authentication",
         {
           "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID for secure access."
         }
-      ]
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

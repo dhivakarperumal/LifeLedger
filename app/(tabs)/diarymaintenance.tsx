@@ -1,45 +1,57 @@
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker";
 import * as AuthSession from "expo-auth-session";
-import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system/legacy';
+let Audio: any = null;
+try {
+  Audio = require("expo-av").Audio;
+} catch (e) {
+  console.warn("expo-av not available");
+}
+import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
+import { useNavigation } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  query,
-  Timestamp,
-  updateDoc,
-  where
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    Timestamp,
+    updateDoc,
 } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
-import { useNavigation } from "@react-navigation/native";
 import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    Animated,
+    FlatList,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import FilterSheet, { applyFilters, defaultFilterState, FilterState } from "../../components/FilterSheet";
-import { getOrCreateFolder, GOOGLE_DRIVE_FOLDER_NAME, uploadMediaToDrive } from "../../components/GoogleDriveHelper";
-import { auth, db } from "../../firebase";
+import {
+    SafeAreaView,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import FilterSheet, {
+    applyFilters,
+    defaultFilterState,
+    FilterState,
+} from "../../components/FilterSheet";
+import {
+    getOrCreateFolder,
+    GOOGLE_DRIVE_FOLDER_NAME,
+    uploadMediaToDrive,
+} from "../../components/GoogleDriveHelper";
 import { useAuth } from "../../context/AuthContext";
 import { useData } from "../../context/DataContext";
+import { auth, db } from "../../firebase";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -59,13 +71,15 @@ export default function DiaryMaintenance() {
   const [showSheet, setShowSheet] = useState(false);
   useEffect(() => {
     navigation.getParent()?.setOptions({
-      tabBarStyle: (showSheet) ? { display: 'none' } : {
-        backgroundColor: "#111827",
-        borderTopWidth: 0,
-        paddingTop: 6,
-        paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
-        height: 60 + insets.bottom,
-      }
+      tabBarStyle: showSheet
+        ? { display: "none" }
+        : {
+            backgroundColor: "#111827",
+            borderTopWidth: 0,
+            paddingTop: 6,
+            paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+            height: 60 + insets.bottom,
+          },
     });
   }, [showSheet, navigation, insets.bottom]);
 
@@ -92,50 +106,109 @@ export default function DiaryMaintenance() {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
-  const TAG_OPTIONS = ["Travel", "Family", "Work", "Personal", "Health", "Important"];
+  const TAG_OPTIONS = [
+    "Travel",
+    "Family",
+    "Work",
+    "Personal",
+    "Health",
+    "Important",
+  ];
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredDiaryList, setFilteredDiaryList] = useState<any[]>([]);
 
   const DIARY_FILTER_GROUPS = [
-    { key: "mood", label: "Mood", options: ["Happy", "Relaxed", "Sad", "Angry", "Excited", "Thoughtful"], multi: true },
-    { key: "eventType", label: "Event Type", options: ["Travel", "Family", "Work", "Personal", "Health", "Important", "Celebration", "Meeting"], multi: true },
-    { key: "tags", label: "Tags", options: ["Travel", "Family", "Work", "Personal", "Health", "Important"], multi: true },
+    {
+      key: "mood",
+      label: "Mood",
+      options: ["Happy", "Relaxed", "Sad", "Angry", "Excited", "Thoughtful"],
+      multi: true,
+    },
+    {
+      key: "eventType",
+      label: "Event Type",
+      options: [
+        "Travel",
+        "Family",
+        "Work",
+        "Personal",
+        "Health",
+        "Important",
+        "Celebration",
+        "Meeting",
+      ],
+      multi: true,
+    },
+    {
+      key: "tags",
+      label: "Tags",
+      options: ["Travel", "Family", "Work", "Personal", "Health", "Important"],
+      multi: true,
+    },
   ];
   const [filterVisible, setFilterVisible] = useState(false);
-  const [filterState, setFilterState] = useState<FilterState>(defaultFilterState(DIARY_FILTER_GROUPS));
+  const [filterState, setFilterState] = useState<FilterState>(
+    defaultFilterState(DIARY_FILTER_GROUPS),
+  );
 
   const [loading, setLoading] = useState(false);
 
   // ─── Toast ────────────────────────────────────────────────────────
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "info";
+  } | null>(null);
   const toastAnim = useRef(new Animated.Value(-100)).current;
 
-  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+  const showToast = (
+    message: string,
+    type: "success" | "error" | "info" = "success",
+  ) => {
     setToast({ message, type });
     Animated.sequence([
-      Animated.spring(toastAnim, { toValue: 60, useNativeDriver: true, bounciness: 12 }),
+      Animated.spring(toastAnim, {
+        toValue: 60,
+        useNativeDriver: true,
+        bounciness: 12,
+      }),
       Animated.delay(2500),
-      Animated.timing(toastAnim, { toValue: -100, duration: 400, useNativeDriver: true }),
+      Animated.timing(toastAnim, {
+        toValue: -100,
+        duration: 400,
+        useNativeDriver: true,
+      }),
     ]).start(() => setToast(null));
   };
 
   const diaryRef = collection(db, "diaries");
 
   // ─── Google Drive ────────────────────────────────────────────────
-  const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(null);
+  const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(
+    null,
+  );
   const userEmail = auth.currentUser?.email || "unknown";
 
-  const [driveRequest, driveResponse, drivePromptAsync] = AuthSession.useAuthRequest(
-    {
-      clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || "527504049187-5l8nb8rr27ger8jsd5d39086qm65k2oi.apps.googleusercontent.com",
-      scopes: ["https://www.googleapis.com/auth/drive.file", "profile", "email"],
-      redirectUri: AuthSession.makeRedirectUri({ scheme: "myexpensiveapp", path: "diaries" }),
-      responseType: AuthSession.ResponseType.Token,
-      usePKCE: false,
-    },
-    googleDiscovery
-  );
+  const [driveRequest, driveResponse, drivePromptAsync] =
+    AuthSession.useAuthRequest(
+      {
+        clientId:
+          process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ||
+          "527504049187-5l8nb8rr27ger8jsd5d39086qm65k2oi.apps.googleusercontent.com",
+        scopes: [
+          "https://www.googleapis.com/auth/drive.file",
+          "profile",
+          "email",
+        ],
+        redirectUri: AuthSession.makeRedirectUri({
+          scheme: "myexpensiveapp",
+          path: "diaries",
+        }),
+        responseType: AuthSession.ResponseType.Token,
+        usePKCE: false,
+      },
+      googleDiscovery,
+    );
 
   useEffect(() => {
     if (driveResponse?.type === "success") {
@@ -154,14 +227,14 @@ export default function DiaryMaintenance() {
     // Mood filter
     const moodFilter = filterState.chips["mood"] || [];
     if (moodFilter.length > 0) {
-      result = result.filter(item => moodFilter.includes(item.mood));
+      result = result.filter((item) => moodFilter.includes(item.mood));
     }
 
     // Tags filter
     const tagsFilter = filterState.chips["tags"] || [];
     if (tagsFilter.length > 0) {
-      result = result.filter(item =>
-        (item.tags || []).some((t: string) => tagsFilter.includes(t))
+      result = result.filter((item) =>
+        (item.tags || []).some((t: string) => tagsFilter.includes(t)),
       );
     }
 
@@ -169,12 +242,12 @@ export default function DiaryMaintenance() {
     if (searchQuery.trim() !== "") {
       const lowerQuery = searchQuery.toLowerCase();
       result = result.filter(
-        item =>
-        item.title?.toLowerCase().includes(lowerQuery) ||
-        item.description?.toLowerCase().includes(lowerQuery) ||
-        item.place?.toLowerCase().includes(lowerQuery) ||
-        item.eventType?.toLowerCase().includes(lowerQuery) ||
-        item.mood?.toLowerCase().includes(lowerQuery)
+        (item) =>
+          item.title?.toLowerCase().includes(lowerQuery) ||
+          item.description?.toLowerCase().includes(lowerQuery) ||
+          item.place?.toLowerCase().includes(lowerQuery) ||
+          item.eventType?.toLowerCase().includes(lowerQuery) ||
+          item.mood?.toLowerCase().includes(lowerQuery),
       );
     }
 
@@ -186,11 +259,13 @@ export default function DiaryMaintenance() {
       mediaTypes: ["images"],
       allowsMultipleSelection: true,
       quality: 0.7,
-      base64: true
+      base64: true,
     });
 
     if (!result.canceled && result.assets) {
-      const newImages = result.assets.map(asset => `data:image/jpeg;base64,${asset.base64}`);
+      const newImages = result.assets.map(
+        (asset) => `data:image/jpeg;base64,${asset.base64}`,
+      );
       setImages([...images, ...newImages]);
     }
   };
@@ -201,7 +276,7 @@ export default function DiaryMaintenance() {
 
   const toggleTag = (tag: string) => {
     if (tags.includes(tag)) {
-      setTags(tags.filter(t => t !== tag));
+      setTags(tags.filter((t) => t !== tag));
     } else {
       setTags([...tags, tag]);
     }
@@ -211,14 +286,14 @@ export default function DiaryMaintenance() {
   async function startRecording() {
     try {
       const permission = await Audio.requestPermissionsAsync();
-      if (permission.status === 'granted') {
+      if (permission.status === "granted") {
         await Audio.setAudioModeAsync({
           allowsRecordingIOS: true,
           playsInSilentModeIOS: true,
         });
 
         const { recording } = await Audio.Recording.createAsync(
-          Audio.RecordingOptionsPresets.LOW_QUALITY
+          Audio.RecordingOptionsPresets.LOW_QUALITY,
         );
         setRecording(recording);
         setIsRecording(true);
@@ -226,7 +301,7 @@ export default function DiaryMaintenance() {
         Alert.alert("Permission", "Microphone access required.");
       }
     } catch (err) {
-      console.error('Failed to start recording', err);
+      console.error("Failed to start recording", err);
       Alert.alert("Error", "Could not start audio recording.");
     }
   }
@@ -240,10 +315,10 @@ export default function DiaryMaintenance() {
         const uri = recording.getURI();
         if (uri) {
           const info = await FileSystem.readAsStringAsync(uri, {
-            encoding: FileSystem.EncodingType.Base64
+            encoding: FileSystem.EncodingType.Base64,
           });
           const newNote = `data:audio/m4a;base64,${info}`;
-          setVoiceNotes(prev => [...prev, newNote]);
+          setVoiceNotes((prev) => [...prev, newNote]);
         }
         setRecording(null);
       } catch (e) {
@@ -275,14 +350,14 @@ export default function DiaryMaintenance() {
           const base64Data = noteToPlay.split("base64,")[1];
           const tempFile = FileSystem.cacheDirectory + "temp_playback.m4a";
           await FileSystem.writeAsStringAsync(tempFile, base64Data, {
-            encoding: FileSystem.EncodingType.Base64
+            encoding: FileSystem.EncodingType.Base64,
           });
           playUri = tempFile;
         }
 
         const { sound: newSound } = await Audio.Sound.createAsync(
           { uri: playUri },
-          { shouldPlay: true }
+          { shouldPlay: true },
         );
         setSound(newSound);
       } catch (err) {
@@ -305,7 +380,10 @@ export default function DiaryMaintenance() {
     }
 
     if (isRecording || isProcessingVoice) {
-      Alert.alert("Wait", "Please wait for voice recording to finish processing.");
+      Alert.alert(
+        "Wait",
+        "Please wait for voice recording to finish processing.",
+      );
       return;
     }
 
@@ -315,20 +393,31 @@ export default function DiaryMaintenance() {
 
       // If Drive Sync is active and token exists, upload images to Drive
       if (useDriveSync && googleAccessToken) {
-        const folderId = await getOrCreateFolder(googleAccessToken, GOOGLE_DRIVE_FOLDER_NAME(userEmail));
+        const folderId = await getOrCreateFolder(
+          googleAccessToken,
+          GOOGLE_DRIVE_FOLDER_NAME(userEmail),
+        );
         if (folderId) {
-          const uploadedImages = await Promise.all(images.map(async (img, i) => {
-            // Very basic check: if it's already a full drive URL, skip
-            if (img.startsWith("https://drive.google.com")) return img;
+          const uploadedImages = await Promise.all(
+            images.map(async (img, i) => {
+              // Very basic check: if it's already a full drive URL, skip
+              if (img.startsWith("https://drive.google.com")) return img;
 
-            const name = `Diary_${Date.now()}_${i}.jpg`;
-            const driveId = await uploadMediaToDrive(googleAccessToken, folderId, img, name, "image/jpeg");
+              const name = `Diary_${Date.now()}_${i}.jpg`;
+              const driveId = await uploadMediaToDrive(
+                googleAccessToken,
+                folderId,
+                img,
+                name,
+                "image/jpeg",
+              );
 
-            if (driveId) {
-              return `https://drive.google.com/uc?id=${driveId}`;
-            }
-            return img;
-          }));
+              if (driveId) {
+                return `https://drive.google.com/uc?id=${driveId}`;
+              }
+              return img;
+            }),
+          );
           finalImages = uploadedImages;
         }
       }
@@ -435,7 +524,13 @@ export default function DiaryMaintenance() {
     if (!timestamp) return "Just now";
     try {
       const date = timestamp.toDate();
-      const options: any = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      const options: any = {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      };
       return date.toLocaleDateString("en-IN", options);
     } catch {
       return "";
@@ -443,33 +538,67 @@ export default function DiaryMaintenance() {
   };
 
   return (
-    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#f9fafb" }}>
-
+    <SafeAreaView
+      edges={["top"]}
+      style={{ flex: 1, backgroundColor: "#f9fafb" }}
+    >
       {/* DIARY LIST */}
       <View className="flex-1 p-0 px-4 pb-0">
-
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10, gap: 10 }}>
-          <View style={{
-            flex: 1, flexDirection: "row", alignItems: "center",
-            backgroundColor: "#f8fafc",
-            borderRadius: 18,
-            paddingHorizontal: 16, paddingVertical: 14,
-            borderWidth: 1.5, borderColor: "#f0f0f0",
-            shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3,
-            minHeight: 56,
-          }}>
-            <View style={{ backgroundColor: "#f0fdf4", borderRadius: 10, padding: 6, marginRight: 10 }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 10,
+            gap: 10,
+          }}
+        >
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "#f8fafc",
+              borderRadius: 18,
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              borderWidth: 1.5,
+              borderColor: "#f0f0f0",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.06,
+              shadowRadius: 8,
+              elevation: 3,
+              minHeight: 56,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#f0fdf4",
+                borderRadius: 10,
+                padding: 6,
+                marginRight: 10,
+              }}
+            >
               <Ionicons name="search" size={18} color="#2f5d34" />
             </View>
             <TextInput
               placeholder="Search diary entries..."
               value={searchQuery}
               onChangeText={setSearchQuery}
-              style={{ flex: 1, fontSize: 14, fontWeight: "600", color: "#111827", paddingVertical: 0 }}
+              style={{
+                flex: 1,
+                fontSize: 14,
+                fontWeight: "600",
+                color: "#111827",
+                paddingVertical: 0,
+              }}
               placeholderTextColor="#9ca3af"
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery("")} style={{ padding: 2 }}>
+              <TouchableOpacity
+                onPress={() => setSearchQuery("")}
+                style={{ padding: 2 }}
+              >
                 <Ionicons name="close-circle" size={20} color="#d1d5db" />
               </TouchableOpacity>
             )}
@@ -477,13 +606,39 @@ export default function DiaryMaintenance() {
           <TouchableOpacity
             onPress={() => setFilterVisible(true)}
             style={{
-              width: 56, height: 56, borderRadius: 18, alignItems: "center", justifyContent: "center",
-              backgroundColor: (filterState.datePreset !== "all" || Object.values(filterState.chips).some(a => a.length > 0)) ? "#2f5d34" : "white",
-              borderWidth: 1.5, borderColor: (filterState.datePreset !== "all" || Object.values(filterState.chips).some(a => a.length > 0)) ? "#2f5d34" : "#f0f0f0",
-              shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3,
+              width: 56,
+              height: 56,
+              borderRadius: 18,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor:
+                filterState.datePreset !== "all" ||
+                Object.values(filterState.chips).some((a) => a.length > 0)
+                  ? "#2f5d34"
+                  : "white",
+              borderWidth: 1.5,
+              borderColor:
+                filterState.datePreset !== "all" ||
+                Object.values(filterState.chips).some((a) => a.length > 0)
+                  ? "#2f5d34"
+                  : "#f0f0f0",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.06,
+              shadowRadius: 8,
+              elevation: 3,
             }}
           >
-            <Ionicons name="options-outline" size={22} color={(filterState.datePreset !== "all" || Object.values(filterState.chips).some(a => a.length > 0)) ? "white" : "#374151"} />
+            <Ionicons
+              name="options-outline"
+              size={22}
+              color={
+                filterState.datePreset !== "all" ||
+                Object.values(filterState.chips).some((a) => a.length > 0)
+                  ? "white"
+                  : "#374151"
+              }
+            />
           </TouchableOpacity>
         </View>
 
@@ -497,8 +652,12 @@ export default function DiaryMaintenance() {
 
         {filteredDiaryList.length === 0 ? (
           <View className="flex-1 items-center justify-center">
-            <Text className="text-gray-500 text-xl font-semibold mb-2">No Entries Found</Text>
-            <Text className="text-gray-400">Tap the + button to add your first memory!</Text>
+            <Text className="text-gray-500 text-xl font-semibold mb-2">
+              No Entries Found
+            </Text>
+            <Text className="text-gray-400">
+              Tap the + button to add your first memory!
+            </Text>
           </View>
         ) : (
           <FlatList
@@ -525,7 +684,9 @@ export default function DiaryMaintenance() {
                     />
                     {item.images.length > 1 && (
                       <View className="absolute bottom-5 right-2 bg-black/60 px-2 py-0.5 rounded-md">
-                        <Text className="text-[8px] text-white font-bold">+{item.images.length - 1} More</Text>
+                        <Text className="text-[8px] text-white font-bold">
+                          +{item.images.length - 1} More
+                        </Text>
                       </View>
                     )}
                   </View>
@@ -542,32 +703,50 @@ export default function DiaryMaintenance() {
                 )}
 
                 <View className="flex-row justify-between items-start mb-1">
-                  <Text className="font-extrabold text-sm text-gray-800 flex-1 mr-1 leading-tight" numberOfLines={2}>
+                  <Text
+                    className="font-extrabold text-sm text-gray-800 flex-1 mr-1 leading-tight"
+                    numberOfLines={2}
+                  >
                     {item.title}
                   </Text>
-                  <TouchableOpacity onPress={() => confirmDelete(item.id)} className="p-0.5">
+                  <TouchableOpacity
+                    onPress={() => confirmDelete(item.id)}
+                    className="p-0.5"
+                  >
                     <Ionicons name="trash-outline" size={14} color="#ef4444" />
                   </TouchableOpacity>
                 </View>
 
                 {item.mood ? (
                   <View className="bg-emerald-50 self-start px-2 py-0.5 rounded-full mb-1">
-                    <Text className="text-[8px] font-bold text-emerald-700 uppercase">{item.mood}</Text>
+                    <Text className="text-[8px] font-bold text-emerald-700 uppercase">
+                      {item.mood}
+                    </Text>
                   </View>
                 ) : null}
 
                 {item.place ? (
                   <View className="flex-row items-center mb-1">
                     <Ionicons name="location" size={10} color="#6b7280" />
-                    <Text className="text-[10px] text-gray-500 font-semibold ml-1" numberOfLines={1}>{item.place}</Text>
+                    <Text
+                      className="text-[10px] text-gray-500 font-semibold ml-1"
+                      numberOfLines={1}
+                    >
+                      {item.place}
+                    </Text>
                   </View>
                 ) : null}
 
                 {item.tags && item.tags.length > 0 && (
                   <View className="flex-row flex-wrap mt-2">
                     {item.tags.slice(0, 2).map((t: string, idx: number) => (
-                      <View key={`${item.id}-tag-${idx}`} className="bg-blue-50 px-2 py-0.5 rounded-md mr-1 mb-1">
-                        <Text className="text-[7px] text-blue-600 font-bold uppercase">{t}</Text>
+                      <View
+                        key={`${item.id}-tag-${idx}`}
+                        className="bg-blue-50 px-2 py-0.5 rounded-md mr-1 mb-1"
+                      >
+                        <Text className="text-[7px] text-blue-600 font-bold uppercase">
+                          {t}
+                        </Text>
                       </View>
                     ))}
                   </View>
@@ -579,7 +758,9 @@ export default function DiaryMaintenance() {
                       <TouchableOpacity
                         onPress={(e) => {
                           e.stopPropagation();
-                          const note = item.voiceNotes ? item.voiceNotes[0] : item.voiceNote;
+                          const note = item.voiceNotes
+                            ? item.voiceNotes[0]
+                            : item.voiceNote;
                           playSound(note);
                         }}
                         className="bg-emerald-100 p-1.5 rounded-full"
@@ -599,7 +780,7 @@ export default function DiaryMaintenance() {
                     )}
                   </View>
                   <Text className="text-[9px] text-gray-400 font-semibold italic">
-                    {formatDate(item.createdAt).split(',')[0]}
+                    {formatDate(item.createdAt).split(",")[0]}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -611,43 +792,147 @@ export default function DiaryMaintenance() {
       {/* FLOAT BUTTON */}
       <TouchableOpacity
         onPress={openAddModal}
-        style={{ position: "absolute", bottom: 24, right: 24, width: 55, height: 55, borderRadius: 28, backgroundColor: "#2f5d34", alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4.65, elevation: 8 }}
+        style={{
+          position: "absolute",
+          bottom: 24,
+          right: 24,
+          width: 55,
+          height: 55,
+          borderRadius: 28,
+          backgroundColor: "#2f5d34",
+          alignItems: "center",
+          justifyContent: "center",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4.65,
+          elevation: 8,
+        }}
       >
         <Ionicons name="add" size={32} color="white" />
       </TouchableOpacity>
 
       {/* BOTTOM SHEET MODAL */}
-      <Modal visible={showSheet} transparent animationType="slide" statusBarTranslucent>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+      <Modal
+        visible={showSheet}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "flex-end",
+          }}
+        >
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={{ width: '100%', maxHeight: '92%' }}
+            style={{ width: "100%", maxHeight: "92%" }}
           >
-            <View style={{ backgroundColor: "white", borderTopLeftRadius: 32, borderTopRightRadius: 32, height: '100%', shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20, overflow: 'hidden' }}>
+            <View
+              style={{
+                backgroundColor: "white",
+                borderTopLeftRadius: 32,
+                borderTopRightRadius: 32,
+                height: "100%",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: -10 },
+                shadowOpacity: 0.1,
+                shadowRadius: 20,
+                elevation: 20,
+                overflow: "hidden",
+              }}
+            >
               <ScrollView
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
-                contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: Math.max(120, insets.bottom + 20) }}
+                contentContainerStyle={{
+                  paddingHorizontal: 24,
+                  paddingBottom: Math.max(120, insets.bottom + 20),
+                }}
               >
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingTop: 24, paddingBottom: 16 }}>
-                  <Text style={{ fontSize: 24, fontWeight: "900", color: "#1f2937" }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingTop: 24,
+                    paddingBottom: 16,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontWeight: "900",
+                      color: "#1f2937",
+                    }}
+                  >
                     {editingId ? "Edit Diary Entry" : "New Diary Entry"}
                   </Text>
-                  <TouchableOpacity onPress={() => setShowSheet(false)} style={{ backgroundColor: "#f3f4f6", padding: 8, borderRadius: 20 }}>
+                  <TouchableOpacity
+                    onPress={() => setShowSheet(false)}
+                    style={{
+                      backgroundColor: "#f3f4f6",
+                      padding: 8,
+                      borderRadius: 20,
+                    }}
+                  >
                     <Ionicons name="close" size={24} color="#374151" />
                   </TouchableOpacity>
                 </View>
 
                 {/* Google Drive Status inside ScrollView */}
-                <View style={{ backgroundColor: "#f8fafc", borderRadius: 24, padding: 18, marginBottom: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#f0f0f0' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <View style={{ backgroundColor: googleAccessToken ? '#f0fdf4' : '#fef2f2', padding: 10, borderRadius: 14, marginRight: 12 }}>
-                      <Ionicons name="logo-google" size={24} color={googleAccessToken ? '#2f5d34' : '#ef4444'} />
+                <View
+                  style={{
+                    backgroundColor: "#f8fafc",
+                    borderRadius: 24,
+                    padding: 18,
+                    marginBottom: 24,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    borderWidth: 1,
+                    borderColor: "#f0f0f0",
+                  }}
+                >
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <View
+                      style={{
+                        backgroundColor: googleAccessToken
+                          ? "#f0fdf4"
+                          : "#fef2f2",
+                        padding: 10,
+                        borderRadius: 14,
+                        marginRight: 12,
+                      }}
+                    >
+                      <Ionicons
+                        name="logo-google"
+                        size={24}
+                        color={googleAccessToken ? "#2f5d34" : "#ef4444"}
+                      />
                     </View>
                     <View>
-                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#1f2937' }}>Cloud Media Sync</Text>
-                      <Text style={{ fontSize: 12, color: '#9ca3af', fontWeight: '600' }}>
-                        {googleAccessToken ? "Vault Connected" : "Local Storage Only"}
+                      <Text
+                        style={{
+                          fontSize: 14,
+                          fontWeight: "800",
+                          color: "#1f2937",
+                        }}
+                      >
+                        Cloud Media Sync
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: "#9ca3af",
+                          fontWeight: "600",
+                        }}
+                      >
+                        {googleAccessToken
+                          ? "Vault Connected"
+                          : "Local Storage Only"}
                       </Text>
                     </View>
                   </View>
@@ -655,47 +940,138 @@ export default function DiaryMaintenance() {
                   {googleAccessToken ? (
                     <TouchableOpacity
                       onPress={() => setUseDriveSync(!useDriveSync)}
-                      style={{ backgroundColor: useDriveSync ? '#2f5d34' : '#e5e7eb', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 16 }}
+                      style={{
+                        backgroundColor: useDriveSync ? "#2f5d34" : "#e5e7eb",
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
+                        borderRadius: 16,
+                      }}
                     >
-                      <Text style={{ color: useDriveSync ? 'white' : '#6b7280', fontSize: 12, fontWeight: '800' }}>
+                      <Text
+                        style={{
+                          color: useDriveSync ? "white" : "#6b7280",
+                          fontSize: 12,
+                          fontWeight: "800",
+                        }}
+                      >
                         {useDriveSync ? "ON" : "OFF"}
                       </Text>
                     </TouchableOpacity>
                   ) : (
                     <TouchableOpacity
                       onPress={() => drivePromptAsync()}
-                      style={{ backgroundColor: '#2f5d34', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 16 }}
+                      style={{
+                        backgroundColor: "#2f5d34",
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
+                        borderRadius: 16,
+                      }}
                     >
-                      <Text style={{ color: 'white', fontSize: 12, fontWeight: '800' }}>CONNECT</Text>
+                      <Text
+                        style={{
+                          color: "white",
+                          fontSize: 12,
+                          fontWeight: "800",
+                        }}
+                      >
+                        CONNECT
+                      </Text>
                     </TouchableOpacity>
                   )}
                 </View>
-                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Diary Title</Text>
+                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">
+                  Diary Title
+                </Text>
                 <TextInput
                   placeholder="E.g. Weekend Trip, Special Dinner"
                   value={title}
                   onChangeText={setTitle}
-                  style={{ width: "100%", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 14, marginBottom: 20, fontSize: 13, fontWeight: "600", color: "#111827", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
+                  style={{
+                    width: "100%",
+                    backgroundColor: "#f8fafc",
+                    borderWidth: 1.5,
+                    borderColor: "#f0f0f0",
+                    borderRadius: 16,
+                    paddingHorizontal: 20,
+                    paddingVertical: 14,
+                    marginBottom: 20,
+                    fontSize: 13,
+                    fontWeight: "600",
+                    color: "#111827",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 4,
+                    elevation: 2,
+                  }}
                   placeholderTextColor="#9ca3af"
                 />
 
-                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Location / Place</Text>
+                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">
+                  Location / Place
+                </Text>
                 <TextInput
                   placeholder="Location name?"
                   value={place}
                   onChangeText={setPlace}
-                  style={{ width: "100%", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 14, marginBottom: 20, fontSize: 13, fontWeight: "600", color: "#111827", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
+                  style={{
+                    width: "100%",
+                    backgroundColor: "#f8fafc",
+                    borderWidth: 1.5,
+                    borderColor: "#f0f0f0",
+                    borderRadius: 16,
+                    paddingHorizontal: 20,
+                    paddingVertical: 14,
+                    marginBottom: 20,
+                    fontSize: 13,
+                    fontWeight: "600",
+                    color: "#111827",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 4,
+                    elevation: 2,
+                  }}
                   placeholderTextColor="#9ca3af"
                 />
 
-                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Date</Text>
+                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">
+                  Date
+                </Text>
                 <TouchableOpacity
                   onPress={() => setShowDatePicker(true)}
-                  style={{ flexDirection: "row", alignItems: "center", width: "100%", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 14, marginBottom: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    width: "100%",
+                    backgroundColor: "#f8fafc",
+                    borderWidth: 1.5,
+                    borderColor: "#f0f0f0",
+                    borderRadius: 16,
+                    paddingHorizontal: 20,
+                    paddingVertical: 14,
+                    marginBottom: 20,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 4,
+                    elevation: 2,
+                  }}
                 >
                   <Ionicons name="calendar-outline" size={20} color="#2f5d34" />
-                  <Text style={{ fontSize: 14, color: "#111827", fontWeight: "600", marginLeft: 12 }}>
-                    {date.toLocaleDateString("en-IN", { year: 'numeric', month: 'short', day: 'numeric' })}
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: "#111827",
+                      fontWeight: "600",
+                      marginLeft: 12,
+                    }}
+                  >
+                    {date.toLocaleDateString("en-IN", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
                   </Text>
                 </TouchableOpacity>
 
@@ -709,142 +1085,328 @@ export default function DiaryMaintenance() {
                   />
                 )}
 
-                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Status / Mood</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
+                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">
+                  Status / Mood
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={{ marginBottom: 20 }}
+                >
                   {[
                     { label: "😊 Happy", value: "Happy" },
                     { label: "😌 Relaxed", value: "Relaxed" },
                     { label: "😢 Sad", value: "Sad" },
                     { label: "😡 Angry", value: "Angry" },
                     { label: "🤩 Excited", value: "Excited" },
-                    { label: "🤔 Thoughtful", value: "Thoughtful" }
+                    { label: "🤔 Thoughtful", value: "Thoughtful" },
                   ].map((item, idx) => (
                     <TouchableOpacity
                       key={`mood-${idx}`}
                       onPress={() => setMood(item.value)}
-                      style={{ 
-                        marginRight: 8, 
-                        paddingHorizontal: 16, 
-                        paddingVertical: 10, 
-                        borderRadius: 20, 
-                        borderWidth: 1.5, 
-                        backgroundColor: mood === item.value ? "#2f5d34" : "#f8fafc", 
-                        borderColor: mood === item.value ? "#2f5d34" : "#f0f0f0" 
+                      style={{
+                        marginRight: 8,
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
+                        borderRadius: 20,
+                        borderWidth: 1.5,
+                        backgroundColor:
+                          mood === item.value ? "#2f5d34" : "#f8fafc",
+                        borderColor:
+                          mood === item.value ? "#2f5d34" : "#f0f0f0",
                       }}
                     >
-                      <Text style={{ fontSize: 13, fontWeight: "700", color: mood === item.value ? "white" : "#4b5563" }}>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: "700",
+                          color: mood === item.value ? "white" : "#4b5563",
+                        }}
+                      >
                         {item.label}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
 
-                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Event Type</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
-                  {["Travel", "Family", "Work", "Personal", "Health", "Important", "Celebration", "Meeting"].map((type, idx) => (
+                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">
+                  Event Type
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={{ marginBottom: 20 }}
+                >
+                  {[
+                    "Travel",
+                    "Family",
+                    "Work",
+                    "Personal",
+                    "Health",
+                    "Important",
+                    "Celebration",
+                    "Meeting",
+                  ].map((type, idx) => (
                     <TouchableOpacity
                       key={`type-${idx}`}
                       onPress={() => setEventType(type)}
-                      style={{ 
-                        marginRight: 8, 
-                        paddingHorizontal: 16, 
-                        paddingVertical: 10, 
-                        borderRadius: 20, 
-                        borderWidth: 1.5, 
-                        backgroundColor: eventType === type ? "#2f5d34" : "#f8fafc", 
-                        borderColor: eventType === type ? "#2f5d34" : "#f0f0f0" 
+                      style={{
+                        marginRight: 8,
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
+                        borderRadius: 20,
+                        borderWidth: 1.5,
+                        backgroundColor:
+                          eventType === type ? "#2f5d34" : "#f8fafc",
+                        borderColor: eventType === type ? "#2f5d34" : "#f0f0f0",
                       }}
                     >
-                      <Text style={{ fontSize: 13, fontWeight: "700", color: eventType === type ? "white" : "#4b5563" }}>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: "700",
+                          color: eventType === type ? "white" : "#4b5563",
+                        }}
+                      >
                         {type}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
 
-                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Tags</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
+                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">
+                  Tags
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={{ marginBottom: 20 }}
+                >
                   {TAG_OPTIONS.map((tag, idx) => (
                     <TouchableOpacity
                       key={`tag-opt-${idx}`}
                       onPress={() => toggleTag(tag)}
-                      style={{ marginRight: 8, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, backgroundColor: tags.includes(tag) ? "#2f5d34" : "#f8fafc", borderColor: tags.includes(tag) ? "#2f5d34" : "#f0f0f0" }}
+                      style={{
+                        marginRight: 8,
+                        paddingHorizontal: 16,
+                        paddingVertical: 8,
+                        borderRadius: 20,
+                        borderWidth: 1.5,
+                        backgroundColor: tags.includes(tag)
+                          ? "#2f5d34"
+                          : "#f8fafc",
+                        borderColor: tags.includes(tag) ? "#2f5d34" : "#f0f0f0",
+                      }}
                     >
-                      <Text style={{ fontSize: 12, fontWeight: "700", color: tags.includes(tag) ? "white" : "#4b5563" }}>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: "700",
+                          color: tags.includes(tag) ? "white" : "#4b5563",
+                        }}
+                      >
                         {tag}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
 
-                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Write your heart out</Text>
+                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">
+                  Write your heart out
+                </Text>
                 <TextInput
                   placeholder="Share your story here..."
                   value={description}
                   onChangeText={setDescription}
                   multiline
                   textAlignVertical="top"
-                  style={{ width: "100%", backgroundColor: "#f8fafc", borderWidth: 1.5, borderColor: "#f0f0f0", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 16, marginBottom: 20, fontSize: 14, color: "#111827", minHeight: 160, fontWeight: "500", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 }}
+                  style={{
+                    width: "100%",
+                    backgroundColor: "#f8fafc",
+                    borderWidth: 1.5,
+                    borderColor: "#f0f0f0",
+                    borderRadius: 16,
+                    paddingHorizontal: 20,
+                    paddingVertical: 16,
+                    marginBottom: 20,
+                    fontSize: 14,
+                    color: "#111827",
+                    minHeight: 160,
+                    fontWeight: "500",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 4,
+                    elevation: 2,
+                  }}
                   placeholderTextColor="#9ca3af"
                 />
 
                 {/* VOICE NOTES LIST */}
-                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Voice Notes</Text>
+                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">
+                  Voice Notes
+                </Text>
                 <View style={{ marginBottom: 20 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f9fafb", padding: 16, borderRadius: 16, borderWidth: 1, borderColor: "#f0f0f0", marginBottom: 12 }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      backgroundColor: "#f9fafb",
+                      padding: 16,
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      borderColor: "#f0f0f0",
+                      marginBottom: 12,
+                    }}
+                  >
                     <TouchableOpacity
                       onPress={isRecording ? stopRecording : startRecording}
-                      style={{ width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: isRecording ? "#ef4444" : "#2f5d34" }}
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 24,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: isRecording ? "#ef4444" : "#2f5d34",
+                      }}
                     >
-                      <Ionicons name={isRecording ? "stop" : "mic"} size={24} color="white" />
+                      <Ionicons
+                        name={isRecording ? "stop" : "mic"}
+                        size={24}
+                        color="white"
+                      />
                     </TouchableOpacity>
                     <View style={{ flex: 1, marginLeft: 16 }}>
                       {isRecording ? (
-                        <Text style={{ color: "#ef4444", fontWeight: "700" }}>Recording...</Text>
+                        <Text style={{ color: "#ef4444", fontWeight: "700" }}>
+                          Recording...
+                        </Text>
                       ) : isProcessingVoice ? (
                         <ActivityIndicator size="small" color="#2f5d34" />
                       ) : (
-                        <Text style={{ color: "#9ca3af", fontSize: 12, fontWeight: "700" }}>Tap mic to record audio</Text>
+                        <Text
+                          style={{
+                            color: "#9ca3af",
+                            fontSize: 12,
+                            fontWeight: "700",
+                          }}
+                        >
+                          Tap mic to record audio
+                        </Text>
                       )}
                     </View>
                   </View>
 
                   {voiceNotes.map((note, index) => (
-                    <View key={`voice-${index}`} style={{ flexDirection: "row", alignItems: "center", backgroundColor: "#f0fdf4", padding: 12, borderRadius: 16, marginBottom: 8, borderWidth: 1, borderColor: "#dcfce7" }}>
+                    <View
+                      key={`voice-${index}`}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        backgroundColor: "#f0fdf4",
+                        padding: 12,
+                        borderRadius: 16,
+                        marginBottom: 8,
+                        borderWidth: 1,
+                        borderColor: "#dcfce7",
+                      }}
+                    >
                       <TouchableOpacity
                         onPress={() => playSound(note)}
-                        style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: "#2f5d34", alignItems: "center", justifyContent: "center", marginRight: 12 }}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: 16,
+                          backgroundColor: "#2f5d34",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginRight: 12,
+                        }}
                       >
                         <Ionicons name="play" size={16} color="white" />
                       </TouchableOpacity>
-                      <Text style={{ flex: 1, color: "#2f5d34", fontWeight: "700", fontSize: 13 }}>Voice Note #{index + 1}</Text>
-                      <TouchableOpacity onPress={() => setVoiceNotes(prev => prev.filter((_, i) => i !== index))}>
-                        <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                      <Text
+                        style={{
+                          flex: 1,
+                          color: "#2f5d34",
+                          fontWeight: "700",
+                          fontSize: 13,
+                        }}
+                      >
+                        Voice Note #{index + 1}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() =>
+                          setVoiceNotes((prev) =>
+                            prev.filter((_, i) => i !== index),
+                          )
+                        }
+                      >
+                        <Ionicons
+                          name="trash-outline"
+                          size={18}
+                          color="#ef4444"
+                        />
                       </TouchableOpacity>
                     </View>
                   ))}
                 </View>
 
                 {/* IMAGES */}
-                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">Photos</Text>
+                <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">
+                  Photos
+                </Text>
                 <TouchableOpacity
                   onPress={pickImages}
-                  style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", width: "100%", backgroundColor: "#f8fafc", paddingVertical: 20, borderRadius: 16, marginBottom: 20, borderWidth: 1.5, borderStyle: "dashed", borderColor: "#f0f0f0" }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "100%",
+                    backgroundColor: "#f8fafc",
+                    paddingVertical: 20,
+                    borderRadius: 16,
+                    marginBottom: 20,
+                    borderWidth: 1.5,
+                    borderStyle: "dashed",
+                    borderColor: "#f0f0f0",
+                  }}
                 >
-                  <Ionicons name="images-outline" size={24} color="#6b7280" style={{ marginRight: 8 }} />
-                  <Text style={{ color: "#6b7280", fontWeight: "700" }}>Attach Photos</Text>
+                  <Ionicons
+                    name="images-outline"
+                    size={24}
+                    color="#6b7280"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={{ color: "#6b7280", fontWeight: "700" }}>
+                    Attach Photos
+                  </Text>
                 </TouchableOpacity>
 
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 24 }}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={{ marginBottom: 24 }}
+                >
                   {images.map((img, idx) => (
-                    <View key={`img-prev-${idx}`} style={{ marginRight: 16, position: "relative" }}>
+                    <View
+                      key={`img-prev-${idx}`}
+                      style={{ marginRight: 16, position: "relative" }}
+                    >
                       <Image
                         source={{ uri: img }}
                         style={{ width: 120, height: 120, borderRadius: 20 }}
                         resizeMode="cover"
                       />
                       <TouchableOpacity
-                        style={{ position: "absolute", top: -8, right: -8, backgroundColor: "#ef4444", padding: 6, borderRadius: 14 }}
+                        style={{
+                          position: "absolute",
+                          top: -8,
+                          right: -8,
+                          backgroundColor: "#ef4444",
+                          padding: 6,
+                          borderRadius: 14,
+                        }}
                         onPress={() => removeImage(idx)}
                       >
                         <Ionicons name="close" size={12} color="white" />
@@ -857,12 +1419,33 @@ export default function DiaryMaintenance() {
                   onPress={addDiary}
                   activeOpacity={0.8}
                   disabled={loading}
-                  style={{ width: "100%", backgroundColor: "#2f5d34", paddingVertical: 20, borderRadius: 24, alignItems: "center", marginBottom: 24, opacity: loading ? 0.7 : 1, elevation: 4, shadowColor: "#2f5d34", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10 }}
+                  style={{
+                    width: "100%",
+                    backgroundColor: "#2f5d34",
+                    paddingVertical: 20,
+                    borderRadius: 24,
+                    alignItems: "center",
+                    marginBottom: 24,
+                    opacity: loading ? 0.7 : 1,
+                    elevation: 4,
+                    shadowColor: "#2f5d34",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 10,
+                  }}
                 >
                   {loading ? (
                     <ActivityIndicator color="white" size="small" />
                   ) : (
-                    <Text style={{ color: "white", fontSize: 18, fontWeight: "900", textTransform: "uppercase", letterSpacing: 2 }}>
+                    <Text
+                      style={{
+                        color: "white",
+                        fontSize: 18,
+                        fontWeight: "900",
+                        textTransform: "uppercase",
+                        letterSpacing: 2,
+                      }}
+                    >
                       {editingId ? "Update Entry" : "Save Diary"}
                     </Text>
                   )}
@@ -874,23 +1457,50 @@ export default function DiaryMaintenance() {
       </Modal>
 
       {/* VIEW MODAL */}
-      <Modal visible={showViewModal} transparent animationType="slide" statusBarTranslucent>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
-          <View style={{ backgroundColor: 'white', borderTopLeftRadius: 32, borderTopRightRadius: 32, height: '92%', shadowColor: "#000", shadowOffset: { width: 0, height: -10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 20, overflow: 'hidden' }}>
-
+      <Modal
+        visible={showViewModal}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.5)",
+            justifyContent: "flex-end",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "white",
+              borderTopLeftRadius: 32,
+              borderTopRightRadius: 32,
+              height: "92%",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: -10 },
+              shadowOpacity: 0.1,
+              shadowRadius: 20,
+              elevation: 20,
+              overflow: "hidden",
+            }}
+          >
             {/* Header / Top Background */}
             <View className="absolute top-0 left-0 right-0 h-48 bg-[#2f5d34]" />
 
             <View className="flex-1">
               <View className="flex-row justify-between items-center px-8 pt-8 pb-4 z-10">
                 <View>
-                  <Text className="text-white/60 text-[10px] font-black uppercase tracking-[3px] mb-1">Memory Entry</Text>
-                  <Text className="text-white text-2xl font-black">View Details</Text>
+                  <Text className="text-white/60 text-[10px] font-black uppercase tracking-[3px] mb-1">
+                    Memory Entry
+                  </Text>
+                  <Text className="text-white text-2xl font-black">
+                    View Details
+                  </Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => setShowViewModal(false)}
                   className="bg-white/20 p-3 rounded-2xl"
-                  style={{ backdropFilter: 'blur(10px)' }}
+                  style={{ backdropFilter: "blur(10px)" }}
                 >
                   <Ionicons name="close" size={24} color="white" />
                 </TouchableOpacity>
@@ -898,7 +1508,11 @@ export default function DiaryMaintenance() {
 
               <ScrollView
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 28, paddingTop: 20, paddingBottom: 100 }}
+                contentContainerStyle={{
+                  paddingHorizontal: 28,
+                  paddingTop: 20,
+                  paddingBottom: 100,
+                }}
               >
                 {/* Title and Date Card */}
                 <View className="bg-white rounded-[32px] p-6 shadow-xl shadow-black/5 mb-6 border border-gray-50">
@@ -910,45 +1524,71 @@ export default function DiaryMaintenance() {
                       <Ionicons name="calendar" size={16} color="#2f5d34" />
                     </View>
                     <View>
-                      <Text className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Recorded Date</Text>
-                      <Text className="text-gray-700 font-bold">{formatDate(viewingItem?.createdAt)}</Text>
+                      <Text className="text-gray-400 text-[10px] font-black uppercase tracking-widest">
+                        Recorded Date
+                      </Text>
+                      <Text className="text-gray-700 font-bold">
+                        {formatDate(viewingItem?.createdAt)}
+                      </Text>
                     </View>
                     {viewingItem?.mood && (
                       <View className="ml-auto bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100">
-                        <Text className="text-emerald-700 text-xs font-black uppercase">{viewingItem?.mood}</Text>
+                        <Text className="text-emerald-700 text-xs font-black uppercase">
+                          {viewingItem?.mood}
+                        </Text>
                       </View>
                     )}
                   </View>
-                    {(viewingItem?.place || viewingItem?.eventType || (viewingItem?.tags && viewingItem.tags.length > 0)) && (
-                      <View className="mt-4 pt-4 border-t border-gray-100 flex-row flex-wrap gap-2">
-                        {viewingItem.place && (
-                          <View className="flex-row items-center bg-gray-50 px-3 py-1.5 rounded-full">
-                            <Ionicons name="location" size={14} color="#6b7280" />
-                            <Text className="text-gray-600 text-xs font-bold ml-1">{viewingItem.place}</Text>
-                          </View>
-                        )}
-                        {viewingItem.eventType && (
-                          <View className="flex-row items-center bg-blue-50 px-3 py-1.5 rounded-full">
-                            <Ionicons name="bookmark" size={14} color="#2563eb" />
-                            <Text className="text-blue-600 text-xs font-bold ml-1">{viewingItem.eventType}</Text>
-                          </View>
-                        )}
-                        {viewingItem.tags?.map((t: string, i: number) => (
-                          <View key={i} className="bg-emerald-50 px-3 py-1.5 rounded-full">
-                            <Text className="text-emerald-600 text-[10px] font-black uppercase">#{t}</Text>
-                          </View>
-                        ))}
-                      </View>
-                    )}
-                  </View>
+                  {(viewingItem?.place ||
+                    viewingItem?.eventType ||
+                    (viewingItem?.tags && viewingItem.tags.length > 0)) && (
+                    <View className="mt-4 pt-4 border-t border-gray-100 flex-row flex-wrap gap-2">
+                      {viewingItem.place && (
+                        <View className="flex-row items-center bg-gray-50 px-3 py-1.5 rounded-full">
+                          <Ionicons name="location" size={14} color="#6b7280" />
+                          <Text className="text-gray-600 text-xs font-bold ml-1">
+                            {viewingItem.place}
+                          </Text>
+                        </View>
+                      )}
+                      {viewingItem.eventType && (
+                        <View className="flex-row items-center bg-blue-50 px-3 py-1.5 rounded-full">
+                          <Ionicons name="bookmark" size={14} color="#2563eb" />
+                          <Text className="text-blue-600 text-xs font-bold ml-1">
+                            {viewingItem.eventType}
+                          </Text>
+                        </View>
+                      )}
+                      {viewingItem.tags?.map((t: string, i: number) => (
+                        <View
+                          key={i}
+                          className="bg-emerald-50 px-3 py-1.5 rounded-full"
+                        >
+                          <Text className="text-emerald-600 text-[10px] font-black uppercase">
+                            #{t}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
 
                 {/* Images Section */}
                 {viewingItem?.images && viewingItem.images.length > 0 && (
                   <View className="mb-8">
-                    <Text className="text-gray-900 font-black text-lg mb-4 ml-2">Captured Moments</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-4 px-4">
+                    <Text className="text-gray-900 font-black text-lg mb-4 ml-2">
+                      Captured Moments
+                    </Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      className="-mx-4 px-4"
+                    >
                       {viewingItem.images.map((img: string, idx: number) => (
-                        <View key={idx} className="mr-4 shadow-lg shadow-black/10">
+                        <View
+                          key={idx}
+                          className="mr-4 shadow-lg shadow-black/10"
+                        >
                           <Image
                             source={{ uri: img }}
                             className="w-72 h-80 rounded-[40px] border-4 border-white"
@@ -962,9 +1602,16 @@ export default function DiaryMaintenance() {
 
                 {/* Description Card */}
                 <View className="mb-8">
-                  <Text className="text-gray-900 font-black text-lg mb-4 ml-2">The Story</Text>
+                  <Text className="text-gray-900 font-black text-lg mb-4 ml-2">
+                    The Story
+                  </Text>
                   <View className="bg-gray-50/50 p-8 rounded-[40px] border border-dashed border-gray-200">
-                    <Ionicons name="reader-outline" size={32} color="#f0f0f0" style={{ position: 'absolute', top: 20, left: 20 }} />
+                    <Ionicons
+                      name="reader-outline"
+                      size={32}
+                      color="#f0f0f0"
+                      style={{ position: "absolute", top: 20, left: 20 }}
+                    />
                     <Text className="text-gray-700 text-lg leading-[28px] font-medium italic">
                       {viewingItem?.description}
                     </Text>
@@ -972,9 +1619,12 @@ export default function DiaryMaintenance() {
                 </View>
 
                 {/* Voice Note Section */}
-                {(viewingItem?.voiceNotes?.length > 0 || viewingItem?.voiceNote) && (
+                {(viewingItem?.voiceNotes?.length > 0 ||
+                  viewingItem?.voiceNote) && (
                   <View className="mb-10">
-                    <Text className="text-gray-900 font-black text-lg mb-4 ml-2">Voice Recordings</Text>
+                    <Text className="text-gray-900 font-black text-lg mb-4 ml-2">
+                      Voice Recordings
+                    </Text>
 
                     {/* Backward compat for single voiceNote */}
                     {viewingItem.voiceNote && !viewingItem.voiceNotes && (
@@ -987,34 +1637,47 @@ export default function DiaryMaintenance() {
                           <Ionicons name="play" size={28} color="white" />
                         </View>
                         <View className="flex-1">
-                          <Text className="text-white font-black text-lg">Listen to Note</Text>
-                          <Text className="text-white/60 text-xs font-bold uppercase tracking-widest mt-0.5">Press to replay voice</Text>
+                          <Text className="text-white font-black text-lg">
+                            Listen to Note
+                          </Text>
+                          <Text className="text-white/60 text-xs font-bold uppercase tracking-widest mt-0.5">
+                            Press to replay voice
+                          </Text>
                         </View>
                       </TouchableOpacity>
                     )}
 
                     {/* Multiple notes mapping */}
-                    {viewingItem.voiceNotes?.map((note: string, vIdx: number) => (
-                      <TouchableOpacity
-                        key={`v-view-${vIdx}`}
-                        activeOpacity={0.9}
-                        onPress={() => playSound(note)}
-                        className="bg-[#2f5d34] p-5 rounded-[30px] flex-row items-center shadow-lg shadow-black/10 mb-3"
-                      >
-                        <View className="bg-white/20 p-3 rounded-full mr-4 items-center justify-center">
-                          <Ionicons name="play" size={22} color="white" />
-                        </View>
-                        <View className="flex-1">
-                          <Text className="text-white font-black text-base">Voice Note #{vIdx + 1}</Text>
-                          <Text className="text-white/50 text-[10px] uppercase font-bold tracking-widest">Recorded Memory</Text>
-                        </View>
-                        <View className="flex-row">
-                          {[1, 2, 3].map(v => (
-                            <View key={v} className="bg-white/20 w-1 h-6 rounded-full mx-0.5" />
-                          ))}
-                        </View>
-                      </TouchableOpacity>
-                    ))}
+                    {viewingItem.voiceNotes?.map(
+                      (note: string, vIdx: number) => (
+                        <TouchableOpacity
+                          key={`v-view-${vIdx}`}
+                          activeOpacity={0.9}
+                          onPress={() => playSound(note)}
+                          className="bg-[#2f5d34] p-5 rounded-[30px] flex-row items-center shadow-lg shadow-black/10 mb-3"
+                        >
+                          <View className="bg-white/20 p-3 rounded-full mr-4 items-center justify-center">
+                            <Ionicons name="play" size={22} color="white" />
+                          </View>
+                          <View className="flex-1">
+                            <Text className="text-white font-black text-base">
+                              Voice Note #{vIdx + 1}
+                            </Text>
+                            <Text className="text-white/50 text-[10px] uppercase font-bold tracking-widest">
+                              Recorded Memory
+                            </Text>
+                          </View>
+                          <View className="flex-row">
+                            {[1, 2, 3].map((v) => (
+                              <View
+                                key={v}
+                                className="bg-white/20 w-1 h-6 rounded-full mx-0.5"
+                              />
+                            ))}
+                          </View>
+                        </TouchableOpacity>
+                      ),
+                    )}
                   </View>
                 )}
 
@@ -1028,7 +1691,9 @@ export default function DiaryMaintenance() {
                     className="flex-1 bg-gray-900 h-20 rounded-[30px] items-center flex-row justify-center shadow-xl shadow-black/20 mr-4"
                   >
                     <Ionicons name="create" size={20} color="white" />
-                    <Text className="text-white font-black uppercase tracking-widest text-sm ml-3">Edit Entry</Text>
+                    <Text className="text-white font-black uppercase tracking-widest text-sm ml-3">
+                      Edit Entry
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -1054,9 +1719,12 @@ export default function DiaryMaintenance() {
             <View className="w-16 h-16 rounded-full bg-red-50 items-center justify-center mb-4">
               <Ionicons name="trash" size={28} color="#ef4444" />
             </View>
-            <Text className="text-2xl font-black text-gray-900 mb-2">Delete Entry?</Text>
+            <Text className="text-2xl font-black text-gray-900 mb-2">
+              Delete Entry?
+            </Text>
             <Text className="text-gray-500 text-center mb-8 px-4 font-medium leading-5">
-              Are you sure you want to delete this diary entry? This action cannot be undone.
+              Are you sure you want to delete this diary entry? This action
+              cannot be undone.
             </Text>
             <View className="flex-row w-full mt-4">
               <TouchableOpacity
@@ -1070,7 +1738,11 @@ export default function DiaryMaintenance() {
                 disabled={loading}
                 className="flex-1 py-4 rounded-2xl bg-red-500 items-center shadow-lg shadow-red-500/30"
               >
-                {loading ? <ActivityIndicator color="white" size="small" /> : <Text className="text-white font-bold text-lg">Delete</Text>}
+                {loading ? (
+                  <ActivityIndicator color="white" size="small" />
+                ) : (
+                  <Text className="text-white font-bold text-lg">Delete</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -1087,7 +1759,12 @@ export default function DiaryMaintenance() {
             right: 20,
             zIndex: 9999,
             transform: [{ translateY: toastAnim }],
-            backgroundColor: toast.type === "success" ? "#2f5d34" : toast.type === "error" ? "#ef4444" : "#3b82f6",
+            backgroundColor:
+              toast.type === "success"
+                ? "#2f5d34"
+                : toast.type === "error"
+                  ? "#ef4444"
+                  : "#3b82f6",
             paddingVertical: 14,
             paddingHorizontal: 20,
             borderRadius: 20,
@@ -1100,14 +1777,30 @@ export default function DiaryMaintenance() {
             elevation: 10,
           }}
         >
-          <View style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 10, padding: 4 }}>
+          <View
+            style={{
+              backgroundColor: "rgba(255,255,255,0.2)",
+              borderRadius: 10,
+              padding: 4,
+            }}
+          >
             <Ionicons
-              name={toast.type === "success" ? "checkmark-circle" : toast.type === "error" ? "alert-circle" : "information-circle"}
+              name={
+                toast.type === "success"
+                  ? "checkmark-circle"
+                  : toast.type === "error"
+                    ? "alert-circle"
+                    : "information-circle"
+              }
               size={20}
               color="white"
             />
           </View>
-          <Text style={{ color: "white", fontWeight: "800", fontSize: 14, flex: 1 }}>{toast.message}</Text>
+          <Text
+            style={{ color: "white", fontWeight: "800", fontSize: 14, flex: 1 }}
+          >
+            {toast.message}
+          </Text>
         </Animated.View>
       )}
     </SafeAreaView>

@@ -1,44 +1,45 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { db } from "../../firebase";
 import { useAuth } from "../../context/AuthContext";
+import { db } from "../../firebase";
 
 import {
   addDoc,
   collection,
   deleteDoc,
-  getDocs,
-  query,
-  where,
-  serverTimestamp,
   doc,
+  serverTimestamp,
   updateDoc
 } from "firebase/firestore";
+import DarkDropdown from "../../components/DarkDropdown";
 import { useData } from "../../context/DataContext";
 
 export default function AddExpense() {
   const router = useRouter();
-  const { expenses: expenseList, transfers: transferList, isInitialLoadDone } = useData();
+  const {
+    expenses: expenseList,
+    transfers: transferList,
+    isInitialLoadDone,
+  } = useData();
   const { user } = useAuth();
   const uid = user?.uid;
 
@@ -61,12 +62,20 @@ export default function AddExpense() {
   const toastAnim = useRef(new Animated.Value(-100)).current;
 
   const showToast = (message, type = "success") => {
-      setToast({ message, type });
-      Animated.sequence([
-          Animated.spring(toastAnim, { toValue: 60, useNativeDriver: true, bounciness: 12 }),
-          Animated.delay(2500),
-          Animated.timing(toastAnim, { toValue: -100, duration: 400, useNativeDriver: true }),
-      ]).start(() => setToast(null));
+    setToast({ message, type });
+    Animated.sequence([
+      Animated.spring(toastAnim, {
+        toValue: 60,
+        useNativeDriver: true,
+        bounciness: 12,
+      }),
+      Animated.delay(2500),
+      Animated.timing(toastAnim, {
+        toValue: -100,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setToast(null));
   };
 
   const expenseRef = collection(db, "expenses");
@@ -79,7 +88,7 @@ export default function AddExpense() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.7,
-      base64: true
+      base64: true,
     });
     if (!result.canceled) {
       setReceipt(`data:image/jpeg;base64,${result.assets[0].base64}`);
@@ -102,7 +111,8 @@ export default function AddExpense() {
       return;
     }
 
-    const remaining = selectedTransfer.remainingAmount ?? selectedTransfer.amount ?? 0;
+    const remaining =
+      selectedTransfer.remainingAmount ?? selectedTransfer.amount ?? 0;
     if (expenseAmount > remaining) {
       showToast(`Not enough balance (₹${remaining} left)`, "error");
       return;
@@ -120,12 +130,12 @@ export default function AddExpense() {
         receipt,
         transferId: selectedTransfer.id,
         userId: uid,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
       });
 
       const transferDoc = doc(db, "transfers", selectedTransfer.id);
       await updateDoc(transferDoc, {
-        remainingAmount: remaining - expenseAmount
+        remainingAmount: remaining - expenseAmount,
       });
 
       setName("");
@@ -147,36 +157,41 @@ export default function AddExpense() {
 
   // DELETE EXPENSE
   const deleteExpense = async (id, amount, transferId) => {
-    Alert.alert("Delete Expense", "Are you sure you want to delete this expense?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Delete",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            setLoading(true);
-            await deleteDoc(doc(db, "expenses", id));
-            
-            // Revert transfer balance
-            const transferDoc = doc(db, "transfers", transferId);
-            const transfer = transferList.find(t => t.id === transferId);
-            if (transfer) {
-              const currentRemaining = transfer.remainingAmount ?? transfer.amount ?? 0;
-              await updateDoc(transferDoc, {
-                remainingAmount: currentRemaining + amount
-              });
-            }
+    Alert.alert(
+      "Delete Expense",
+      "Are you sure you want to delete this expense?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await deleteDoc(doc(db, "expenses", id));
 
-            showToast("Expense deleted successfully!", "success");
-            // Data is synced automatically
-          } catch (e) {
-            showToast("Failed to delete expense", "error");
-          } finally {
-            setLoading(false);
-          }
-        }
-      }
-    ]);
+              // Revert transfer balance
+              const transferDoc = doc(db, "transfers", transferId);
+              const transfer = transferList.find((t) => t.id === transferId);
+              if (transfer) {
+                const currentRemaining =
+                  transfer.remainingAmount ?? transfer.amount ?? 0;
+                await updateDoc(transferDoc, {
+                  remainingAmount: currentRemaining + amount,
+                });
+              }
+
+              showToast("Expense deleted successfully!", "success");
+              // Data is synced automatically
+            } catch (e) {
+              showToast("Failed to delete expense", "error");
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+    );
   };
 
   const formatDate = (timestamp) => {
@@ -188,11 +203,14 @@ export default function AddExpense() {
   };
 
   return (
-    <SafeAreaView edges={["top","bottom"]} style={{flex:1,backgroundColor:"#111827"}}>
+    <SafeAreaView
+      edges={["top", "bottom"]}
+      style={{ flex: 1, backgroundColor: "#111827" }}
+    >
       {/* HEADER */}
       <View className="bg-gray-900 px-4 py-4 flex-row items-center">
-        <TouchableOpacity onPress={()=>router.back()} className="mr-3">
-          <Ionicons name="arrow-back-circle-outline" size={32} color="white"/>
+        <TouchableOpacity onPress={() => router.back()} className="mr-3">
+          <Ionicons name="arrow-back-circle-outline" size={32} color="white" />
         </TouchableOpacity>
         <Text className="text-white text-xl font-bold">My Expenses</Text>
       </View>
@@ -205,169 +223,207 @@ export default function AddExpense() {
         )}
         <FlatList
           data={expenseList}
-          keyExtractor={(item)=>item.id}
-          renderItem={({item}) => (
-             <View className="bg-white p-4 rounded-xl mb-3 shadow flex-row justify-between items-center">
-               <View>
-                 <Text className="font-bold text-lg">{item.category}</Text>
-                 <Text className="text-red-600 font-bold">₹{item.amount}</Text>
-                 {item.name && <Text className="text-gray-600 font-medium">{item.name}</Text>}
-                 <Text className="text-gray-500 text-[10px] mt-1 italic">{formatDate(item.createdAt)}</Text>
-               </View>
-               <TouchableOpacity 
-                 onPress={() => deleteExpense(item.id, item.amount, item.transferId)}
-                 className="bg-red-50 p-3 rounded-full"
-               >
-                 <Ionicons name="trash-outline" size={18} color="#ef4444" />
-               </TouchableOpacity>
-             </View>
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View className="bg-white p-4 rounded-xl mb-3 shadow flex-row justify-between items-center">
+              <View>
+                <Text className="font-bold text-lg">{item.category}</Text>
+                <Text className="text-red-600 font-bold">₹{item.amount}</Text>
+                {item.name && (
+                  <Text className="text-gray-600 font-medium">{item.name}</Text>
+                )}
+                <Text className="text-gray-500 text-[10px] mt-1 italic">
+                  {formatDate(item.createdAt)}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() =>
+                  deleteExpense(item.id, item.amount, item.transferId)
+                }
+                className="bg-red-50 p-3 rounded-full"
+              >
+                <Ionicons name="trash-outline" size={18} color="#ef4444" />
+              </TouchableOpacity>
+            </View>
           )}
         />
       </View>
 
       {/* FLOAT BUTTON */}
       <TouchableOpacity
-        onPress={()=>setShowSheet(true)}
+        onPress={() => setShowSheet(true)}
         style={{
-          position:"absolute",
-          bottom:90,
-          right:20,
-          width:60,
-          height:60,
-          borderRadius:30,
-          backgroundColor:"#2f5d34",
-          justifyContent:"center",
-          alignItems:"center"
+          position: "absolute",
+          bottom: 90,
+          right: 20,
+          width: 60,
+          height: 60,
+          borderRadius: 30,
+          backgroundColor: "#2f5d34",
+          justifyContent: "center",
+          alignItems: "center",
         }}
       >
-        <Ionicons name="add" size={30} color="white"/>
+        <Ionicons name="add" size={30} color="white" />
       </TouchableOpacity>
 
       {/* BOTTOM SHEET */}
       <Modal visible={showSheet} transparent animationType="slide">
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)" }}>
-          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+          >
             <View className="flex-1 justify-end">
               <View className="bg-white p-6 rounded-t-3xl max-h-[90%]">
-              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 120 }}>
-                <View className="flex-row justify-between items-center mb-4">
-                  <Text className="text-xl font-bold">Add Expense</Text>
-                  <TouchableOpacity onPress={() => setShowSheet(false)}>
-                    <Ionicons name="close-circle" size={26} color="#374151" />
-                  </TouchableOpacity>
-                </View>
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                  contentContainerStyle={{ paddingBottom: 120 }}
+                >
+                  <View className="flex-row justify-between items-center mb-4">
+                    <Text className="text-xl font-bold">Add Expense</Text>
+                    <TouchableOpacity onPress={() => setShowSheet(false)}>
+                      <Ionicons name="close-circle" size={26} color="#374151" />
+                    </TouchableOpacity>
+                  </View>
 
-                {/* TRANSFER SOURCE */}
-                <Text className="text-gray-700 font-semibold mb-1">Transfer Source</Text>
-                <View className="w-full bg-[#dfe7c7] rounded-lg mb-4">
-                  <Picker
-                    selectedValue={selectedTransfer?.id}
-                    onValueChange={(value) => {
-                      const transfer = transferList.find(i => i.id === value);
-                      setSelectedTransfer(transfer);
+                  {/* TRANSFER SOURCE */}
+                  <Text className="text-gray-700 font-semibold mb-1">
+                    Transfer Source
+                  </Text>
+                  <View className="w-full mb-4">
+                    <DarkDropdown
+                      value={selectedTransfer?.id ?? null}
+                      placeholder="Select Transfer Source"
+                      onChange={(value) => {
+                        const transfer = transferList.find(
+                          (i) => i.id === value,
+                        );
+                        setSelectedTransfer(transfer);
+                      }}
+                      options={[
+                        { label: "Select Transfer Source", value: null },
+                        ...transferList.map((item) => ({
+                          label: `${item.name} - ₹${item.remainingAmount ?? item.amount}`,
+                          value: item.id,
+                        })),
+                      ]}
+                    />
+                  </View>
+
+                  {selectedTransfer && (
+                    <Text className="text-green-600 mb-3">
+                      Balance: ₹
+                      {selectedTransfer.remainingAmount ??
+                        selectedTransfer.amount}
+                    </Text>
+                  )}
+
+                  {/* AMOUNT */}
+                  <Text className="text-gray-700 font-semibold mb-1">
+                    Amount
+                  </Text>
+                  <TextInput
+                    placeholder="Enter amount"
+                    keyboardType="numeric"
+                    value={amount}
+                    onChangeText={setAmount}
+                    placeholderTextColor="#9ca3af"
+                    className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
+                  />
+
+                  {/* CATEGORY */}
+                  <Text className="text-gray-700 font-semibold mb-1">
+                    Category
+                  </Text>
+                  <TextInput
+                    placeholder="Food / Travel / Shopping"
+                    value={category}
+                    onChangeText={setCategory}
+                    placeholderTextColor="#9ca3af"
+                    className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
+                  />
+
+                  {/* PAYMENT METHOD */}
+                  <Text className="text-gray-700 font-semibold mb-1">
+                    Payment Method
+                  </Text>
+                  <TextInput
+                    placeholder="Cash / UPI / Card"
+                    value={paymentMethod}
+                    onChangeText={setPaymentMethod}
+                    placeholderTextColor="#9ca3af"
+                    className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
+                  />
+
+                  {/* NOTES */}
+                  <Text className="text-gray-700 font-semibold mb-1">
+                    Notes
+                  </Text>
+                  <TextInput
+                    placeholder="Add notes"
+                    value={notes}
+                    onChangeText={setNotes}
+                    multiline
+                    className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
+                  />
+
+                  {/* LOCATION */}
+                  <Text className="text-gray-700 font-semibold mb-1">
+                    Location
+                  </Text>
+                  <TextInput
+                    placeholder="Enter location"
+                    value={location}
+                    onChangeText={setLocation}
+                    className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
+                  />
+
+                  {/* RECEIPT */}
+                  <TouchableOpacity
+                    onPress={pickImage}
+                    className="p-4 rounded-xl mb-4 border border-gray-300 items-center"
+                  >
+                    <Text className="font-semibold">Upload Receipt Image</Text>
+                  </TouchableOpacity>
+
+                  {receipt && (
+                    <Image
+                      source={{ uri: receipt }}
+                      style={{
+                        width: "100%",
+                        height: 120,
+                        borderRadius: 10,
+                        marginBottom: 10,
+                      }}
+                    />
+                  )}
+
+                  {/* SAVE */}
+                  <TouchableOpacity
+                    onPress={addExpense}
+                    disabled={loading}
+                    className="p-5 rounded-xl flex-row justify-center items-center"
+                    style={{
+                      backgroundColor: "#2f5d34",
+                      opacity: loading ? 0.7 : 1,
                     }}
                   >
-                    <Picker.Item label="Select Transfer Source" value={null} color="#9ca3af" />
-                    {transferList.map((item) => (
-                      <Picker.Item
-                        key={item.id}
-                        label={`${item.name} - ₹${item.remainingAmount ?? item.amount}`}
-                        value={item.id}
-                      />
-                    ))}
-                  </Picker>
-                </View>
-
-                {selectedTransfer && (
-                  <Text className="text-green-600 mb-3">
-                    Balance: ₹{selectedTransfer.remainingAmount ?? selectedTransfer.amount}
-                  </Text>
-                )}
-
-                {/* AMOUNT */}
-                <Text className="text-gray-700 font-semibold mb-1">Amount</Text>
-                <TextInput
-                  placeholder="Enter amount"
-                  keyboardType="numeric"
-                  value={amount}
-                  onChangeText={setAmount}
-                  placeholderTextColor="#9ca3af"
-                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
-                />
-
-                {/* CATEGORY */}
-                <Text className="text-gray-700 font-semibold mb-1">Category</Text>
-                <TextInput
-                  placeholder="Food / Travel / Shopping"
-                  value={category}
-                  onChangeText={setCategory}
-                  placeholderTextColor="#9ca3af"
-                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
-                />
-
-                {/* PAYMENT METHOD */}
-                <Text className="text-gray-700 font-semibold mb-1">Payment Method</Text>
-                <TextInput
-                  placeholder="Cash / UPI / Card"
-                  value={paymentMethod}
-                  onChangeText={setPaymentMethod}
-                  placeholderTextColor="#9ca3af"
-                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
-                />
-
-                {/* NOTES */}
-                <Text className="text-gray-700 font-semibold mb-1">Notes</Text>
-                <TextInput
-                  placeholder="Add notes"
-                  value={notes}
-                  onChangeText={setNotes}
-                  multiline
-                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
-                />
-
-                {/* LOCATION */}
-                <Text className="text-gray-700 font-semibold mb-1">Location</Text>
-                <TextInput
-                  placeholder="Enter location"
-                  value={location}
-                  onChangeText={setLocation}
-                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-4"
-                />
-
-                {/* RECEIPT */}
-                <TouchableOpacity
-                  onPress={pickImage}
-                  className="p-4 rounded-xl mb-4 border border-gray-300 items-center"
-                >
-                  <Text className="font-semibold">Upload Receipt Image</Text>
-                </TouchableOpacity>
-
-                {receipt && (
-                  <Image
-                    source={{ uri: receipt }}
-                    style={{ width: "100%", height: 120, borderRadius: 10, marginBottom: 10 }}
-                  />
-                )}
-
-                {/* SAVE */}
-                <TouchableOpacity
-                  onPress={addExpense}
-                  disabled={loading}
-                  className="p-5 rounded-xl flex-row justify-center items-center"
-                  style={{ backgroundColor: "#2f5d34", opacity: loading ? 0.7 : 1 }}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="white" size="small" />
-                  ) : (
-                    <Text className="text-white text-center font-bold">Save Expense</Text>
-                  )}
-                </TouchableOpacity>
-              </ScrollView>
-                </View>
+                    {loading ? (
+                      <ActivityIndicator color="white" size="small" />
+                    ) : (
+                      <Text className="text-white text-center font-bold">
+                        Save Expense
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </ScrollView>
               </View>
-            </KeyboardAvoidingView>
-          </View>
-        </Modal>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
 
       {/* ── Toast Notification ── */}
       {toast && (
@@ -379,7 +435,12 @@ export default function AddExpense() {
             right: 20,
             zIndex: 9999,
             transform: [{ translateY: toastAnim }],
-            backgroundColor: toast.type === "success" ? "#2f5d34" : toast.type === "error" ? "#ef4444" : "#3b82f6",
+            backgroundColor:
+              toast.type === "success"
+                ? "#2f5d34"
+                : toast.type === "error"
+                  ? "#ef4444"
+                  : "#3b82f6",
             paddingVertical: 14,
             paddingHorizontal: 20,
             borderRadius: 20,
@@ -393,14 +454,30 @@ export default function AddExpense() {
             elevation: 10,
           }}
         >
-          <View style={{ backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 10, padding: 4 }}>
+          <View
+            style={{
+              backgroundColor: "rgba(255,255,255,0.2)",
+              borderRadius: 10,
+              padding: 4,
+            }}
+          >
             <Ionicons
-              name={toast.type === "success" ? "checkmark-circle" : toast.type === "error" ? "alert-circle" : "information-circle"}
+              name={
+                toast.type === "success"
+                  ? "checkmark-circle"
+                  : toast.type === "error"
+                    ? "alert-circle"
+                    : "information-circle"
+              }
               size={22}
               color="white"
             />
           </View>
-          <Text style={{ color: "white", fontWeight: "800", fontSize: 13, flex: 1 }}>{toast.message}</Text>
+          <Text
+            style={{ color: "white", fontWeight: "800", fontSize: 13, flex: 1 }}
+          >
+            {toast.message}
+          </Text>
         </Animated.View>
       )}
     </SafeAreaView>

@@ -1,7 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as AuthSession from "expo-auth-session";
-import { Audio } from "expo-av";
+let Audio: any = null;
+try {
+  Audio = require("expo-av").Audio;
+} catch (e) {
+  console.warn("expo-av not available");
+}
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
