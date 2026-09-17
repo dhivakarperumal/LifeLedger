@@ -291,22 +291,28 @@ export default function Home() {
         <View className="px-4 -mt-10">
 
           {/* QUICK ACTIONS */}
-          <View className="flex-row justify-between mb-8">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 12, paddingRight: 4 }}
+            className="mb-8"
+          >
             {[
-              { label: "Expense", icon: "wallet", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", route: "/(tabs)/expensetrack" },
-              { label: "Diary", icon: "journal", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", route: "/(tabs)/diarymaintenance" },
-              { label: "Event", icon: "calendar", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", route: "/(tabs)/reminders" },
-              { label: "Memory", icon: "images", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", route: "/(tabs)/memories" },
-              { label: "Transfer", icon: "swap-horizontal", color: "text-[#2f5d34]", bg: "bg-[#e8f1ec]", route: "/(settingsMore)/transfer" }
+              { label: "Expense", icon: "wallet", route: "/(tabs)/expensetrack" },
+              { label: "Income", icon: "cash", route: "/(settingsMore)/income" },
+              { label: "Diary", icon: "journal", route: "/(tabs)/diarymaintenance" },
+              { label: "Event", icon: "calendar", route: "/(tabs)/reminders" },
+              { label: "Memory", icon: "images", route: "/(tabs)/memories" },
+              { label: "Transfer", icon: "swap-horizontal", route: "/(settingsMore)/transfer" },
             ].map((action, i) => (
-              <TouchableOpacity key={i} onPress={() => router.push(action.route as any)} className="items-center w-[18%]">
-                <View className={`w-14 h-14 ${action.bg} rounded-2xl items-center justify-center mb-2 shadow-sm border border-white`}>
+              <TouchableOpacity key={i} onPress={() => router.push(action.route as any)} className="items-center" style={{ width: 64 }}>
+                <View className="w-14 h-14 bg-[#e8f1ec] rounded-2xl items-center justify-center mb-2 shadow-sm border border-white">
                   <Ionicons name={action.icon as any} size={24} color="#2f5d34" />
                 </View>
                 <Text className="text-[10px] text-gray-700 font-bold text-center" numberOfLines={1}>{action.label}</Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
 
           {/* MAIN SUMMARY */}
           <Text className="text-xl font-extrabold text-gray-800 mb-3 ml-1">Overview</Text>
