@@ -9,13 +9,14 @@ import {
   RefreshControl,
   ScrollView,
   Text,
+  TextInput,
   TouchableOpacity,
   View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { auth, db } from "../../firebase";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { useData } from "../../context/DataContext";
 
 export default function Home() {
@@ -32,6 +33,11 @@ export default function Home() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [userName, setUserName] = useState("User");
+  
+  // Custom Budget states
+  const [monthlyBudget, setMonthlyBudget] = useState(20000);
+  const [budgetModalVisible, setBudgetModalVisible] = useState(false);
+  const [newBudgetInput, setNewBudgetInput] = useState("");
 
   // Derived states from global data
   const todayExpense = expenses.reduce((sum: number, e: any) => {
@@ -146,8 +152,16 @@ export default function Home() {
       if (user) {
         const userRef = doc(db, "users", user.uid);
         unsubUser = onSnapshot(userRef, (snap) => {
-          if (snap.exists() && snap.data().username) {
-            setUserName(snap.data().username);
+          if (snap.exists()) {
+            const data = snap.data();
+            if (data.username) {
+              setUserName(data.username);
+            } else {
+              setUserName(user.displayName || "User");
+            }
+            if (data.monthlyBudget) {
+              setMonthlyBudget(Number(data.monthlyBudget));
+            }
           } else {
             setUserName(user.displayName || "User");
           }
@@ -183,7 +197,6 @@ export default function Home() {
     year: "numeric"
   });
 
-  const monthlyBudget = 20000;
   const budgetPercent = Math.min((monthExpense / monthlyBudget) * 100, 100);
   const sortedCats = Object.entries(categories).sort((a: any, b: any) => b[1] - a[1]).slice(0, 4);
 
@@ -221,6 +234,21 @@ export default function Home() {
   const openTransactionDetails = (transaction: any) => {
     setSelectedTransaction(transaction);
     setShowDetailSheet(true);
+  };
+
+  const handleSaveBudget = async () => {
+    if (!auth.currentUser) return;
+    const newBudget = parseInt(newBudgetInput);
+    if (!isNaN(newBudget) && newBudget > 0) {
+      try {
+        await updateDoc(doc(db, "users", auth.currentUser.uid), {
+          monthlyBudget: newBudget
+        });
+        setBudgetModalVisible(false);
+      } catch (error) {
+        console.log("Error updating budget", error);
+      }
+    }
   };
 
   if (!isInitialLoadDone && !refreshing) {
@@ -390,7 +418,19 @@ export default function Home() {
           </View>
 
           {/* BUDGET TRACKER */}
-          <Text className="text-xl font-extrabold text-gray-800 mb-3 ml-1">Monthly Budget</Text>
+          <View className="flex-row justify-between items-center mb-3 ml-1 pr-2">
+            <Text className="text-xl font-extrabold text-gray-800">Monthly Budget</Text>
+            <TouchableOpacity 
+              onPress={() => {
+                setNewBudgetInput(monthlyBudget.toString());
+                setBudgetModalVisible(true);
+              }}
+              className="bg-[#e8f1ec] px-3 py-1.5 rounded-full flex-row items-center gap-1"
+            >
+              <Ionicons name="pencil" size={12} color="#2f5d34" />
+              <Text className="text-[#2f5d34] font-bold text-[10px] uppercase tracking-wider">Edit</Text>
+            </TouchableOpacity>
+          </View>
           <View className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 mb-8">
             <View className="flex-row justify-between items-end mb-4">
               <View>
@@ -840,6 +880,34 @@ export default function Home() {
               style={{ backgroundColor: "#2f5d34", paddingVertical: 12, borderRadius: 16, alignItems: "center", marginTop: 16 }}
             >
               <Text style={{ color: "white", fontSize: 11, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 }}>Manage Reminders</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+      {/* ── BUDGET EDIT MODAL ── */}
+      <Modal visible={budgetModalVisible} transparent animationType="fade" statusBarTranslucent>
+        <TouchableOpacity style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center", paddingHorizontal: 20 }} onPress={() => setBudgetModalVisible(false)} activeOpacity={1}>
+          <TouchableOpacity activeOpacity={1} style={{ backgroundColor: "white", width: "100%", borderRadius: 32, padding: 24, shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 10 }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <Text style={{ fontSize: 20, fontWeight: "900", color: "#111827" }}>Set Monthly Budget</Text>
+              <TouchableOpacity onPress={() => setBudgetModalVisible(false)}>
+                <Ionicons name="close-circle" size={24} color="#d1d5db" />
+              </TouchableOpacity>
+            </View>
+            <View style={{ backgroundColor: "#f9fafb", borderRadius: 20, paddingHorizontal: 16, paddingVertical: 12, borderWidth: 1, borderColor: "#e5e7eb", marginBottom: 20, flexDirection: "row", alignItems: "center" }}>
+              <Text style={{ fontSize: 24, fontWeight: "900", color: "#6b7280", marginRight: 8 }}>₹</Text>
+              <TextInput
+                value={newBudgetInput}
+                onChangeText={setNewBudgetInput}
+                keyboardType="numeric"
+                style={{ flex: 1, fontSize: 24, fontWeight: "900", color: "#111827" }}
+                placeholder="20000"
+                placeholderTextColor="#9ca3af"
+                autoFocus
+              />
+            </View>
+            <TouchableOpacity onPress={handleSaveBudget} style={{ backgroundColor: "#2f5d34", paddingVertical: 16, borderRadius: 20, alignItems: "center" }}>
+              <Text style={{ color: "white", fontSize: 13, fontWeight: "900", textTransform: "uppercase", letterSpacing: 1 }}>Update Budget</Text>
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
