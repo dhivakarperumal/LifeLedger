@@ -401,9 +401,9 @@ export default function TransferScreen() {
               flexDirection: "row",
               alignItems: "center",
               backgroundColor: "rgba(255,255,255,0.06)",
-              borderRadius: 16,
+              borderRadius: 14,
               paddingHorizontal: 16,
-              height: 50,
+              height: 54,
               borderWidth: 1,
               borderColor: "rgba(255,255,255,0.1)",
             }}
@@ -435,9 +435,9 @@ export default function TransferScreen() {
           <TouchableOpacity
             onPress={() => setFilterVisible(true)}
             style={{
-              width: 50,
-              height: 50,
-              borderRadius: 16,
+              width: 54,
+              height: 54,
+              borderRadius: 14,
               alignItems: "center",
               justifyContent: "center",
               backgroundColor:

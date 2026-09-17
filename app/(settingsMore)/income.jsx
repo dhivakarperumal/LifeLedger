@@ -255,7 +255,19 @@ export default function Income() {
       <View className="flex-1 bg-gray-100">
 
         <View className="flex-row items-center mx-4 mt-4 mb-2 gap-2">
-          <View className="bg-white flex-1 px-4 py-2.5 rounded-xl shadow flex-row items-center border border-gray-100">
+          <View
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: "white",
+              borderRadius: 14,
+              paddingHorizontal: 16,
+              height: 54,
+              borderWidth: 1,
+              borderColor: "#e5e7eb",
+            }}
+          >
             <Ionicons name="search" size={20} color="#111827" className="mr-2" />
             <TextInput
               placeholder="Search by work name or amount..."
@@ -272,7 +284,16 @@ export default function Income() {
           </View>
           <TouchableOpacity
             onPress={() => setFilterVisible(true)}
-            className={`w-14 h-14 rounded-xl items-center justify-center shadow ${filterState.datePreset !== 'all' ? 'bg-[#2f5d34]' : 'bg-white border border-gray-100'}`}
+            style={{
+              width: 54,
+              height: 54,
+              borderRadius: 14,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: filterState.datePreset !== 'all' ? '#2f5d34' : 'white',
+              borderWidth: 1,
+              borderColor: filterState.datePreset !== 'all' ? '#2f5d34' : '#e5e7eb',
+            }}
           >
             <Ionicons name="options-outline" size={22} color={filterState.datePreset !== 'all' ? 'white' : '#374151'} />
           </TouchableOpacity>
