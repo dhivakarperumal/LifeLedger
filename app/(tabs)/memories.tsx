@@ -762,7 +762,7 @@ export default function Memories() {
       {/* ── Search + Filter bar ── */}
       <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <View style={{ flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "white", borderRadius: 18, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1.5, borderColor: "#f0f0f0", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 3, minHeight: 56 }}>
+          <View style={{ flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "white", borderRadius: 14, paddingHorizontal: 16, height: 54, borderWidth: 1, borderColor: "#e5e7eb" }}>
             <View style={{ backgroundColor: "#f0fdf4", borderRadius: 10, padding: 6, marginRight: 10 }}>
               <Ionicons name="search" size={18} color="#2f5d34" />
             </View>
@@ -781,7 +781,7 @@ export default function Memories() {
           </View>
           <TouchableOpacity
             onPress={() => setFilterVisible(true)}
-            style={{ width: 56, height: 56, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: filterActive ? "#2f5d34" : "white", borderWidth: 1.5, borderColor: filterActive ? "#2f5d34" : "#f0f0f0", elevation: 3 }}
+            style={{ width: 54, height: 54, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: filterActive ? "#2f5d34" : "white", borderWidth: 1, borderColor: filterActive ? "#2f5d34" : "#e5e7eb" }}
           >
             <Ionicons name="options-outline" size={22} color={filterActive ? "white" : "#374151"} />
           </TouchableOpacity>
