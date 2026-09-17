@@ -7,12 +7,12 @@ import * as Sharing from "expo-sharing";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Modal,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { auth, db } from "../../firebase";
@@ -366,9 +366,15 @@ export default function Reports() {
                 </html>
             `;
 
-      const { uri } = await Print.printToFileAsync({ html });
+      const { base64 } = await Print.printToFileAsync({ html, base64: true });
+      if (!base64 || !FileSystem.documentDirectory) {
+        throw new Error("The PDF data was not generated.");
+      }
+
       const fileUri = `${FileSystem.documentDirectory}LifeLedger_Expense_Report_${Date.now()}.pdf`;
-      await FileSystem.copyAsync({ from: uri, to: fileUri });
+      await FileSystem.writeAsStringAsync(fileUri, base64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
       if (!fileInfo.exists || fileInfo.size === 0) {
         throw new Error("The PDF file was not created correctly.");
