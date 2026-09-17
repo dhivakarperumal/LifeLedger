@@ -688,7 +688,7 @@ export default function TransferScreen() {
         onPress={openSheet}
         style={{
           position: "absolute",
-          bottom: 50,
+          bottom: 80,
           right: 24,
           width: 55,
           height: 55,

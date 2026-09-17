@@ -986,25 +986,9 @@ export default function DiaryMaintenance() {
                   placeholder="E.g. Weekend Trip, Special Dinner"
                   value={title}
                   onChangeText={setTitle}
-                  style={{
-                    width: "100%",
-                    backgroundColor: "#f8fafc",
-                    borderWidth: 1.5,
-                    borderColor: "#f0f0f0",
-                    borderRadius: 16,
-                    paddingHorizontal: 20,
-                    paddingVertical: 14,
-                    marginBottom: 20,
-                    fontSize: 13,
-                    fontWeight: "600",
-                    color: "#111827",
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 4,
-                    elevation: 2,
-                  }}
+                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-5"
                   placeholderTextColor="#9ca3af"
+                  style={{ fontSize: 14, fontWeight: "600", color: "#111827" }}
                 />
 
                 <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">
@@ -1014,25 +998,9 @@ export default function DiaryMaintenance() {
                   placeholder="Location name?"
                   value={place}
                   onChangeText={setPlace}
-                  style={{
-                    width: "100%",
-                    backgroundColor: "#f8fafc",
-                    borderWidth: 1.5,
-                    borderColor: "#f0f0f0",
-                    borderRadius: 16,
-                    paddingHorizontal: 20,
-                    paddingVertical: 14,
-                    marginBottom: 20,
-                    fontSize: 13,
-                    fontWeight: "600",
-                    color: "#111827",
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 4,
-                    elevation: 2,
-                  }}
+                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-5"
                   placeholderTextColor="#9ca3af"
+                  style={{ fontSize: 14, fontWeight: "600", color: "#111827" }}
                 />
 
                 <Text className="text-gray-400 font-black uppercase tracking-widest text-[10px] mb-2 ml-1">
@@ -1040,23 +1008,7 @@ export default function DiaryMaintenance() {
                 </Text>
                 <TouchableOpacity
                   onPress={() => setShowDatePicker(true)}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    width: "100%",
-                    backgroundColor: "#f8fafc",
-                    borderWidth: 1.5,
-                    borderColor: "#f0f0f0",
-                    borderRadius: 16,
-                    paddingHorizontal: 20,
-                    paddingVertical: 14,
-                    marginBottom: 20,
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 4,
-                    elevation: 2,
-                  }}
+                  className="w-full bg-[#dfe7c7] rounded-lg px-3 py-4 mb-5 flex-row items-center"
                 >
                   <Ionicons name="calendar-outline" size={20} color="#2f5d34" />
                   <Text
@@ -1222,24 +1174,19 @@ export default function DiaryMaintenance() {
                   textAlignVertical="top"
                   style={{
                     width: "100%",
-                    backgroundColor: "#f8fafc",
-                    borderWidth: 1.5,
-                    borderColor: "#f0f0f0",
-                    borderRadius: 16,
+                    backgroundColor: "#dfe7c7",
+                    borderWidth: 0,
+                    borderRadius: 18,
                     paddingHorizontal: 20,
-                    paddingVertical: 16,
+                    paddingVertical: 18,
                     marginBottom: 20,
                     fontSize: 14,
                     color: "#111827",
-                    minHeight: 160,
+                    minHeight: 180,
                     fontWeight: "500",
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.05,
-                    shadowRadius: 4,
-                    elevation: 2,
+                    elevation: 0,
                   }}
-                  placeholderTextColor="#9ca3af"
+                  placeholderTextColor="#7a9a7a"
                 />
 
                 {/* VOICE NOTES LIST */}
