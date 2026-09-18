@@ -88,6 +88,7 @@ export default function ExpenseTrack() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredExpenseList, setFilteredExpenseList] = useState<any[]>([]);
+  const [viewMode, setViewMode] = useState<"table" | "card">("card");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
   const [viewingItem, setViewingItem] = useState<any>(null);
@@ -671,6 +672,68 @@ export default function ExpenseTrack() {
           activeFilters={filterState}
         />
 
+        <View
+          style={{
+            flexDirection: "row",
+            backgroundColor: "#e5e7eb",
+            borderRadius: 12,
+            padding: 3,
+            marginBottom: 12,
+          }}
+        >
+          {[
+            {
+              mode: "table" as const,
+              label: "Table",
+              icon: "list-outline" as const,
+            },
+            {
+              mode: "card" as const,
+              label: "Cards",
+              icon: "grid-outline" as const,
+            },
+          ].map((option) => {
+            const selected = viewMode === option.mode;
+            return (
+              <TouchableOpacity
+                key={option.mode}
+                onPress={() => setViewMode(option.mode)}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  minHeight: 38,
+                  borderRadius: 9,
+                  backgroundColor: selected ? "#2f5d34" : "transparent",
+                  shadowColor: selected ? "#2f5d34" : "transparent",
+                  shadowOpacity: selected ? 0.22 : 0,
+                  shadowRadius: 4,
+                  elevation: selected ? 1 : 0,
+                }}
+              >
+                <Ionicons
+                  name={option.icon}
+                  size={16}
+                  color={selected ? "white" : "#6b7280"}
+                />
+                <Text
+                  style={{
+                    color: selected ? "white" : "#6b7280",
+                    fontSize: 12,
+                    fontWeight: "800",
+                  }}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         {(!isInitialLoadDone || loading) && (
           <View style={{ paddingVertical: 10 }}>
             <ActivityIndicator size="large" color="#2f5d34" />
@@ -678,15 +741,17 @@ export default function ExpenseTrack() {
         )}
 
         <FlatList
+          key={viewMode}
           data={filteredExpenseList}
           keyExtractor={(item) => item.id}
           keyboardDismissMode="on-drag"
-          numColumns={2}
+          numColumns={viewMode === "card" ? 2 : 1}
           showsVerticalScrollIndicator={false}
-          columnWrapperStyle={{
-            justifyContent: "space-between",
-            paddingHorizontal: 0,
-          }}
+          columnWrapperStyle={
+            viewMode === "card"
+              ? { justifyContent: "space-between", paddingHorizontal: 0 }
+              : undefined
+          }
           contentContainerStyle={{ paddingBottom: 120, paddingTop: 4 }}
           ListEmptyComponent={
             <View style={{ alignItems: "center", marginTop: 60 }}>
@@ -713,9 +778,9 @@ export default function ExpenseTrack() {
                 onPress={() => openViewModal(item)}
                 activeOpacity={0.88}
                 style={{
-                  width: "48.5%",
+                  width: viewMode === "card" ? "48.5%" : "100%",
                   marginBottom: 14,
-                  borderRadius: 22,
+                  borderRadius: viewMode === "card" ? 22 : 16,
                   backgroundColor: "white",
                   padding: 14,
                   borderWidth: 1,
@@ -725,7 +790,7 @@ export default function ExpenseTrack() {
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.07,
                   shadowRadius: 8,
-                  minHeight: 150,
+                  minHeight: viewMode === "card" ? 150 : 96,
                   justifyContent: "space-between",
                 }}
               >
