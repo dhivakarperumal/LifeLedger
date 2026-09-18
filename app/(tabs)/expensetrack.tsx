@@ -6,31 +6,31 @@ import * as ImagePicker from "expo-image-picker";
 import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Animated,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Linking,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Linking,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import {
-    SafeAreaView,
-    useSafeAreaInsets,
+  SafeAreaView,
+  useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import DarkDropdown from "../../components/DarkDropdown";
 import FilterSheet, {
-    applyFilters,
-    defaultFilterState,
-    FilterState,
+  applyFilters,
+  defaultFilterState,
+  FilterState,
 } from "../../components/FilterSheet";
 
 import { useAuth } from "../../context/AuthContext";
@@ -38,13 +38,13 @@ import { useData } from "../../context/DataContext";
 import { db } from "../../firebase";
 
 import {
-    addDoc,
-    collection,
-    deleteDoc,
-    doc,
-    serverTimestamp,
-    Timestamp,
-    updateDoc,
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  Timestamp,
+  updateDoc,
 } from "firebase/firestore";
 
 export default function ExpenseTrack() {
@@ -575,7 +575,7 @@ export default function ExpenseTrack() {
   };
 
   return (
-    <SafeAreaView edges={[]} className="flex-1 ">
+    <SafeAreaView edges={[]} className="flex-1 bg-white">
       <View className="flex-1 bg-white p-0 mt-5 px-4">
         <View
           style={{

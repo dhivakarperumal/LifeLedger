@@ -59,7 +59,8 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "expo-camera"
+      "expo-camera",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true
