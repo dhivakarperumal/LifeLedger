@@ -1,15 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as AuthSession from "expo-auth-session";
-// expo-av requires a native dev build (not supported in Expo Go for SDK 50+)
-// Safely import to prevent crash when running in Expo Go
-let Audio: typeof import("expo-av").Audio | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  Audio = require("expo-av").Audio;
-} catch {
-  Audio = null;
-}
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import * as Sharing from "expo-sharing";
@@ -57,6 +48,15 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { useData } from "../../context/DataContext";
 import { auth, db } from "../../firebase";
+// expo-av requires a native dev build (not supported in Expo Go for SDK 50+)
+// Safely import to prevent crash when running in Expo Go
+let Audio: typeof import("expo-av").Audio | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  Audio = require("expo-av").Audio;
+} catch {
+  Audio = null;
+}
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -81,6 +81,7 @@ export default function Memories() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"table" | "card">("card");
 
   // ─── Filter states ────────────────────────────────────────────────
   const MEMORY_FILTER_GROUPS = [
@@ -653,9 +654,9 @@ export default function Memories() {
           if (!selectionMode) enterSelection(item.id);
         }}
         style={{
-          width: "48%",
+          width: viewMode === "card" ? "48%" : "100%",
           marginBottom: 16,
-          borderRadius: 28,
+          borderRadius: viewMode === "card" ? 28 : 18,
           backgroundColor: "white",
           borderWidth: isSelected ? 2 : 1,
           borderColor: isSelected ? "#2f5d34" : "#f3f4f6",
@@ -1193,7 +1194,7 @@ export default function Memories() {
     Object.values(filterState.chips).some((a) => a.length > 0);
 
   return (
-    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: "#f9fafb" }}>
+    <SafeAreaView edges={[]} style={{ flex: 1, backgroundColor: "white" }}>
       {/* ── Selection action bar ── */}
 
       {/* ── Search + Filter bar ── */}
@@ -1272,10 +1273,68 @@ export default function Memories() {
           chipGroups={MEMORY_FILTER_GROUPS}
           activeFilters={filterState}
         />
+
+        <View
+          style={{
+            flexDirection: "row",
+            backgroundColor: "#e5e7eb",
+            borderRadius: 12,
+            padding: 3,
+            marginTop: 12,
+          }}
+        >
+          {[
+            {
+              mode: "table" as const,
+              label: "Table",
+              icon: "list-outline" as const,
+            },
+            {
+              mode: "card" as const,
+              label: "Cards",
+              icon: "grid-outline" as const,
+            },
+          ].map((option) => {
+            const selected = viewMode === option.mode;
+            return (
+              <TouchableOpacity
+                key={option.mode}
+                onPress={() => setViewMode(option.mode)}
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  minHeight: 38,
+                  borderRadius: 9,
+                  backgroundColor: selected ? "#2f5d34" : "transparent",
+                }}
+              >
+                <Ionicons
+                  name={option.icon}
+                  size={16}
+                  color={selected ? "white" : "#6b7280"}
+                />
+                <Text
+                  style={{
+                    color: selected ? "white" : "#6b7280",
+                    fontSize: 12,
+                    fontWeight: "800",
+                  }}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
       {/* ── Gallery grid ── */}
-      <View style={{ flex: 1, paddingHorizontal: 16 }}>
+      <View
+        style={{ flex: 1, paddingHorizontal: 16, backgroundColor: "white" }}
+      >
         {loading && !refreshing ? (
           <View
             style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
@@ -1284,11 +1343,16 @@ export default function Memories() {
           </View>
         ) : (
           <FlatList
+            key={viewMode}
             data={filteredMemories}
             keyExtractor={(item) => item.id}
-            numColumns={2}
+            numColumns={viewMode === "card" ? 2 : 1}
             showsVerticalScrollIndicator={false}
-            columnWrapperStyle={{ justifyContent: "space-between" }}
+            columnWrapperStyle={
+              viewMode === "card"
+                ? { justifyContent: "space-between" }
+                : undefined
+            }
             contentContainerStyle={{ paddingBottom: 20, paddingTop: 10 }}
             refreshControl={
               <RefreshControl

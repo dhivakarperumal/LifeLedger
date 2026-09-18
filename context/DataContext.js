@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { createContext, useContext, useEffect, useState } from "react";
 import { db } from "../firebase";
 import { useAuth } from "./AuthContext";
 
@@ -8,7 +8,7 @@ const DataContext = createContext();
 export function DataProvider({ children }) {
   const { user } = useAuth();
   const [dataLoading, setDataLoading] = useState(false);
-  
+
   // Data stores
   const [expenses, setExpenses] = useState([]);
   const [income, setIncome] = useState([]);
@@ -35,9 +35,9 @@ export function DataProvider({ children }) {
 
     setDataLoading(true);
     setLoadedCollections(new Set());
-    
+
     const checkCollection = (name) => {
-      setLoadedCollections(prev => {
+      setLoadedCollections((prev) => {
         const next = new Set(prev);
         next.add(name);
         if (next.size === 6) {
@@ -50,65 +50,32 @@ export function DataProvider({ children }) {
 
     const userId = user.uid;
 
-    const unsubExpenses = onSnapshot(
-      query(collection(db, "expenses"), where("userId", "==", userId)),
-      (snap) => {
-        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setExpenses(list);
-        checkCollection("expenses");
-      },
-      (err) => { console.log("Expenses fetch error:", err); checkCollection("expenses"); }
-    );
+    const subscribe = (name, setter, collectionName) => {
+      try {
+        return onSnapshot(
+          query(collection(db, collectionName), where("userId", "==", userId)),
+          (snap) => {
+            setter(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+            checkCollection(name);
+          },
+          (error) => {
+            console.error(`${name} fetch error:`, error);
+            checkCollection(name);
+          },
+        );
+      } catch (error) {
+        console.error(`${name} subscription setup failed:`, error);
+        checkCollection(name);
+        return () => {};
+      }
+    };
 
-    const unsubIncome = onSnapshot(
-      query(collection(db, "income"), where("userId", "==", userId)),
-      (snap) => {
-        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setIncome(list);
-        checkCollection("income");
-      },
-      (err) => { console.log("Income fetch error:", err); checkCollection("income"); }
-    );
-
-    const unsubTransfers = onSnapshot(
-      query(collection(db, "transfers"), where("userId", "==", userId)),
-      (snap) => {
-        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setTransfers(list);
-        checkCollection("transfers");
-      },
-      (err) => { console.log("Transfers fetch error:", err); checkCollection("transfers"); }
-    );
-
-    const unsubDiaries = onSnapshot(
-      query(collection(db, "diaries"), where("userId", "==", userId)),
-      (snap) => {
-        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setDiaries(list);
-        checkCollection("diaries");
-      },
-      (err) => { console.log("Diaries fetch error:", err); checkCollection("diaries"); }
-    );
-
-    const unsubMemories = onSnapshot(
-      query(collection(db, "memories"), where("userId", "==", userId)),
-      (snap) => {
-        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setMemories(list);
-        checkCollection("memories");
-      },
-      (err) => { console.log("Memories fetch error:", err); checkCollection("memories"); }
-    );
-
-    const unsubReminders = onSnapshot(
-      query(collection(db, "reminders"), where("userId", "==", userId)),
-      (snap) => {
-        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setReminders(list);
-        checkCollection("reminders");
-      },
-      (err) => { console.log("Reminders fetch error:", err); checkCollection("reminders"); }
-    );
+    const unsubExpenses = subscribe("expenses", setExpenses, "expenses");
+    const unsubIncome = subscribe("income", setIncome, "income");
+    const unsubTransfers = subscribe("transfers", setTransfers, "transfers");
+    const unsubDiaries = subscribe("diaries", setDiaries, "diaries");
+    const unsubMemories = subscribe("memories", setMemories, "memories");
+    const unsubReminders = subscribe("reminders", setReminders, "reminders");
 
     return () => {
       unsubExpenses();
@@ -121,8 +88,14 @@ export function DataProvider({ children }) {
   }, [user]);
 
   const value = {
-    expenses, income, transfers, diaries, memories, reminders,
-    isInitialLoadDone, dataLoading
+    expenses,
+    income,
+    transfers,
+    diaries,
+    memories,
+    reminders,
+    isInitialLoadDone,
+    dataLoading,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

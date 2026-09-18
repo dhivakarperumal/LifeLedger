@@ -1,6 +1,51 @@
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as AuthSession from "expo-auth-session";
+import * as FileSystem from "expo-file-system/legacy";
+import * as ImagePicker from "expo-image-picker";
+import { useNavigation } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
+import {
+    addDoc,
+    collection,
+    deleteDoc,
+    doc,
+    Timestamp,
+    updateDoc,
+} from "firebase/firestore";
+import { useEffect, useRef, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    Animated,
+    FlatList,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import {
+    SafeAreaView,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import FilterSheet, {
+    applyFilters,
+    defaultFilterState,
+    FilterState,
+} from "../../components/FilterSheet";
+import {
+    getOrCreateFolder,
+    GOOGLE_DRIVE_FOLDER_NAME,
+    uploadMediaToDrive,
+} from "../../components/GoogleDriveHelper";
+import { useAuth } from "../../context/AuthContext";
+import { useData } from "../../context/DataContext";
+import { auth, db } from "../../firebase";
 // expo-av requires a native dev build (not supported in Expo Go for SDK 50+)
 // Safely import to prevent crash when running in Expo Go
 let Audio: typeof import("expo-av").Audio | null = null;
@@ -10,51 +55,6 @@ try {
 } catch {
   Audio = null;
 }
-import * as FileSystem from "expo-file-system/legacy";
-import * as ImagePicker from "expo-image-picker";
-import { useNavigation } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  Timestamp,
-  updateDoc,
-} from "firebase/firestore";
-import { useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
-import FilterSheet, {
-  applyFilters,
-  defaultFilterState,
-  FilterState,
-} from "../../components/FilterSheet";
-import {
-  getOrCreateFolder,
-  GOOGLE_DRIVE_FOLDER_NAME,
-  uploadMediaToDrive,
-} from "../../components/GoogleDriveHelper";
-import { useAuth } from "../../context/AuthContext";
-import { useData } from "../../context/DataContext";
-import { auth, db } from "../../firebase";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -120,6 +120,7 @@ export default function DiaryMaintenance() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredDiaryList, setFilteredDiaryList] = useState<any[]>([]);
+  const [viewMode, setViewMode] = useState<"table" | "card">("card");
 
   const DIARY_FILTER_GROUPS = [
     {
@@ -564,12 +565,9 @@ export default function DiaryMaintenance() {
   };
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      style={{ flex: 1, backgroundColor: "#f9fafb" }}
-    >
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "white" }}>
       {/* DIARY LIST */}
-      <View className="flex-1 p-0 px-4 pb-0">
+      <View className="flex-1 bg-white p-0 px-4 pb-0">
         <View
           style={{
             flexDirection: "row",
@@ -665,6 +663,62 @@ export default function DiaryMaintenance() {
           activeFilters={filterState}
         />
 
+        <View
+          style={{
+            flexDirection: "row",
+            backgroundColor: "#e5e7eb",
+            borderRadius: 12,
+            padding: 3,
+            marginTop: 12,
+          }}
+        >
+          {[
+            {
+              mode: "table" as const,
+              label: "Table",
+              icon: "list-outline" as const,
+            },
+            {
+              mode: "card" as const,
+              label: "Cards",
+              icon: "grid-outline" as const,
+            },
+          ].map((option) => {
+            const selected = viewMode === option.mode;
+            return (
+              <TouchableOpacity
+                key={option.mode}
+                onPress={() => setViewMode(option.mode)}
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  minHeight: 38,
+                  borderRadius: 9,
+                  backgroundColor: selected ? "#2f5d34" : "transparent",
+                }}
+              >
+                <Ionicons
+                  name={option.icon}
+                  size={16}
+                  color={selected ? "white" : "#6b7280"}
+                />
+                <Text
+                  style={{
+                    color: selected ? "white" : "#6b7280",
+                    fontSize: 12,
+                    fontWeight: "800",
+                  }}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         {filteredDiaryList.length === 0 ? (
           <View className="flex-1 items-center justify-center">
             <Text className="text-gray-500 text-xl font-semibold mb-2">
@@ -676,10 +730,15 @@ export default function DiaryMaintenance() {
           </View>
         ) : (
           <FlatList
+            key={viewMode}
             data={filteredDiaryList}
             keyExtractor={(item) => item.id}
-            numColumns={2}
-            columnWrapperStyle={{ justifyContent: "space-between" }}
+            numColumns={viewMode === "card" ? 2 : 1}
+            columnWrapperStyle={
+              viewMode === "card"
+                ? { justifyContent: "space-between" }
+                : undefined
+            }
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 100, paddingTop: 4 }}
             renderItem={({ item }) => (
@@ -688,7 +747,8 @@ export default function DiaryMaintenance() {
                   setViewingItem(item);
                   setShowViewModal(true);
                 }}
-                className="bg-white p-4 rounded-[28px] mb-4 shadow-sm border border-gray-100 w-[48%] relative overflow-hidden"
+                className={`bg-white p-4 mb-4 shadow-sm border border-gray-100 relative overflow-hidden ${viewMode === "card" ? "rounded-[28px]" : "rounded-[18px]"}`}
+                style={{ width: viewMode === "card" ? "48%" : "100%" }}
               >
                 {item.images && item.images.length > 0 ? (
                   <View className="relative">

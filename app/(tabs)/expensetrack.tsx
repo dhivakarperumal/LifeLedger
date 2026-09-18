@@ -576,7 +576,7 @@ export default function ExpenseTrack() {
 
   return (
     <SafeAreaView edges={[]} className="flex-1 ">
-      <View className="flex-1 bg-gray-100 p-0 mt-5 px-4">
+      <View className="flex-1 bg-white p-0 mt-5 px-4">
         <View
           style={{
             flexDirection: "row",

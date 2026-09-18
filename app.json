@@ -4,10 +4,9 @@
     "slug": "LifeLedger",
     "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/images/l1.jpeg",
+    "icon": "./assets/images/logo.png",
     "scheme": "myexpensiveapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -19,11 +18,9 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/l1.jpeg",
-        "backgroundImage": "./assets/images/l1.jpeg",
-        "monochromeImage": "./assets/images/l1.jpeg"
+        "foregroundImage": "./assets/images/logo.png",
+        "monochromeImage": "./assets/images/logo.png"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "CAMERA",
@@ -62,11 +59,11 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-camera"
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
     }
   }
 }

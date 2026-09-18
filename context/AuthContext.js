@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
-import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { createContext, useContext, useEffect, useState } from "react";
+import { auth } from "../firebase";
 
 const AuthContext = createContext();
 
@@ -10,10 +9,26 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    let unsubscribe = () => {};
+
+    try {
+      unsubscribe = onAuthStateChanged(
+        auth,
+        (nextUser) => {
+          setUser(nextUser);
+          setLoading(false);
+        },
+        (error) => {
+          console.error("Firebase auth initialization failed:", error);
+          setUser(null);
+          setLoading(false);
+        },
+      );
+    } catch (error) {
+      console.error("Firebase auth setup failed:", error);
+      setUser(null);
       setLoading(false);
-    });
+    }
 
     return unsubscribe;
   }, []);
