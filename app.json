@@ -4,7 +4,7 @@
     "slug": "LifeLedger",
     "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/images/logo.png",
+    "icon": "./assets/images/l1.jpeg",
     "scheme": "myexpensiveapp",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -18,8 +18,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/logo.png",
-        "monochromeImage": "./assets/images/logo.png"
+        "foregroundImage": "./assets/images/l1.jpeg"
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
